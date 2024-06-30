@@ -1,0 +1,43 @@
+deck:
+  Grandmaster of the Six Samurai:
+    qty: 1
+  Secret Six Samurai - Kizaru:
+    qty: 3
+  Legendary Six Samurai - Kizan:
+    qty: 3
+  Secret Six Samurai - Hatsume:
+    qty: 1
+  The Six Samurai - Yariza:
+    qty: 1
+  Anarchist Monk of the Six Samurai:
+    qty: 2
+  Legendary Six Samurai - Kageki:
+    qty: 3
+  Ash Blossom & Joyous Spring:
+    qty: 3
+  Instructor of the Six Samurai:
+    qty: 3
+  Secret Six Samurai - Fuma:
+    qty: 1
+  Effect Veiler:
+    qty: 3
+  Reinforcement of the Army:
+    qty: 1
+  Shien's Smoke Signal:
+    qty: 3
+  Cunning of the Six Samurai:
+    qty: 2
+  Asceticism of the Six Samurai:
+    qty: 1
+  Six Strike - Double Assault:
+    qty: 2
+  Gateway of the Six:
+    qty: 1
+  Shien's Dojo:
+    qty: 3
+  Infinite Impermanence:
+    qty: 3
+
+results:
+  - A AND B
+  - A AND (B OR C)
