@@ -58,8 +58,7 @@ class Deck {
     }
 }
 
-function buildDeck(input) {
-    const deckList = input.deck;
+function buildDeck(deckList) {
     const cards = [];
     for (const [card, details] of Object.entries(deckList)) {
         const qty = details.qty || 1;

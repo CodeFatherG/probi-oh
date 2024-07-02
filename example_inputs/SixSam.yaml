@@ -1,30 +1,58 @@
 deck:
   Grandmaster of the Six Samurai:
     qty: 1
+    tags:
+    - Six Samurai
   Secret Six Samurai - Kizaru:
     qty: 3
+    tags:
+    - Six Samurai
   Legendary Six Samurai - Kizan:
     qty: 3
+    tags:
+    - Six Samurai
   Secret Six Samurai - Hatsume:
     qty: 1
+    tags:
+    - Six Samurai
   The Six Samurai - Yariza:
     qty: 1
+    tags:
+    - Six Samurai
   Anarchist Monk of the Six Samurai:
     qty: 2
+    tags:
+    - Six Samurai
   Legendary Six Samurai - Kageki:
     qty: 3
+    tags:
+    - Six Samurai
   Ash Blossom & Joyous Spring:
     qty: 3
+    tags:
+    - Hand Trap
   Instructor of the Six Samurai:
     qty: 3
+    tags:
+    - Six Samurai
   Secret Six Samurai - Fuma:
     qty: 1
+    tags:
+    - Six Samurai
   Effect Veiler:
     qty: 3
+    tags:
+    - Hand Trap
   Reinforcement of the Army:
     qty: 1
+    tags:
+    - Search
+    - Six Samurai
   Shien's Smoke Signal:
     qty: 3
+    tags:
+    - Search
+    - Six Samurai
   Cunning of the Six Samurai:
     qty: 2
   Asceticism of the Six Samurai:
@@ -33,11 +61,17 @@ deck:
     qty: 2
   Gateway of the Six:
     qty: 1
+    tags:
+    - Counter
   Shien's Dojo:
     qty: 3
+    tags:
+    - Counter
   Infinite Impermanence:
     qty: 3
+    tags:
+    - Hand Trap
 
-results:
-  - A AND B
-  - A AND (B OR C)
+conditions:
+  - 2+ Six Samurai OR (1+ Six Samurai AND 1+ Counter)
+  - 2+ Six Samurai OR (1+ Six Samurai AND 1+ Counter) OR 1+ Search
