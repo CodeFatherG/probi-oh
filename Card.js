@@ -3,6 +3,7 @@ class Card {
         this._name = cardName;
         this._details = cardDetails;
         this._tags = cardDetails.tags || null;
+        this._free = cardDetails.free || null;
     }
 
     get name() {
@@ -21,18 +22,29 @@ class Card {
         return this._details;
     }
 
-    get cardFreeCount() {
-        switch (this.nameLower) {
-            case "upstart goblin": return 1;
-            case "pot of prosperity":
-            case "pot of extravagance": return 6;
-            case "pot of duality": return 3;
-            case "pot of desires": return 2;
-            default: return 0;
-        }
+    get cardIsFree() {
+        return this._free != null;
     }
 
-    get cardIsFree() {
-        return this.cardFreeCount > 0;
+    processFreeCard(deck) {
+        if (!this.cardIsFree) return [];
+        
+        const cost = this._free.cost || 0;
+        const count = this._free.cards || 0;
+        const destination = this._free.destination || 0;
+
+        console.log(`Sending ${cost} cards to ${count} for ${count} cards`);
+
+        if (cost + count > deck.deckCount) {
+            return [];
+        }
+
+        if (destination == 'grave') {
+            deck.mill(cost);
+        } else {
+            deck.banish(cost);
+        }
+
+        return deck.draw(count);
     }
 }

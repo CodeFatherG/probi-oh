@@ -71,6 +71,14 @@ deck:
     qty: 3
     tags:
     - Hand Trap
+  Free Card A:
+    qty: 5
+    tags:
+      - Free Card
+    free:
+      cost: 3
+      cards: 2
+      destination: grave  
 
 conditions:
   - 2+ Six Samurai OR (1+ Six Samurai AND 1+ Counter)

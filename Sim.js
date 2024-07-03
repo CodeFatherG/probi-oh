@@ -29,18 +29,18 @@ async function loadFromYamlFile(file) {
 }
 
 async function simulateDraw(deck, conditions, handSize, trials) {
-    let successCounts = new Array(conditions.length).fill(0);
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
+    let simulations = Array(conditions.length).fill().map(() => []);
 
     for (let i = 0; i < trials; i++) {
         deck.reset();
         const hand = deck.draw(handSize);
-        
+
         conditions.forEach((condition, index) => {
-            if (condition.evaluate(hand)) {
-                successCounts[index]++;
-            }
+            const simulation = new Simulation(deck, hand, condition);
+            simulations[index].push(simulation);
+            simulation.run();
         });
         
         if (i % 100 === 0 || i === trials - 1) {
@@ -53,13 +53,68 @@ async function simulateDraw(deck, conditions, handSize, trials) {
         }
     }
 
+    // Calculate success rates
+    const successRates = simulations.map(simulationSet => 
+        simulationSet.filter(sim => sim.result).length / trials
+    );
+
     // Write detailed results
     writeInfo("\nDetailed Condition Results:");
     conditions.forEach((condition, index) => {
         writeDetailedResults(condition, trials, 0);
     });
 
-    return successCounts.map(count => count / trials);
+    evaluateDeadCards(simulations);
+
+    return successRates;
+}
+
+function evaluateDeadCards(simulations) {
+    let totalBanishedCards = [];
+    let totalGraveCards = [];
+
+    simulations.forEach(simulationSet => {
+        simulationSet.forEach(simulation => {
+            totalBanishedCards.push(...simulation.deck.banishedCards);
+            totalGraveCards.push(...simulation.deck.graveCards);
+        });
+    });
+
+    function countTags(cards) {
+        const tagCounts = {};
+        cards.forEach(card => {
+            if (card.tags) {
+                card.tags.forEach(tag => {
+                    tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+                });
+            }
+        });
+        return tagCounts;
+    }
+
+    const banishedTags = countTags(totalBanishedCards);
+    const graveTags = countTags(totalGraveCards);
+
+    const totalBanished = totalBanishedCards.length;
+    const totalGrave = totalGraveCards.length;
+    const totalSimulations = simulations.reduce((sum, simulationSet) => sum + simulationSet.length, 0);
+
+    writeInfo("\nDead Cards Analysis:");
+    writeInfo("Banished Cards Tags:");
+    for (const [tag, count] of Object.entries(banishedTags)) {
+        writeInfo(`  ${tag}: ${count/totalSimulations} p/h`);
+    }
+
+    writeInfo("\nGrave Cards Tags:");
+    for (const [tag, count] of Object.entries(graveTags)) {
+        writeInfo(`  ${tag}: ${count/totalSimulations} p/h`);
+    }
+
+    writeInfo(`\nTotal Banished Cards: ${totalBanished}`);
+    writeInfo(`Total Grave Cards: ${totalGrave}`);
+    writeInfo(`Total Dead Cards: ${totalBanished + totalGrave}`);
+    writeInfo(`Average Banished Cards per Simulation: ${(totalBanished / totalSimulations).toFixed(2)}`);
+    writeInfo(`Average Grave Cards per Simulation: ${(totalGrave / totalSimulations).toFixed(2)}`);
 }
 
 function writeDetailedResults(condition, trials, depth) {
@@ -96,11 +151,22 @@ async function runSimulation(input) {
     console.log(`Deck size: ${deck.deckCount}`);
     console.log(`Cards in deck: ${deck.deckList.map(card => card.name).join(', ')}`);
     
-    const probability = await simulateDraw(deck, conditions, 5, 10000);
-    const resultElement = document.getElementById('result');
-    resultElement.textContent = `Probability of success: ${(probability * 100).toFixed(2)}%`;
+    const probabilities = await simulateDraw(deck, conditions, 5, 10000);
     
-    console.log(`Simulation complete. Success probability: ${(probability * 100).toFixed(2)}%`);
+    const resultElement = document.getElementById('result');
+    
+    // Find maximum probability
+    const maxProbability = Math.max(...probabilities);
+    
+    resultElement.textContent = `Maximum probability of success: ${(maxProbability * 100).toFixed(2)}%`;
+    
+    // Display individual probabilities
+    writeInfo("\nIndividual Condition Probabilities:");
+    conditions.forEach((condition, index) => {
+        writeInfo(`Condition ${index + 1}: ${(probabilities[index] * 100).toFixed(2)}%`);
+    });
+    
+    console.log(`Simulation complete. Maximum success probability: ${(maxProbability * 100).toFixed(2)}%`);
 }
 
 let isSimulationRunning = false;
@@ -115,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const file = fileInput.files[0];
         if (!file) {
             resultElement.textContent = 'Please select a YAML file.';
-            return;
+            return; 
         }
 
         if (isSimulationRunning) {
@@ -128,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('spinner').style.display = 'block';
         // Disable run button
         runButton.disabled = true;
+        progressBar.style.width = `0%`;
         isSimulationRunning = true;
 
         try {

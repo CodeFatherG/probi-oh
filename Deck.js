@@ -7,6 +7,18 @@ class Deck {
         this._cards = cards;
         this._deck_list = cards.slice()
         this.shuffle();
+
+        this._banished = [];
+        this._grave = [];
+    }
+
+    deepCopy() {
+        const newDeck = new Deck([]);
+        newDeck._cards = this._cards.map(card => new Card(card.name, { ...card.details }));
+        newDeck._deck_list = newDeck._cards.slice();
+        newDeck._banished = this._banished.map(card => new Card(card.name, { ...card.details }));
+        newDeck._grave = this._grave.map(card => new Card(card.name, { ...card.details }));
+        return newDeck;
     }
 
     drawCard() {
@@ -15,18 +27,14 @@ class Deck {
     }
 
     draw(count) {
-        console.log('Drawing hand')
         const hand = [];
         for (let i = 0; i < count; i++) {
             const card = this.drawCard();
             if (card.cardIsFree) {
-                console.log(`Card ${card.name} is ${card.cardFreeCount} free cards`)
-                hand.push(...this.draw(card.cardFreeCount));
+                hand.push(...card.processFreeCard(this));
             } else {
                 hand.push(card);
             }
-
-            console.log(`Card ${i} is ${card.name}`)
         }
 
         console.log(`Cards in hand: ${hand.map(card => card.name).join(', ')}`);
@@ -46,7 +54,35 @@ class Deck {
         let countBefore = this.deckList.length
         this._cards = this._deck_list.slice()
         this.shuffle()
+        this._banished = [];
+        this._grave = [];
         console.log(`Resetting the deck from ${countBefore} to ${this.deckList.length}`)
+    }
+
+    banish(count)
+    {
+        const hand = [];
+        for (let i = 0; i < count; i++) {
+            const card = this.drawCard();
+            hand.push(card);
+        }
+
+        console.log(`Cards banished: ${hand.map(card => card.name).join(', ')}`);
+
+        this._banished.push(...hand);
+    }
+
+    mill(count)
+    {
+        const hand = [];
+        for (let i = 0; i < count; i++) {
+            const card = this.drawCard();
+            hand.push(card);
+        }
+
+        console.log(`Cards milled: ${hand.map(card => card.name).join(', ')}`);
+
+        this._grave.push(...hand);
     }
 
     get deckList() {
@@ -55,6 +91,14 @@ class Deck {
 
     get deckCount() {
         return this._cards.length;
+    }
+
+    get banishedCards() {
+        return this._banished;
+    }
+
+    get graveCards() {
+        return this._grave;
     }
 }
 
