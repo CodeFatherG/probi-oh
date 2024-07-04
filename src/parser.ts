@@ -1,7 +1,12 @@
-function parse(tokens) {
+interface Token {
+    type: string;
+    value: string;
+}
+
+function parse(tokens: Token[]): BaseCondition {
     let current = 0;
 
-    function walk() {
+    function walk(): BaseCondition {
         let token = tokens[current];
         console.log(`Processing token:`, token);
 
@@ -37,19 +42,19 @@ function parse(tokens) {
         throw new TypeError(`Unexpected token type: ${token.type}`);
     }
 
-    function parseExpression() {
-        let left = walk();
-
+    function parseExpression(): BaseCondition {
+        let left: BaseCondition = walk();
+    
         while (current < tokens.length && tokens[current].type === 'operator') {
             let operator = tokens[current].value;
             console.log(`Processing ${operator} operator`);
             current++;
-            let right = walk();
-
+            let right: BaseCondition = walk();
+    
             console.log(`Creating ${operator}Condition`);
             left = operator === 'AND' ? new AndCondition([left, right]) : new OrCondition([left, right]);
         }
-
+    
         return left;
     }
 
@@ -59,8 +64,8 @@ function parse(tokens) {
     return result;
 }
 
-function tokenize(input) {
-    const tokens = [];
+function tokenize(input: string): Token[] {
+    const tokens: Token[] = [];
     let current = 0;
 
     while (current < input.length) {
@@ -80,7 +85,7 @@ function tokenize(input) {
             continue;
         }
 
-        function isANDToken(slice) {
+        function isANDToken(slice: string): RegExpMatchArray | null {
             return slice.match(/^AND\b/);
         }
 
@@ -91,7 +96,7 @@ function tokenize(input) {
             continue;
         }
 
-        function isORToken(slice) {
+        function isORToken(slice: string): RegExpMatchArray | null {
             return slice.match(/^OR\b/);
         }
 
@@ -142,8 +147,8 @@ function tokenize(input) {
     return tokens;
 }
 
-function parseCondition(conditions) {
+function parseCondition(conditions: string): BaseCondition {
     const tokens = tokenize(conditions);
-    console.log(tokens)
+    console.log(tokens);
     return parse(tokens);
 }

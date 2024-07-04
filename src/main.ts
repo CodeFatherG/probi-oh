@@ -1,21 +1,33 @@
-let infoOutput;
+import './simulation';
+import './card';
+import './deck';
+import './condition';
+import './parser';
+import yaml from 'js-yaml';
 
-function writeInfo(message) {
+let infoOutput: HTMLTextAreaElement;
+
+function writeInfo(message: string): void {
     infoOutput.value += message + '\n';
     infoOutput.scrollTop = infoOutput.scrollHeight; // Auto-scroll to bottom
 }
 
-function clearInfo() {
+function clearInfo(): void {
     infoOutput.value = '';
 }
 
-async function loadFromYamlFile(file) {
+interface SimulationInput {
+    deck: Deck;
+    conditions: (BaseCondition)[];
+}
+
+async function loadFromYamlFile(file: File): Promise<SimulationInput> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = (event: ProgressEvent<FileReader>) => {
             try {
-                const yamlText = event.target.result;
-                const input = jsyaml.load(yamlText);
+                const yamlText = event.target?.result as string;
+                const input = yaml.load(yamlText) as { deck: Record<string, CardDetails>, conditions: string[] };
                 const deck = buildDeck(input.deck);
                 const conditions = input.conditions.map(parseCondition);
                 resolve({ deck, conditions });
@@ -28,10 +40,10 @@ async function loadFromYamlFile(file) {
     });
 }
 
-async function simulateDraw(deck, conditions, handSize, trials) {
-    const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
-    let simulations = Array(conditions.length).fill().map(() => []);
+async function simulateDraw(deck: Deck, conditions: (BaseCondition)[], handSize: number, trials: number): Promise<number[]> {
+    const progressBar = document.getElementById('progressBar') as HTMLElement;
+    const progressText = document.getElementById('progressText') as HTMLElement;
+    let simulations: Simulation[][] = Array(conditions.length).fill([]).map(() => []);
 
     for (let i = 0; i < trials; i++) {
         deck.reset();
@@ -69,9 +81,9 @@ async function simulateDraw(deck, conditions, handSize, trials) {
     return successRates;
 }
 
-function evaluateDeadCards(simulations) {
-    let totalBanishedCards = [];
-    let totalGraveCards = [];
+function evaluateDeadCards(simulations: Simulation[][]): void {
+    let totalBanishedCards: Card[] = [];
+    let totalGraveCards: Card[] = [];
 
     simulations.forEach(simulationSet => {
         simulationSet.forEach(simulation => {
@@ -80,8 +92,8 @@ function evaluateDeadCards(simulations) {
         });
     });
 
-    function countTags(cards) {
-        const tagCounts = {};
+    function countTags(cards: Card[]): Record<string, number> {
+        const tagCounts: Record<string, number> = {};
         cards.forEach(card => {
             if (card.tags) {
                 card.tags.forEach(tag => {
@@ -117,7 +129,7 @@ function evaluateDeadCards(simulations) {
     writeInfo(`Average Grave Cards per Simulation: ${(totalGrave / totalSimulations).toFixed(2)}`);
 }
 
-function writeDetailedResults(condition, trials, depth) {
+function writeDetailedResults(condition: BaseCondition, trials: number, depth: number): void {
     const indent = "  ".repeat(depth);
     const successRate = (condition.successes / trials * 100).toFixed(2);
 
@@ -135,15 +147,12 @@ function writeDetailedResults(condition, trials, depth) {
     }
 }
 
-function describeCondition(condition) {
-    if (condition instanceof Condition) {
-        let quantityText = condition.quantity === 1 ? "" : `${condition.quantity}${condition.operator} `;
-        return `${quantityText}${condition.cardName}`;
-    }
-    return "Unknown condition type";
+function describeCondition(condition: Condition): string {
+    let quantityText = condition.quantity === 1 ? "" : `${condition.quantity}${condition.operator} `;
+    return `${quantityText}${condition.cardName}`;
 }
 
-async function runSimulation(input) {
+async function runSimulation(input: SimulationInput): Promise<void> {
     const deck = input.deck;
     const conditions = input.conditions;
     clearInfo(); // Clear previous info
@@ -153,7 +162,7 @@ async function runSimulation(input) {
     
     const probabilities = await simulateDraw(deck, conditions, 5, 10000);
     
-    const resultElement = document.getElementById('result');
+    const resultElement = document.getElementById('result') as HTMLElement;
     
     // Find maximum probability
     const maxProbability = Math.max(...probabilities);
@@ -172,13 +181,13 @@ async function runSimulation(input) {
 let isSimulationRunning = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.getElementById('yamlFile');
-    const runButton = document.getElementById('runSimulation');
-    const resultElement = document.getElementById('result');
-    infoOutput = document.getElementById('infoOutput');
+    const fileInput = document.getElementById('yamlFile') as HTMLInputElement;
+    const runButton = document.getElementById('runSimulation') as HTMLButtonElement;
+    const resultElement = document.getElementById('result') as HTMLElement;
+    infoOutput = document.getElementById('infoOutput') as HTMLTextAreaElement;
 
     runButton.addEventListener('click', async () => {
-        const file = fileInput.files[0];
+        const file = fileInput.files?.[0];
         if (!file) {
             resultElement.textContent = 'Please select a YAML file.';
             return; 
@@ -190,8 +199,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Show progress bar and spinner
-        document.getElementById('progressBarContainer').style.display = 'block';
-        document.getElementById('spinner').style.display = 'block';
+        const progressBarContainer = document.getElementById('progressBarContainer') as HTMLElement;
+        const spinner = document.getElementById('spinner') as HTMLElement;
+        const progressBar = document.getElementById('progressBar') as HTMLElement;
+        progressBarContainer.style.display = 'block';
+        spinner.style.display = 'block';
         // Disable run button
         runButton.disabled = true;
         progressBar.style.width = `0%`;
@@ -203,11 +215,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error running simulation:', error);
             resultElement.textContent = 'Error running simulation. Please check the console for details.';
-            writeInfo(`Error: ${error.message}`);
+            writeInfo(`Error: ${(error as Error).message}`);
         } finally {
             // Hide progress bar and spinner
-            document.getElementById('progressBarContainer').style.display = 'none';
-            document.getElementById('spinner').style.display = 'none';
+            progressBarContainer.style.display = 'none';
+            spinner.style.display = 'none';
             // Re-enable run button
             runButton.disabled = false;
             isSimulationRunning = false;

@@ -1,5 +1,10 @@
 class Deck {
-    constructor(cards) {
+    private _cards: Card[];
+    private _deck_list: Card[];
+    private _banished: Card[];
+    private _grave: Card[];
+
+    constructor(cards: Card[]) {
         const missingCount = 40 - cards.length;
         if (missingCount > 0) {
             cards.push(...Array(missingCount).fill(new Card("Empty Card", {tags: ["Empty", "Blank", "Non Engine"]})));
@@ -12,7 +17,7 @@ class Deck {
         this._grave = [];
     }
 
-    deepCopy() {
+    deepCopy(): Deck {
         const newDeck = new Deck([]);
         newDeck._cards = this._cards.map(card => new Card(card.name, { ...card.details }));
         newDeck._deck_list = newDeck._cards.slice();
@@ -21,13 +26,13 @@ class Deck {
         return newDeck;
     }
 
-    drawCard() {
+    drawCard(): Card {
         const index = Math.floor(Math.random() * this._cards.length);
         return this._cards.splice(index, 1)[0];
     }
 
-    draw(count) {
-        const hand = [];
+    draw(count: number): Card[] {
+        const hand: Card[] = [];
         for (let i = 0; i < count; i++) {
             const card = this.drawCard();
             if (card.cardIsFree) {
@@ -42,7 +47,7 @@ class Deck {
         return hand;
     }
 
-    shuffle() {
+    shuffle(): void {
         console.log('Shuffling the deck')
         for (let i = this._cards.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -50,7 +55,7 @@ class Deck {
         }
     }
 
-    reset() {
+    reset(): void {
         let countBefore = this.deckList.length
         this._cards = this._deck_list.slice()
         this.shuffle()
@@ -59,9 +64,8 @@ class Deck {
         console.log(`Resetting the deck from ${countBefore} to ${this.deckList.length}`)
     }
 
-    banish(count)
-    {
-        const hand = [];
+    banish(count: number): void {
+        const hand: Card[] = [];
         for (let i = 0; i < count; i++) {
             const card = this.drawCard();
             hand.push(card);
@@ -72,9 +76,8 @@ class Deck {
         this._banished.push(...hand);
     }
 
-    mill(count)
-    {
-        const hand = [];
+    mill(count: number): void {
+        const hand: Card[] = [];
         for (let i = 0; i < count; i++) {
             const card = this.drawCard();
             hand.push(card);
@@ -85,27 +88,27 @@ class Deck {
         this._grave.push(...hand);
     }
 
-    get deckList() {
+    get deckList(): Card[] {
         return this._cards;
     }
 
-    get deckCount() {
+    get deckCount(): number {
         return this._cards.length;
     }
 
-    get banishedCards() {
+    get banishedCards(): Card[] {
         return this._banished;
     }
 
-    get graveCards() {
+    get graveCards(): Card[] {
         return this._grave;
     }
 }
 
-function buildDeck(deckList) {
-    const cards = [];
+function buildDeck(deckList: Record<string, CardDetails>): Deck {
+    const cards: Card[] = [];
     for (const [card, details] of Object.entries(deckList)) {
-        const qty = details.qty || 1;
+        const qty = details.qty ?? 1;
         cards.push(...Array(qty).fill(new Card(card, details)));
     }
     return new Deck(cards);
