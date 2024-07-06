@@ -1,9 +1,11 @@
-interface BaseCondition {
+import { Card } from './card.js';
+
+export interface BaseCondition {
     evaluate(hand: Card[]): boolean;
     successes: number;
 }
 
-class Condition implements BaseCondition {
+export class Condition implements BaseCondition {
     cardName: string;
     quantity: number;
     operator: string;
@@ -34,7 +36,7 @@ class Condition implements BaseCondition {
     }
 }
 
-class AndCondition implements BaseCondition {
+export class AndCondition implements BaseCondition {
     conditions: BaseCondition[];
     successes: number;
 
@@ -53,7 +55,7 @@ class AndCondition implements BaseCondition {
     }
 }
 
-class OrCondition implements BaseCondition {
+export class OrCondition implements BaseCondition {
     conditions: BaseCondition[];
     successes: number;
 

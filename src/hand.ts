@@ -1,3 +1,6 @@
+import { Card } from "./card.js";
+import { Deck } from "./deck.js";
+
 class Hand {
     private _deck: Deck;
     private _handSize: number;

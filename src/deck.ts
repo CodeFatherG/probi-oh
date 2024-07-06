@@ -1,3 +1,5 @@
+import { Card, CardDetails } from "./card.js";
+
 class Deck {
     private _cards: Card[];
     private _deck_list: Card[];
@@ -113,3 +115,5 @@ function buildDeck(deckList: Record<string, CardDetails>): Deck {
     }
     return new Deck(cards);
 }
+
+export { Deck, buildDeck };

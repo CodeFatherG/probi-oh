@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="importmap">
+        {
+            "imports": {
+                "js-yaml": "https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/+esm"
+            }
+        }
+    </script>
     <title>Yu-Gi-Oh! Simulator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
     <style>
         #infoOutput {
             width: 100%;
@@ -63,6 +69,7 @@
     <textarea id="infoOutput" readonly></textarea>
 
     <!-- Use a single entry point script -->
-    <script type="module" src="dist/main.js"></script>
+    <script type="module" src="./dist/main.js"></script>
+    
 </body>
 </html>

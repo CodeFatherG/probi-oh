@@ -1,3 +1,5 @@
+import { AndCondition, BaseCondition, Condition, OrCondition } from "./condition.js";
+
 interface Token {
     type: string;
     value: string;
@@ -147,7 +149,7 @@ function tokenize(input: string): Token[] {
     return tokens;
 }
 
-function parseCondition(conditions: string): BaseCondition {
+export function parseCondition(conditions: string): BaseCondition {
     const tokens = tokenize(conditions);
     console.log(tokens);
     return parse(tokens);

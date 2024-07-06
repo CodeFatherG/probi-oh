@@ -1,4 +1,8 @@
-class Simulation {
+import { Card } from "./card.js";
+import { BaseCondition } from "./condition.js";
+import { Deck } from "./deck.js";
+
+export class Simulation {
     private _deck: Deck;
     private _hand: Card[];
     private _condition: BaseCondition;

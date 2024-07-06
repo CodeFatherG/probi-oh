@@ -1,9 +1,9 @@
-import './simulation';
-import './card';
-import './deck';
-import './condition';
-import './parser';
 import yaml from 'js-yaml';
+import { Deck, buildDeck } from './deck.js';
+import { AndCondition, BaseCondition, Condition, OrCondition } from './condition.js';
+import { Card, CardDetails } from './card.js';
+import { Simulation } from './simulation.js';
+import { parseCondition } from './parser.js';
 
 let infoOutput: HTMLTextAreaElement;
 

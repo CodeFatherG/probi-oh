@@ -2,11 +2,12 @@
   "compilerOptions": {
     "target": "es6",
     "module": "es6",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
     "lib": ["es2017", "dom"],
     "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "test/**/*"]
 }

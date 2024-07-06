@@ -87,3 +87,7 @@ dist
 
 # TypeScript cache
 *.tsbuildinfo
+
+#claude
+*.py
+*.cl

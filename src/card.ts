@@ -1,4 +1,6 @@
-interface CardDetails {
+import { Deck } from './deck.js';
+
+export interface CardDetails {
     qty?: number;
     tags?: string[];
     free?: {
@@ -8,7 +10,7 @@ interface CardDetails {
     };
 }
 
-class Card {
+export class Card {
     private _name: string;
     private _details: CardDetails;
     private _tags: string[] | null;
