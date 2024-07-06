@@ -58,6 +58,8 @@
 </head>
 <body>
     <h1>Yu-Gi-Oh! Simulator</h1>
+    <input type="file" id="ydkFile" accept=".ydk,.txt" style="display: none;">
+    <button id="importYdk">Import YDK</button>
     <input type="file" id="yamlFile" accept=".yaml,.yml">
     <button id="runSimulation">Run Simulation</button>
     <div id="progressBarContainer" style="display: none;">
@@ -68,8 +70,6 @@
     <div id="result"></div> 
     <textarea id="infoOutput" readonly></textarea>
 
-    <!-- Use a single entry point script -->
     <script type="module" src="./dist/src/main.js"></script>
-    
 </body>
 </html>
