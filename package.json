@@ -16,7 +16,8 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "jest --silent"
+    "test": "jest",
+    "test:single": "jest -t"
   },
   "keywords": [],
   "author": "",

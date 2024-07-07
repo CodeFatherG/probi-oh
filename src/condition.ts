@@ -21,8 +21,6 @@ export class Condition implements BaseCondition {
     evaluate(hand: Card[]): boolean {
         const count = hand.filter(card => card.name === this.cardName || (card.tags && card.tags.includes(this.cardName))).length;
 
-        console.log(`Found ${count} of ${this.cardName}. Looking for ${this.operator}${this.quantity}`);
-
         let result = false;
         switch(this.operator) {
             case '>=': result = count >= this.quantity; break;
