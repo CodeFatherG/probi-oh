@@ -4,8 +4,11 @@ import { AndCondition, BaseCondition, Condition, OrCondition } from './condition
 import { Card, CardDetails } from './card.js';
 import { Simulation } from './simulation.js';
 import { parseCondition } from './parser.js';
+import { convertYdkToYaml } from './ydk-to-yaml.js';
+import { YamlManager } from './yaml-manager.js';
 
 let infoOutput: HTMLTextAreaElement;
+const yamlManager = YamlManager.getInstance();
 
 function writeInfo(message: string): void {
     infoOutput.value += message + '\n';
@@ -19,25 +22,6 @@ function clearInfo(): void {
 interface SimulationInput {
     deck: Deck;
     conditions: (BaseCondition)[];
-}
-
-async function loadFromYamlFile(file: File): Promise<SimulationInput> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (event: ProgressEvent<FileReader>) => {
-            try {
-                const yamlText = event.target?.result as string;
-                const input = yaml.load(yamlText) as { deck: Record<string, CardDetails>, conditions: string[] };
-                const deck = buildDeck(input.deck);
-                const conditions = input.conditions.map(parseCondition);
-                resolve({ deck, conditions });
-            } catch (error) {
-                reject(error);
-            }
-        };
-        reader.onerror = (error) => reject(error);
-        reader.readAsText(file);
-    });
 }
 
 async function simulateDraw(deck: Deck, conditions: (BaseCondition)[], handSize: number, trials: number): Promise<number[]> {
@@ -178,16 +162,50 @@ async function runSimulation(input: SimulationInput): Promise<void> {
     console.log(`Simulation complete. Maximum success probability: ${(maxProbability * 100).toFixed(2)}%`);
 }
 
+function readFileContent(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => resolve(event.target?.result as string);
+        reader.onerror = (error) => reject(error);
+        reader.readAsText(file);
+    });
+}
+
 let isSimulationRunning = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.getElementById('yamlFile') as HTMLInputElement;
+    const ydkFileInput = document.getElementById('ydkFile') as HTMLInputElement;
+    const importYdkButton = document.getElementById('importYdk') as HTMLButtonElement;
+    const yamlFileInput = document.getElementById('yamlFile') as HTMLInputElement;
     const runButton = document.getElementById('runSimulation') as HTMLButtonElement;
     const resultElement = document.getElementById('result') as HTMLElement;
     infoOutput = document.getElementById('infoOutput') as HTMLTextAreaElement;
 
+    importYdkButton.addEventListener('click', () => {
+        ydkFileInput.click();
+    });
+
+    ydkFileInput.addEventListener('change', async (event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (!file) {
+            writeInfo('No file selected.');
+            return;
+        }
+
+        try {
+            writeInfo('Converting YDK to YAML...');
+            const yamlContent = await yamlManager.convertYdkToYaml(file);
+            
+            clearInfo();
+            writeInfo('YDK file imported and converted to YAML:');
+            writeInfo(yamlContent);
+        } catch (error) {
+            console.error('Error importing YDK file:', error);
+            writeInfo(`Error importing YDK file: ${(error as Error).message}`);
+        }
+    });
     runButton.addEventListener('click', async () => {
-        const file = fileInput.files?.[0];
+        const file = yamlFileInput.files?.[0];
         if (!file) {
             resultElement.textContent = 'Please select a YAML file.';
             return; 
@@ -210,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isSimulationRunning = true;
 
         try {
-            const input = await loadFromYamlFile(file);
+            const input = await yamlManager.loadFromYamlFile(file);
             await runSimulation(input);
         } catch (error) {
             console.error('Error running simulation:', error);
