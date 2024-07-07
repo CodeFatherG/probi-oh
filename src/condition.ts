@@ -58,6 +58,9 @@ export class OrCondition implements BaseCondition {
     successes: number;
 
     constructor(conditions: BaseCondition[]) {
+        if (conditions.some(condition => condition == undefined)) {
+            console.error(`Found a dead condition`);
+        }
         this.conditions = conditions;
         this.successes = 0;
     }

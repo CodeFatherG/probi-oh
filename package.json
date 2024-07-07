@@ -17,7 +17,8 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "test:single": "jest -t"
+    "test:single": "jest -t",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [],
   "author": "",

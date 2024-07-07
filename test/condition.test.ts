@@ -42,9 +42,41 @@ describe('Condition', () => {
         const invalidCondition = new Condition('Card A', 1, '>' as any);
         expect(() => invalidCondition.evaluate(testCards)).toThrow('Unknown operator: >');
     });
+    
+    test('should evaluate correctly with quantity and <= operator', () => {
+        const condition = new Condition('Tag1', 2, '<=');
+        const testCards = [
+            new Card('Card A', { tags: ['Tag1'] }),
+            new Card('Card B', { tags: ['Tag1'] }),
+            new Card('Card C', { tags: ['Tag1'] }),
+        ];
+        expect(condition.evaluate(testCards)).toBe(false);
+        expect(condition.successes).toBe(0);
     });
 
-    describe('AndCondition', () => {
+    test('should evaluate correctly with exact quantity', () => {
+        const condition = new Condition('Tag2', 2, '=');
+        const testCards = [
+            new Card('Card A', { tags: ['Tag2'] }),
+            new Card('Card B', { tags: ['Tag2'] }),
+        ];
+        expect(condition.evaluate(testCards)).toBe(true);
+        expect(condition.successes).toBe(1);
+    });
+
+    test('should handle cards with multiple tags', () => {
+        const condition = new Condition('Tag3', 2, '>=');
+        const testCards = [
+            new Card('Card A', { tags: ['Tag1', 'Tag3'] }),
+            new Card('Card B', { tags: ['Tag2', 'Tag3'] }),
+            new Card('Card C', { tags: ['Tag3', 'Tag4'] }),
+        ];
+        expect(condition.evaluate(testCards)).toBe(true);
+        expect(condition.successes).toBe(1);
+    });
+});
+
+describe('AndCondition', () => {
     test('should evaluate correctly', () => {
         const condition1 = new Condition('Card A');
         const condition2 = new Condition('Tag2');
@@ -72,9 +104,47 @@ describe('Condition', () => {
         expect(andCondition.evaluate(testCards)).toBe(false);
         expect(andCondition.successes).toBe(0);
     });
+
+    test('should evaluate correctly with multiple conditions', () => {
+        const condition1 = new Condition('Tag1', 2, '>=');
+        const condition2 = new Condition('Tag2', 1, '=');
+        const condition3 = new Condition('Card C');
+        const andCondition = new AndCondition([condition1, condition2, condition3]);
+
+        const testCards = [
+            new Card('Card A', { tags: ['Tag1'] }),
+            new Card('Card B', { tags: ['Tag1', 'Tag2'] }),
+            new Card('Card C', { tags: ['Tag3'] }),
+        ];
+
+        expect(andCondition.evaluate(testCards)).toBe(true);
+        expect(andCondition.successes).toBe(1);
     });
 
-    describe('OrCondition', () => {
+    test('should fail if any condition fails', () => {
+        const condition1 = new Condition('Tag1', 2, '>=');
+        const condition2 = new Condition('Tag2', 2, '=');
+        const andCondition = new AndCondition([condition1, condition2]);
+
+        const testCards = [
+            new Card('Card A', { tags: ['Tag1'] }),
+            new Card('Card B', { tags: ['Tag1', 'Tag2'] }),
+        ];
+
+        expect(andCondition.evaluate(testCards)).toBe(false);
+        expect(andCondition.successes).toBe(0);
+    });
+
+    test('should log error for undefined condition in AndCondition', () => {
+        const condition1 = new Condition('Tag1');
+        const condition2 = undefined;
+        console.error = jest.fn(); // Mock console.error
+        new AndCondition([condition1, condition2 as any]);
+        expect(console.error).toHaveBeenCalledWith('Found a dead condition');
+    });
+});
+
+describe('OrCondition', () => {
     test('should evaluate correctly', () => {
         const condition1 = new Condition('Card A');
         const condition2 = new Condition('Card C');
@@ -101,5 +171,86 @@ describe('Condition', () => {
 
         expect(orCondition.evaluate(testCards)).toBe(false);
         expect(orCondition.successes).toBe(0);
+    });
+
+    test('should evaluate correctly with multiple conditions', () => {
+        const condition1 = new Condition('Tag1', 3, '>=');
+        const condition2 = new Condition('Tag2', 1, '=');
+        const condition3 = new Condition('Card D');
+        const orCondition = new OrCondition([condition1, condition2, condition3]);
+
+        const testCards = [
+            new Card('Card A', { tags: ['Tag1'] }),
+            new Card('Card B', { tags: ['Tag2'] }),
+        ];
+
+        expect(orCondition.evaluate(testCards)).toBe(true);
+        expect(orCondition.successes).toBe(1);
+    });
+
+    test('should pass if any condition passes', () => {
+        const condition1 = new Condition('Tag1', 3, '>=');
+        const condition2 = new Condition('Tag2', 1, '=');
+        const condition3 = new Condition('Card C');
+        const orCondition = new OrCondition([condition1, condition2, condition3]);
+
+        const testCards = [
+            new Card('Card A', { tags: ['Tag1'] }),
+            new Card('Card B', { tags: ['Tag1'] }),
+            new Card('Card C', { tags: ['Tag3'] }),
+        ];
+
+        expect(orCondition.evaluate(testCards)).toBe(true);
+        expect(orCondition.successes).toBe(1);
+    });
+
+    test('should log error for undefined condition in AndCondition', () => {
+        const condition1 = new Condition('Tag1');
+        const condition2 = undefined;
+        console.error = jest.fn(); // Mock console.error
+        new OrCondition([condition1, condition2 as any]);
+        expect(console.error).toHaveBeenCalledWith('Found a dead condition');
+    });
+});
+
+describe('Complex nested conditions', () => {
+    test('should evaluate a complex nested condition correctly', () => {
+        const condition1 = new Condition('Tag1', 2, '>=');
+        const condition2 = new Condition('Tag2', 1, '=');
+        const condition3 = new Condition('Card C');
+        const condition4 = new Condition('Tag3', 1, '>=');
+
+        const nestedAnd = new AndCondition([condition1, condition2]);
+        const nestedOr = new OrCondition([condition3, condition4]);
+        const complexCondition = new AndCondition([nestedAnd, nestedOr]);
+
+        const testCards = [
+            new Card('Card A', { tags: ['Tag1'] }),
+            new Card('Card B', { tags: ['Tag1', 'Tag2'] }),
+            new Card('Card D', { tags: ['Tag3'] }),
+        ];
+
+        expect(complexCondition.evaluate(testCards)).toBe(true);
+        expect(complexCondition.successes).toBe(1);
+    });
+
+    test('should fail a complex nested condition if any part fails', () => {
+        const condition1 = new Condition('Tag1', 2, '>=');
+        const condition2 = new Condition('Tag2', 2, '=');
+        const condition3 = new Condition('Card C');
+        const condition4 = new Condition('Tag3', 2, '>=');
+
+        const nestedAnd = new AndCondition([condition1, condition2]);
+        const nestedOr = new OrCondition([condition3, condition4]);
+        const complexCondition = new AndCondition([nestedAnd, nestedOr]);
+
+        const testCards = [
+            new Card('Card A', { tags: ['Tag1'] }),
+            new Card('Card B', { tags: ['Tag1', 'Tag2'] }),
+            new Card('Card D', { tags: ['Tag3'] }),
+        ];
+
+        expect(complexCondition.evaluate(testCards)).toBe(false);
+        expect(complexCondition.successes).toBe(0);
     });
 });

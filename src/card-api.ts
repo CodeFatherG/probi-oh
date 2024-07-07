@@ -1,5 +1,5 @@
 // Define the structure of a card
-interface CardInformation {
+export interface CardInformation {
     id: number;
     name: string;
     type: string;
