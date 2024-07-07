@@ -50,8 +50,6 @@ export class Card {
         const count = this._free?.cards || 0;
         const destination = this._free?.destination || '';
 
-        console.log(`Sending ${cost} cards to ${destination} for ${count} cards`);
-
         if (cost + count > deck.deckCount) {
             return [];
         }

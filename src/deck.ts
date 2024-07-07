@@ -43,14 +43,10 @@ class Deck {
                 hand.push(card);
             }
         }
-
-        console.log(`Cards in hand: ${hand.map(card => card.name).join(', ')}`);
-
         return hand;
     }
 
     shuffle(): void {
-        console.log('Shuffling the deck')
         for (let i = this._cards.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [this._cards[i], this._cards[j]] = [this._cards[j], this._cards[i]];
@@ -63,7 +59,6 @@ class Deck {
         this.shuffle()
         this._banished = [];
         this._grave = [];
-        console.log(`Resetting the deck from ${countBefore} to ${this.deckList.length}`)
     }
 
     banish(count: number): void {
@@ -72,8 +67,6 @@ class Deck {
             const card = this.drawCard();
             hand.push(card);
         }
-
-        console.log(`Cards banished: ${hand.map(card => card.name).join(', ')}`);
 
         this._banished.push(...hand);
     }
@@ -84,9 +77,6 @@ class Deck {
             const card = this.drawCard();
             hand.push(card);
         }
-
-        console.log(`Cards milled: ${hand.map(card => card.name).join(', ')}`);
-
         this._grave.push(...hand);
     }
 

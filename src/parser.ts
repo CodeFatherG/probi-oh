@@ -10,8 +10,6 @@ function parse(tokens: Token[]): BaseCondition {
 
     function walk(): BaseCondition {
         let token = tokens[current];
-        console.log(`Processing token:`, token);
-
         if (token.type === 'number') {
             current++;
             let nextToken = tokens[current];
@@ -19,7 +17,6 @@ function parse(tokens: Token[]): BaseCondition {
                 current++;
                 let quantity = parseInt(token.value);
                 let operator = token.value.includes('+') ? '>=' : '=';
-                console.log(`Creating Condition: ${nextToken.value}, ${quantity}, ${operator}`);
                 return new Condition(nextToken.value, quantity, operator);
             } else {
                 throw new TypeError('Expected card name after number');
@@ -28,16 +25,13 @@ function parse(tokens: Token[]): BaseCondition {
 
         if (token.type === 'name') {
             current++;
-            console.log(`Creating Condition: ${token.value}`);
             return new Condition(token.value);
         }
 
         if (token.type === 'paren' && token.value === '(') {
-            console.log(`Entering parenthesis`);
             current++;
             let result = parseExpression();
             current++; // skip closing parenthesis
-            console.log(`Exiting parenthesis`);
             return result;
         }
 
@@ -49,20 +43,15 @@ function parse(tokens: Token[]): BaseCondition {
     
         while (current < tokens.length && tokens[current].type === 'operator') {
             let operator = tokens[current].value;
-            console.log(`Processing ${operator} operator`);
             current++;
             let right: BaseCondition = walk();
-    
-            console.log(`Creating ${operator}Condition`);
             left = operator === 'AND' ? new AndCondition([left, right]) : new OrCondition([left, right]);
         }
     
         return left;
     }
 
-    console.log(`Starting parsing`);
     let result = parseExpression();
-    console.log(`Parsing complete. Result:`, result);
     return result;
 }
 
@@ -72,7 +61,6 @@ function tokenize(input: string): Token[] {
 
     while (current < input.length) {
         let char = input[current];
-        console.log(`Current char: '${char}', Current index: ${current}`);
 
         if (char === '(' || char === ')') {
             tokens.push({ type: 'paren', value: char });
@@ -82,7 +70,6 @@ function tokenize(input: string): Token[] {
 
         const WHITESPACE = /\s/;
         if (WHITESPACE.test(char)) {
-            console.log('Skipping whitespace');
             current++;
             continue;
         }
@@ -92,7 +79,6 @@ function tokenize(input: string): Token[] {
         }
 
         if (isANDToken(input.slice(current))) {
-            console.log('Found AND operator');
             tokens.push({ type: 'operator', value: 'AND' });
             current += 3;
             continue;
@@ -103,7 +89,6 @@ function tokenize(input: string): Token[] {
         }
 
         if (isORToken(input.slice(current))) {
-            console.log('Found OR operator');
             tokens.push({ type: 'operator', value: 'OR' });
             current += 2;
             continue;
@@ -120,7 +105,6 @@ function tokenize(input: string): Token[] {
                 value += char;
                 current++;
             }
-            console.log(`Found number: ${value}`);
             tokens.push({ type: 'number', value });
             continue;
         }
@@ -138,7 +122,6 @@ function tokenize(input: string): Token[] {
                     break;
                 }
             }
-            console.log(`Found name: ${value.trim()}`);
             tokens.push({ type: 'name', value: value.trim() });
             continue;
         }
@@ -151,6 +134,5 @@ function tokenize(input: string): Token[] {
 
 export function parseCondition(conditions: string): BaseCondition {
     const tokens = tokenize(conditions);
-    console.log(tokens);
     return parse(tokens);
 }

@@ -34,7 +34,7 @@ export async function getCardById(id: number, fetcher = fetch): Promise<CardInfo
         if (data.data && data.data.length > 0) {
             return data.data[0];
         } else {
-            console.log(`No card found with ID ${id}`);
+            console.error(`No card found with ID ${id}`);
             return null;
         }
     } catch (error) {
