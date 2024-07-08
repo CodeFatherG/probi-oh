@@ -1,22 +1,19 @@
-import { Card } from "./card.js";
 import { BaseCondition } from "./condition.js";
-import { Deck } from "./deck.js";
+import { GameState } from "./game-state.js";
 
 export class Simulation {
-    private _deck: Deck;
-    private _hand: Card[];
+    private _gameState: GameState;
     private _condition: BaseCondition;
     private _result: boolean;
 
-    constructor(deck: Deck, hand: Card[], condition: BaseCondition) {
-        this._deck = deck.deepCopy();
-        this._hand = hand.map(card => new Card(card.name, { ...card.details }));
+    constructor(gameState: GameState, condition: BaseCondition) {
+        this._gameState = gameState.deepCopy();
         this._condition = condition;
         this._result = false;
     }
 
     run(): void {
-        this._result = this._condition.evaluate(this._hand);
+        this._result = this._condition.evaluate(this._gameState.hand);
     }
 
     get result(): boolean {
@@ -27,7 +24,7 @@ export class Simulation {
         return this._condition;
     }
 
-    get deck(): Deck {
-        return this._deck;
+    get gameState(): GameState {
+        return this._gameState;
     }
 }

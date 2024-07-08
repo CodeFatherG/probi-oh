@@ -1,4 +1,4 @@
-import { Card } from '../src/card';
+import { Card, CardDetails } from '../src/card';
 
 describe('Card', () => {
     const cardName = 'Blue-Eyes White Dragon';
@@ -36,19 +36,43 @@ describe('Card', () => {
         expect(nonFreeCard.cardIsFree).toBe(false);
     });
 
-  // You would need to mock the Deck class for this test
-    it('should process a free card correctly', () => {
-        const card = new Card(cardName, cardDetails);
-        const mockDeck = {
-            deckCount: 40,
-            mill: jest.fn(),
-            draw: jest.fn().mockReturnValue(['Drawn Card'])
+    it('should return correct lower case name', () => {
+        const card = new Card('Card C', {});
+        expect(card.nameLower).toBe('card c');
+    });
+    
+    it('should handle cards without tags', () => {
+        const card = new Card('Card B', {});
+        expect(card.tags).toBeNull();
+    });
+    
+    it('should handle cards without free details', () => {
+        const card = new Card('Card A', {});
+        expect(card.cardIsFree).toBe(false);
+        expect(card.freeCardDetails).toBeNull();
+    });
+
+    it('should return card details', () => {
+        const details: CardDetails = {
+            qty: 3,
+            tags: ['Tag A', 'Tag B'],
+            free: {
+                cost: 1,
+                cards: 2,
+                destination: 'hand'
+            }
         };
-
-        const result = card.processFreeCard(mockDeck as any);
-
-        expect(mockDeck.mill).toHaveBeenCalledWith(2);
-        expect(mockDeck.draw).toHaveBeenCalledWith(1);
-        expect(result).toEqual(['Drawn Card']);
+        const card = new Card(
+            'Card A', 
+            details
+        );
+        expect(card.details).toBe(details);
+        expect(card.details.qty).toBe(3);
+        expect(card.details.tags).toEqual(['Tag A', 'Tag B']);
+        expect(card.details.free).toEqual({
+            cost: 1,
+            cards: 2,
+            destination: 'hand'
+        });
     });
 });

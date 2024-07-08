@@ -1,11 +1,8 @@
-import yaml from 'js-yaml';
-import { Deck, buildDeck } from './deck.js';
+import { Deck } from './deck.js';
 import { AndCondition, BaseCondition, Condition, OrCondition } from './condition.js';
-import { Card, CardDetails } from './card.js';
 import { Simulation } from './simulation.js';
-import { parseCondition } from './parser.js';
-import { convertYdkToYaml } from './ydk-to-yaml.js';
 import { YamlManager } from './yaml-manager.js';
+import { GameState } from './game-state.js';
 
 let infoOutput: HTMLTextAreaElement;
 const yamlManager = YamlManager.getInstance();
@@ -30,11 +27,8 @@ async function simulateDraw(deck: Deck, conditions: (BaseCondition)[], handSize:
     let simulations: Simulation[][] = Array(conditions.length).fill([]).map(() => []);
 
     for (let i = 0; i < trials; i++) {
-        deck.reset();
-        const hand = deck.draw(handSize);
-
         conditions.forEach((condition, index) => {
-            const simulation = new Simulation(deck, hand, condition);
+            const simulation = new Simulation(new GameState(deck, handSize), condition);
             simulations[index].push(simulation);
             simulation.run();
         });
@@ -60,57 +54,7 @@ async function simulateDraw(deck: Deck, conditions: (BaseCondition)[], handSize:
         writeDetailedResults(condition, trials, 0);
     });
 
-    evaluateDeadCards(simulations);
-
     return successRates;
-}
-
-function evaluateDeadCards(simulations: Simulation[][]): void {
-    let totalBanishedCards: Card[] = [];
-    let totalGraveCards: Card[] = [];
-
-    simulations.forEach(simulationSet => {
-        simulationSet.forEach(simulation => {
-            totalBanishedCards.push(...simulation.deck.banishedCards);
-            totalGraveCards.push(...simulation.deck.graveCards);
-        });
-    });
-
-    function countTags(cards: Card[]): Record<string, number> {
-        const tagCounts: Record<string, number> = {};
-        cards.forEach(card => {
-            if (card.tags) {
-                card.tags.forEach(tag => {
-                    tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-                });
-            }
-        });
-        return tagCounts;
-    }
-
-    const banishedTags = countTags(totalBanishedCards);
-    const graveTags = countTags(totalGraveCards);
-
-    const totalBanished = totalBanishedCards.length;
-    const totalGrave = totalGraveCards.length;
-    const totalSimulations = simulations.reduce((sum, simulationSet) => sum + simulationSet.length, 0);
-
-    writeInfo("\nDead Cards Analysis:");
-    writeInfo("Banished Cards Tags:");
-    for (const [tag, count] of Object.entries(banishedTags)) {
-        writeInfo(`  ${tag}: ${count/totalSimulations} p/h`);
-    }
-
-    writeInfo("\nGrave Cards Tags:");
-    for (const [tag, count] of Object.entries(graveTags)) {
-        writeInfo(`  ${tag}: ${count/totalSimulations} p/h`);
-    }
-
-    writeInfo(`\nTotal Banished Cards: ${totalBanished}`);
-    writeInfo(`Total Grave Cards: ${totalGrave}`);
-    writeInfo(`Total Dead Cards: ${totalBanished + totalGrave}`);
-    writeInfo(`Average Banished Cards per Simulation: ${(totalBanished / totalSimulations).toFixed(2)}`);
-    writeInfo(`Average Grave Cards per Simulation: ${(totalGrave / totalSimulations).toFixed(2)}`);
 }
 
 function writeDetailedResults(condition: BaseCondition, trials: number, depth: number): void {
@@ -203,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error importing YDK file:', error);
             writeInfo(`Error importing YDK file: ${(error as Error).message}`);
         }
+
     });
     runButton.addEventListener('click', async () => {
         const file = yamlFileInput.files?.[0];

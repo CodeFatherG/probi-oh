@@ -2,40 +2,41 @@ import { Simulation } from '../src/simulation';
 import { Card } from '../src/card';
 import { Deck } from '../src/deck';
 import { Condition, AndCondition } from '../src/condition';
+import { GameState } from '../src/game-state';
 
 describe('Simulation', () => {
-    let testDeck: Deck;
-    let testHand: Card[];
+    let gameState: GameState;
     let testCondition: Condition;
 
     beforeEach(() => {
-        testDeck = new Deck([
-            new Card('Card A', { tags: ['Tag1'] }),
-            new Card('Card B', { tags: ['Tag2'] }),
-            new Card('Card C', { tags: ['Tag3'] }),
+        const testDeck = new Deck([
+            new Card('Card A', { qty: 10, tags: ['Tag1'] }),
+            new Card('Card B', { qty: 10, tags: ['Tag2'] }),
+            new Card('Card C', { qty: 10, tags: ['Tag3'] }),
+            new Card('Card D', { qty: 10, tags: ['Tag4'] }),
         ]);
-        testHand = [
-            new Card('Card A', { tags: ['Tag1'] }),
-            new Card('Card B', { tags: ['Tag2'] }),
-        ];
+        gameState = new GameState(testDeck);
         testCondition = new Condition('Card A');
     });
 
     test('should create a simulation with the correct properties', () => {
-        const simulation = new Simulation(testDeck, testHand, testCondition);
-        expect(simulation.deck).toBeInstanceOf(Deck);
-        expect(simulation.deck).not.toBe(testDeck); // Should be a deep copy
+        const simulation = new Simulation(gameState, testCondition);
+        expect(simulation.gameState).toBeInstanceOf(GameState);
+        expect(simulation.gameState).not.toBe(gameState); // Should be a deep copy
         expect(simulation.result).toBe(false); // Initial result should be false
     });
 
     test('should run the simulation and update the result', () => {
-        const simulation = new Simulation(testDeck, testHand, testCondition);
+        const simulation = new Simulation(
+            new GameState(
+                new Deck(Array.from({ length: 40 }, () => new Card("Card A", {})))
+            ), testCondition);
         simulation.run();
         expect(simulation.result).toBe(true);
     });
 
     test('should return the correct condition', () => {
-        const simulation = new Simulation(testDeck, testHand, testCondition);
+        const simulation = new Simulation(gameState, testCondition);
         expect(simulation.condition).toBe(testCondition);
     });
 
@@ -44,14 +45,13 @@ describe('Simulation', () => {
             new Condition('Card A'),
             new Condition('Card B'),
         ]);
-        const simulation = new Simulation(testDeck, testHand, complexCondition);
+        const simulation = new Simulation(new GameState(
+            new Deck([
+                ...Array.from({ length: 20 }, () => new Card("Card A", {})),
+                ...Array.from({ length: 20 }, () => new Card("Card B", {}))
+            ])
+        ), complexCondition);
         simulation.run();
         expect(simulation.result).toBe(true);
-    });
-
-    test('should handle empty hand', () => {
-        const simulation = new Simulation(testDeck, [], testCondition);
-        simulation.run();
-        expect(simulation.result).toBe(false);
     });
 });

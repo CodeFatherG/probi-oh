@@ -43,23 +43,7 @@ export class Card {
         return this._free != null;
     }
 
-    processFreeCard(deck: Deck): Card[] {
-        if (!this.cardIsFree) return [];
-        
-        const cost = this._free?.cost || 0;
-        const count = this._free?.cards || 0;
-        const destination = this._free?.destination || '';
-
-        if (cost + count > deck.deckCount) {
-            return [];
-        }
-
-        if (destination === 'grave') {
-            deck.mill(cost);
-        } else {
-            deck.banish(cost);
-        }
-
-        return deck.draw(count);
+    get freeCardDetails(): CardDetails['free'] | null {
+        return this._free;
     }
 }

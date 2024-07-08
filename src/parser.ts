@@ -7,6 +7,7 @@ interface Token {
 
 function parse(tokens: Token[]): BaseCondition {
     let current = 0;
+    let parenCount = 0;
 
     function walk(): BaseCondition {
         let token = tokens[current];
@@ -16,7 +17,7 @@ function parse(tokens: Token[]): BaseCondition {
             if (nextToken && nextToken.type === 'name') {
                 current++;
                 let quantity = parseInt(token.value);
-                let operator = token.value.includes('+') ? '>=' : '=';
+                let operator = token.value.includes('+') ? '>=' : token.value.includes('-') ? '<=' : '=';
                 return new Condition(nextToken.value, quantity, operator);
             } else {
                 throw new TypeError('Expected card name after number');
@@ -28,11 +29,20 @@ function parse(tokens: Token[]): BaseCondition {
             return new Condition(token.value);
         }
 
-        if (token.type === 'paren' && token.value === '(') {
-            current++;
-            let result = parseExpression();
-            current++; // skip closing parenthesis
-            return result;
+        if (token.type === 'paren') {
+            if (token.value === '(') {
+                parenCount++;
+                current++;
+                let result = parseExpression();
+                if (tokens[current].type !== 'paren' || tokens[current].value !== ')') {
+                    throw new SyntaxError('Expected closing parenthesis');
+                }
+                parenCount--;
+                current++;
+                return result;
+            } else {
+                throw new SyntaxError('Unexpected closing parenthesis');
+            }
         }
 
         throw new TypeError(`Unexpected token type: ${token.type}`);
@@ -52,6 +62,16 @@ function parse(tokens: Token[]): BaseCondition {
     }
 
     let result = parseExpression();
+    
+    // Check if there are any unexpected tokens left
+    if (current < tokens.length) {
+        if (tokens[current].type === 'paren' && tokens[current].value === ')') {
+            throw new SyntaxError('Unexpected closing parenthesis');
+        } else {
+            throw new SyntaxError('Unexpected token after valid expression');
+        }
+    }
+
     return result;
 }
 
@@ -101,7 +121,7 @@ function tokenize(input: string): Token[] {
                 value += char;
                 char = input[++current];
             }
-            if (char === '+') {
+            if (char === '+' || char === '-') {
                 value += char;
                 current++;
             }

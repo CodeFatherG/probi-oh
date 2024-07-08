@@ -74,6 +74,31 @@ describe('Condition', () => {
         expect(condition.evaluate(testCards)).toBe(true);
         expect(condition.successes).toBe(1);
     });
+
+    it('should evaluate greater than or equal correctly', () => {
+        const condition = new Condition('Test Card', 2, '>=');
+        expect(condition.evaluate([new Card('Test Card', {}), new Card('Test Card', {})])).toBe(true);
+        expect(condition.evaluate([new Card('Test Card', {})])).toBe(false);
+    });
+
+    it('should evaluate less than or equal correctly', () => {
+        const condition = new Condition('Test Card', 2, '<=');
+        expect(condition.evaluate([new Card('Test Card', {})])).toBe(true);
+        expect(condition.evaluate([new Card('Test Card', {}), new Card('Test Card', {}), new Card('Test Card', {})])).toBe(false);
+    });
+
+    it('should evaluate equal correctly', () => {
+        const condition = new Condition('Test Card', 2, '=');
+        expect(condition.evaluate([new Card('Test Card', {}), new Card('Test Card', {})])).toBe(true);
+        expect(condition.evaluate([new Card('Test Card', {})])).toBe(false);
+        expect(condition.evaluate([new Card('Test Card', {}), new Card('Test Card', {}), new Card('Test Card', {})])).toBe(false);
+    });
+
+    it('should handle card tags', () => {
+        const condition = new Condition('TestTag', 1, '>=');
+        expect(condition.evaluate([new Card('Different Card', { tags: ['TestTag'] })])).toBe(true);
+        expect(condition.evaluate([new Card('Different Card', { tags: ['OtherTag'] })])).toBe(false);
+    });
 });
 
 describe('AndCondition', () => {
