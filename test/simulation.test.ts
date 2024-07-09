@@ -1,7 +1,7 @@
 import { Simulation } from '../src/simulation';
 import { Card } from '../src/card';
 import { Deck } from '../src/deck';
-import { Condition, AndCondition } from '../src/condition';
+import { Condition, AndCondition, OrCondition } from '../src/condition';
 import { GameState } from '../src/game-state';
 
 describe('Simulation', () => {
@@ -41,7 +41,7 @@ describe('Simulation', () => {
     });
 
     test('should handle complex conditions', () => {
-        const complexCondition = new AndCondition([
+        const complexCondition = new OrCondition([
             new Condition('Card A'),
             new Condition('Card B'),
         ]);

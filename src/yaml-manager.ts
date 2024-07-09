@@ -73,7 +73,7 @@ export class YamlManager {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = (event: ProgressEvent<FileReader>) => resolve(event.target?.result as string);
-            reader.onerror = (error) => reject(error);
+            reader.onerror = (error: ProgressEvent<FileReader>) => reject(error);
             reader.readAsText(file);
         });
     }
