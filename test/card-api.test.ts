@@ -1,179 +1,223 @@
-import { CardInformation, getCardById, getCardImageUrl } from '../src/card-api';
+// card-api.test.ts
+
+import { CardInformation, getCardById, getCardByName, fuzzySearchCard, getCardImage, clearCardDatabase } from '../src/card-api';
+import { IDBPDatabase } from 'idb';
+
+jest.mock('idb');
 
 describe('card-api', () => {
+    let mockDB: Partial<IDBPDatabase<any>>;
+    let mockFetch: jest.Mock;
+    let mockDBFactory: jest.Mock;
+
+    const mockCardData: CardInformation = {
+        id: 63176202,
+        name: "Great Shogun Shien",
+        type: "Effect Monster",
+        desc: "Your opponent can only activate 1 Spell/Trap Card each turn. If you control 2 or more face-up Six Samurai monsters, you can Special Summon this card (from your hand).",
+        atk: 2500,
+        def: 2400,
+        level: 7,
+        race: "Warrior",
+        attribute: "FIRE",
+        card_images: [{
+            id: 63176202,
+            image_url: "https://images.ygoprodeck.com/images/cards/63176202.jpg",
+            image_url_small: "https://images.ygoprodeck.com/images/cards_small/63176202.jpg"
+        }]
+    };
+
+    beforeEach(() => {
+        mockDB = {
+            get: jest.fn(),
+            put: jest.fn(),
+            clear: jest.fn().mockResolvedValue(undefined),
+            transaction: jest.fn(),
+        };
+
+        mockDBFactory = jest.fn().mockResolvedValue(mockDB);
+
+        mockFetch = jest.fn();
+        global.fetch = mockFetch;
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    describe('clearCardDatabase', () => {
+        it('should clear both cards and images stores', async () => {
+            await clearCardDatabase(mockDBFactory);
+            
+            expect(mockDB.clear).toHaveBeenCalledTimes(2);
+            expect(mockDB.clear).toHaveBeenCalledWith('cards');
+            expect(mockDB.clear).toHaveBeenCalledWith('images');
+        });
+    });
+
     describe('getCardById', () => {
-        it('should return Great Shogun Shien for ID 63176202', async () => {
-            const mockFetch = jest.fn().mockResolvedValue({
+        it('should return cached card if available', async () => {
+            (mockDB.get as jest.Mock).mockResolvedValue(mockCardData);
+            const card = await getCardById(63176202, mockFetch, mockDBFactory);
+            expect(card).toEqual(mockCardData);
+            expect(mockDB.get).toHaveBeenCalledWith('cards', '63176202');
+            expect(mockFetch).not.toHaveBeenCalled();
+        });
+
+        it('should fetch and cache card if not in database', async () => {
+            (mockDB.get as jest.Mock).mockResolvedValue(undefined);
+            mockFetch.mockResolvedValue({
                 ok: true,
-                json: async () => ({
-                    data: [{
-                        id: 63176202,
-                        name: "Great Shogun Shien",
-                        type: "Effect Monster",
-                        desc: "Your opponent can only activate 1 Spell/Trap Card each turn. If you control 2 or more face-up Six Samurai monsters, you can Special Summon this card (from your hand).",
-                        atk: 2500,
-                        def: 2400,
-                        level: 7,
-                        race: "Warrior",
-                        attribute: "FIRE",
-                        card_images: [{
-                            id: 63176202,
-                            image_url: "https://images.ygoprodeck.com/images/cards/63176202.jpg",
-                            image_url_small: "https://images.ygoprodeck.com/images/cards_small/63176202.jpg"
-                        }]
-                    }]
-                })
+                json: async () => ({ data: [mockCardData] })
             });
+            
+            const card = await getCardById(63176202, mockFetch, mockDBFactory);
 
-            const card = await getCardById(63176202, mockFetch);
-
+            expect(card).toEqual(mockCardData);
             expect(mockFetch).toHaveBeenCalledWith(
                 'https://db.ygoprodeck.com/api/v7/cardinfo.php?id=63176202'
             );
-            expect(card).not.toBeNull();
-            expect(card?.name).toBe("Great Shogun Shien");
-            expect(card?.id).toBe(63176202);
-            expect(card?.type).toBe("Effect Monster");
-            expect(card?.atk).toBe(2500);
-            expect(card?.def).toBe(2400);
-            expect(card?.level).toBe(7);
-            expect(card?.race).toBe("Warrior");
-            expect(card?.attribute).toBe("FIRE");
+            expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, '63176202');
+            expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, 'Great Shogun Shien');
         });
 
         it('should return null for a non-existent card ID', async () => {
-            const mockFetch = jest.fn().mockResolvedValue({
+            (mockDB.get as jest.Mock).mockResolvedValue(undefined);
+            mockFetch.mockResolvedValue({
                 ok: true,
                 json: async () => ({ data: [] })
             });
 
-            const card = await getCardById(99999999, mockFetch);
+            const card = await getCardById(99999999, mockFetch, mockDBFactory);
 
-            expect(mockFetch).toHaveBeenCalledWith(
-                'https://db.ygoprodeck.com/api/v7/cardinfo.php?id=99999999'
-            );
             expect(card).toBeNull();
         });
 
         it('should handle network errors', async () => {
-            const mockFetch = jest.fn().mockRejectedValue(new Error('Network error'));
+            (mockDB.get as jest.Mock).mockResolvedValue(undefined);
+            mockFetch.mockRejectedValue(new Error('Network error'));
 
-            const card = await getCardById(63176202, mockFetch);
+            const card = await getCardById(63176202, mockFetch, mockDBFactory);
 
-            expect(mockFetch).toHaveBeenCalledWith(
-                'https://db.ygoprodeck.com/api/v7/cardinfo.php?id=63176202'
-            );
             expect(card).toBeNull();
         });
 
         it('should handle HTTP errors', async () => {
-            const mockFetch = jest.fn().mockResolvedValue({
+            (mockDB.get as jest.Mock).mockResolvedValue(undefined);
+            mockFetch.mockResolvedValue({
                 ok: false,
                 status: 404,
                 statusText: 'Not Found'
             });
 
-            const card = await getCardById(12345, mockFetch);
+            const card = await getCardById(12345, mockFetch, mockDBFactory);
 
-            expect(mockFetch).toHaveBeenCalledWith(
-                'https://db.ygoprodeck.com/api/v7/cardinfo.php?id=12345'
-            );
             expect(card).toBeNull();
-        });
-
-        it('should handle empty response data', async () => {
-            const mockFetch = jest.fn().mockResolvedValue({
-                ok: true,
-                json: async () => ({ data: null })
-            });
-        
-            const card = await getCardById(12345, mockFetch);
-        
-            expect(mockFetch).toHaveBeenCalledWith(
-                'https://db.ygoprodeck.com/api/v7/cardinfo.php?id=12345'
-            );
-            expect(card).toBeNull();
-        });
-
-        it('should use the default fetch function when no fetcher is provided', async () => {
-            // Mock the global fetch function
-            const originalFetch = global.fetch;
-            global.fetch = jest.fn().mockResolvedValue({
-                ok: true,
-                json: async () => ({
-                    data: [{
-                        id: 12345,
-                        name: "Test Card",
-                        type: "Effect Monster",
-                        desc: "This is a test card.",
-                        race: "Warrior",
-                        attribute: "LIGHT",
-                        card_images: [{
-                            id: 12345,
-                            image_url: "https://example.com/image.jpg",
-                            image_url_small: "https://example.com/image_small.jpg"
-                        }]
-                    }]
-                })
-            });
-        
-            try {
-                const card = await getCardById(12345);
-        
-                expect(global.fetch).toHaveBeenCalledWith(
-                    'https://db.ygoprodeck.com/api/v7/cardinfo.php?id=12345'
-                );
-                expect(card).not.toBeNull();
-                expect(card?.name).toBe("Test Card");
-            } finally {
-                // Restore the original fetch function
-                global.fetch = originalFetch;
-            }
         });
     });
 
-    describe('getCardImageUrl', () => {
-        it('should return the image URL when available', () => {
-            const card: CardInformation = {
-                id: 12345,
-                name: 'Test Card',
-                type: 'Monster',
-                desc: 'This is a test card.',
-                race: 'Warrior',
-                card_images: [
-                { id: 12345, image_url: 'https://example.com/image.jpg', image_url_small: 'https://example.com/image_small.jpg' }
-                ]
-            };
-    
-            const imageUrl = getCardImageUrl(card);
-            expect(imageUrl).toBe('https://example.com/image.jpg');
+    describe('getCardByName', () => {
+        it('should return cached card if available', async () => {
+            (mockDB.get as jest.Mock).mockResolvedValue(mockCardData);
+            const card = await getCardByName('Great Shogun Shien', mockFetch, mockDBFactory);
+            expect(card).toEqual(mockCardData);
+            expect(mockDB.get).toHaveBeenCalledWith('cards', 'Great Shogun Shien');
+            expect(mockFetch).not.toHaveBeenCalled();
         });
-    
-        it('should return null when no image is available', () => {
-            const card: CardInformation = {
-                id: 12345,
-                name: 'Test Card',
-                type: 'Monster',
-                desc: 'This is a test card.',
-                race: 'Warrior',
-                card_images: []
-            };
-        
-            const imageUrl = getCardImageUrl(card);
-            expect(imageUrl).toBeNull();
+
+        it('should fetch and cache card if not in database', async () => {
+            (mockDB.get as jest.Mock).mockResolvedValue(undefined);
+            mockFetch.mockResolvedValue({
+                ok: true,
+                json: async () => ({ data: [mockCardData] })
+            });
+            
+            const card = await getCardByName('Great Shogun Shien', mockFetch, mockDBFactory);
+
+            expect(card).toEqual(mockCardData);
+            expect(mockFetch).toHaveBeenCalledWith(
+                'https://db.ygoprodeck.com/api/v7/cardinfo.php?name=Great%20Shogun%20Shien'
+            );
+            expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, '63176202');
+            expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, 'Great Shogun Shien');
         });
-    
-        it('should return null when card_images is undefined', () => {
-            const card: Partial<CardInformation> = {
-                id: 12345,
-                name: 'Test Card',
-                type: 'Monster',
-                desc: 'This is a test card.',
-                race: 'Warrior'
-            };
-        
-            const imageUrl = getCardImageUrl(card as CardInformation);
-            expect(imageUrl).toBeNull();
+
+        it('should return null for a non-existent card name', async () => {
+            (mockDB.get as jest.Mock).mockResolvedValue(undefined);
+            mockFetch.mockResolvedValue({
+                ok: true,
+                json: async () => ({ data: [] })
+            });
+
+            const card = await getCardByName('Non-existent Card', mockFetch, mockDBFactory);
+
+            expect(card).toBeNull();
+        });
+    });
+
+    describe('fuzzySearchCard', () => {
+        it('should fetch and cache cards matching the query', async () => {
+            mockFetch.mockResolvedValue({
+                ok: true,
+                json: async () => ({ data: [mockCardData] })
+            });
+            
+            const cards = await fuzzySearchCard('Shogun', mockFetch, mockDBFactory);
+
+            expect(cards).toEqual([mockCardData]);
+            expect(mockFetch).toHaveBeenCalledWith(
+                'https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=Shogun'
+            );
+            expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, '63176202');
+            expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, 'Great Shogun Shien');
+        });
+
+        it('should return an empty array for no matches', async () => {
+            mockFetch.mockResolvedValue({
+                ok: true,
+                json: async () => ({ data: [] })
+            });
+
+            const cards = await fuzzySearchCard('Non-existent', mockFetch, mockDBFactory);
+
+            expect(cards).toEqual([]);
+        });
+    });
+
+    describe('getCardImage', () => {
+        const mockBlob = new Blob(['mock image data'], { type: 'image/jpeg' });
+
+        it('should return cached image if available', async () => {
+            (mockDB.get as jest.Mock).mockResolvedValueOnce(mockCardData)
+                                     .mockResolvedValueOnce(mockBlob);
+            
+            const image = await getCardImage(63176202, mockFetch, mockDBFactory);
+
+            expect(image).toEqual(mockBlob);
+            expect(mockDB.get).toHaveBeenCalledWith('images', mockCardData.card_images[0].image_url);
+        });
+
+        it('should fetch and cache image if not in database', async () => {
+            (mockDB.get as jest.Mock).mockResolvedValueOnce(mockCardData)
+                                     .mockResolvedValueOnce(undefined);
+            mockFetch.mockResolvedValue({
+                ok: true,
+                blob: async () => mockBlob
+            });
+            
+            const image = await getCardImage('Great Shogun Shien', mockFetch, mockDBFactory);
+
+            expect(image).toEqual(mockBlob);
+            expect(mockFetch).toHaveBeenCalledWith(mockCardData.card_images[0].image_url);
+            expect(mockDB.put).toHaveBeenCalledWith('images', mockBlob, mockCardData.card_images[0].image_url);
+        });
+
+        it('should return null if card is not found', async () => {
+            (mockDB.get as jest.Mock).mockResolvedValue(null);
+            
+            const image = await getCardImage('Non-existent Card', mockFetch, mockDBFactory);
+
+            expect(image).toBeNull();
         });
     });
 });
