@@ -26,7 +26,7 @@ interface ApiResponse {
 }
 
 // Define the database schema
-interface YuGiOhDBSchema extends DBSchema {
+interface CardDataSchema extends DBSchema {
     cards: {
         key: string;
         value: CardInformation;
@@ -37,12 +37,12 @@ interface YuGiOhDBSchema extends DBSchema {
     };
 }
 
-let db: IDBPDatabase<YuGiOhDBSchema>;
+let db: IDBPDatabase<CardDataSchema>;
 
 // Initialize the database
-async function initDB(): Promise<IDBPDatabase<YuGiOhDBSchema>> {
+async function initDB(): Promise<IDBPDatabase<CardDataSchema>> {
     if (!db) {
-        db = await openDB<YuGiOhDBSchema>('YuGiOhDB', 1, {
+        db = await openDB<CardDataSchema>('YuGiOhDB', 1, {
             upgrade(db) {
                 db.createObjectStore('cards');
                 db.createObjectStore('images');

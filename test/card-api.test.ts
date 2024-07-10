@@ -1,7 +1,7 @@
 // card-api.test.ts
 
 import { CardInformation, getCardById, getCardByName, fuzzySearchCard, getCardImage, clearCardDatabase } from '../src/card-api';
-import { IDBPDatabase } from 'idb';
+import { IDBPDatabase, openDB } from 'idb';
 
 jest.mock('idb');
 
@@ -9,6 +9,7 @@ describe('card-api', () => {
     let mockDB: Partial<IDBPDatabase<any>>;
     let mockFetch: jest.Mock;
     let mockDBFactory: jest.Mock;
+    let consoleErrorSpy: jest.SpyInstance;
 
     const mockCardData: CardInformation = {
         id: 63176202,
@@ -39,10 +40,13 @@ describe('card-api', () => {
 
         mockFetch = jest.fn();
         global.fetch = mockFetch;
+
+        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     });
 
     afterEach(() => {
         jest.clearAllMocks();
+        consoleErrorSpy.mockRestore();
     });
 
     describe('clearCardDatabase', () => {
@@ -96,12 +100,13 @@ describe('card-api', () => {
         it('should handle network errors', async () => {
             (mockDB.get as jest.Mock).mockResolvedValue(undefined);
             mockFetch.mockRejectedValue(new Error('Network error'));
-
+    
             const card = await getCardById(63176202, mockFetch, mockDBFactory);
-
+    
             expect(card).toBeNull();
+            expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching card data:', expect.any(Error));
         });
-
+    
         it('should handle HTTP errors', async () => {
             (mockDB.get as jest.Mock).mockResolvedValue(undefined);
             mockFetch.mockResolvedValue({
@@ -109,10 +114,11 @@ describe('card-api', () => {
                 status: 404,
                 statusText: 'Not Found'
             });
-
+    
             const card = await getCardById(12345, mockFetch, mockDBFactory);
-
+    
             expect(card).toBeNull();
+            expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching card data:', expect.any(Error));
         });
     });
 
@@ -153,6 +159,20 @@ describe('card-api', () => {
 
             expect(card).toBeNull();
         });
+
+        it('should handle HTTP errors', async () => {
+            (mockDB.get as jest.Mock).mockResolvedValue(undefined);
+            mockFetch.mockResolvedValue({
+                ok: false,
+                status: 500,
+                statusText: 'Internal Server Error'
+            });
+    
+            const card = await getCardByName('Error Card', mockFetch, mockDBFactory);
+    
+            expect(card).toBeNull();
+            expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching card data:', expect.any(Error));
+        });
     });
 
     describe('fuzzySearchCard', () => {
@@ -181,6 +201,19 @@ describe('card-api', () => {
             const cards = await fuzzySearchCard('Non-existent', mockFetch, mockDBFactory);
 
             expect(cards).toEqual([]);
+        });
+
+        it('should handle HTTP errors', async () => {
+            mockFetch.mockResolvedValue({
+                ok: false,
+                status: 503,
+                statusText: 'Service Unavailable'
+            });
+    
+            const cards = await fuzzySearchCard('Error', mockFetch, mockDBFactory);
+    
+            expect(cards).toEqual([]);
+            expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching card data:', expect.any(Error));
         });
     });
 
@@ -218,6 +251,21 @@ describe('card-api', () => {
             const image = await getCardImage('Non-existent Card', mockFetch, mockDBFactory);
 
             expect(image).toBeNull();
+        });
+
+        it('should handle HTTP errors when fetching image', async () => {
+            (mockDB.get as jest.Mock).mockResolvedValueOnce(mockCardData)
+                                     .mockResolvedValueOnce(undefined);
+            mockFetch.mockResolvedValue({
+                ok: false,
+                status: 404,
+                statusText: 'Not Found'
+            });
+    
+            const image = await getCardImage('Error Image', mockFetch, mockDBFactory);
+    
+            expect(image).toBeNull();
+            expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching image:', expect.any(Error));
         });
     });
 });

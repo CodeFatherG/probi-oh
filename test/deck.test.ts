@@ -43,10 +43,10 @@ describe('Deck', () => {
 
     describe('drawCard', () => {
         it('should remove and return a random card from the deck', () => {
-            const cards = [
-                new Card('Card A', { tags: ['Tag1'] }),
-                new Card('Card B', { tags: ['Tag2'] })
-            ];
+            const cards: Card[] = Array(40).fill(null).map((_, index) => 
+                new Card(`Card ${String.fromCharCode(65 + index % 26)}`, { tags: ['Tag1'] })
+            );
+
             const deck = new Deck(cards);
             const initialCount = deck.deckCount;
             const drawnCard = deck.drawCard();
