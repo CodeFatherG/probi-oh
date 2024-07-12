@@ -40,7 +40,7 @@ export class Deck {
 
     /** Gets the list of cards in the deck */
     get deckList(): Readonly<Card[]> {
-        return Object.freeze(this._cards);
+        return Object.freeze([...this._cards]);
     }
 
     /** Gets the number of cards in the deck */
