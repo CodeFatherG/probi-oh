@@ -5,11 +5,13 @@ import { parseCondition } from './parser.js';
 import { convertYdkToYaml } from './ydk-to-yaml.js';
 import { CardDetails } from './card.js';
 
+/** Represents the input for a simulation */
 export interface SimulationInput {
     deck: Deck;
     conditions: BaseCondition[];
 }
 
+/** Manages YAML operations for the application */
 export class YamlManager {
     private _yaml: string | null = null;
     private _input: SimulationInput | null = null;
@@ -17,6 +19,7 @@ export class YamlManager {
 
     private constructor() {}
 
+    /** Gets the singleton instance of YamlManager */
     public static getInstance(): YamlManager {
         if (!YamlManager.instance) {
             YamlManager.instance = new YamlManager();
@@ -24,6 +27,10 @@ export class YamlManager {
         return YamlManager.instance;
     }
 
+    /**
+     * Loads a SimulationInput from a YAML string
+     * @param yamlString - The YAML string to parse
+     */
     public loadFromYamlString(yamlString: string): SimulationInput {
         try {
             const input = yaml.load(yamlString) as { deck: Record<string, CardDetails>, conditions: string[] };
@@ -59,16 +66,28 @@ export class YamlManager {
         }
     }
 
+    /**
+     * Loads a SimulationInput from a YAML file
+     * @param file - The File object containing YAML content
+     */
     async loadFromYamlFile(file: File): Promise<SimulationInput> {
         const yamlContent = await this.readFileContent(file);
         return this.loadFromYamlString(yamlContent);
     }
 
+    /**
+     * Converts a YDK file to YAML format
+     * @param file - The File object containing YDK content
+     */
     async convertYdkToYaml(file: File): Promise<string> {
         const ydkContent = await this.readFileContent(file);
         return convertYdkToYaml(ydkContent);
     }
 
+    /**
+     * Reads the content of a file
+     * @param file - The File object to read
+     */
     private readFileContent(file: File): Promise<string> {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -78,6 +97,10 @@ export class YamlManager {
         });
     }
 
+    /**
+     * Serializes a Deck to YAML format
+     * @param deck - The Deck to serialize
+     */
     public serializeDeckToYaml(deck: Deck): string {
         const deckObject: Record<string, CardDetails> = {};
         deck.deckList.forEach(card => {
@@ -96,11 +119,19 @@ export class YamlManager {
         return yaml.dump({ deck: deckObject });
     }
 
+    /**
+     * Serializes conditions to YAML format
+     * @param conditions - The conditions to serialize
+     */
     public serializeConditionsToYaml(conditions: BaseCondition[]): string {
         const conditionStrings = conditions.map(condition => this.conditionToString(condition));
         return yaml.dump({ conditions: conditionStrings });
     }
 
+    /**
+     * Converts a condition to a string representation
+     * @param condition - The condition to convert
+     */
     private conditionToString(condition: BaseCondition): string {
         if (condition instanceof Condition) {
             let quantityText = "";
@@ -116,16 +147,22 @@ export class YamlManager {
         throw new Error('Unknown condition type');
     }
 
+    /**
+     * Serializes a SimulationInput to YAML format
+     * @param input - The SimulationInput to serialize
+     */
     public serializeSimulationInputToYaml(input: SimulationInput): string {
         const deckYaml = this.serializeDeckToYaml(input.deck);
         const conditionsYaml = this.serializeConditionsToYaml(input.conditions);
         return deckYaml + '\n' + conditionsYaml;
     }
 
+    /** Gets the last loaded/saved YAML string */
     get yaml(): string | null {
         return this._yaml;
     }
 
+    /** Gets the last loaded/saved SimulationInput */
     get input(): SimulationInput | null {
         return this._input;
     }
