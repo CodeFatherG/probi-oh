@@ -7,7 +7,8 @@
     "lib": ["es2017", "dom"],
     "outDir": "./dist",
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "strictNullChecks": true
   },
   "include": ["src/**/*", "test/**/*"]
 }
