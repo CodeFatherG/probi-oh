@@ -23,12 +23,12 @@ describe('Card', () => {
 
     it('should correctly identify as a free card', () => {
         const card = new Card(cardName, cardDetails);
-        expect(card.cardIsFree).toBe(true);
+        expect(card.isFree).toBe(true);
     });
 
     it('should correctly identify as not a free card', () => {
         const nonFreeCard = new Card('Dark Magician', { tags: ['Spellcaster'] });
-        expect(nonFreeCard.cardIsFree).toBe(false);
+        expect(nonFreeCard.isFree).toBe(false);
     });
 
     it('should handle cards without tags', () => {
@@ -38,7 +38,7 @@ describe('Card', () => {
     
     it('should handle cards without free details', () => {
         const card = new Card('Card A', {});
-        expect(card.cardIsFree).toBe(false);
+        expect(card.isFree).toBe(false);
         expect(card.freeCardDetails).toBeNull();
     });
 

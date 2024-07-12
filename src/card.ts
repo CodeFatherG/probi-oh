@@ -32,7 +32,7 @@ export class Card {
         return this._details;
     }
 
-    get cardIsFree(): Readonly<boolean> {
+    get isFree(): Readonly<boolean> {
         return this._free != null;
     }
 
