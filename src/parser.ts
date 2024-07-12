@@ -1,14 +1,21 @@
 import { AndCondition, BaseCondition, Condition, OrCondition } from "./condition.js";
 
+/** Represents a token in the parsed input */
 interface Token {
     type: string;
     value: string;
 }
 
+/**
+ * Parses an array of tokens into a BaseCondition
+ * @param tokens - Array of tokens to parse
+ * @returns A BaseCondition representing the parsed expression
+ */
 function parse(tokens: Token[]): BaseCondition {
     let current = 0;
     let parenCount = 0;
 
+    /** Walks through tokens and constructs conditions */
     function walk(): BaseCondition {
         let token = tokens[current];
         if (token.type === 'number') {
@@ -17,6 +24,7 @@ function parse(tokens: Token[]): BaseCondition {
             if (nextToken && nextToken.type === 'name') {
                 current++;
                 let quantity = parseInt(token.value);
+                // Determine the operator based on the presence of + or -
                 let operator = token.value.includes('+') ? '>=' : token.value.includes('-') ? '<=' : '=';
                 return new Condition(nextToken.value, quantity, operator);
             } else {
@@ -34,6 +42,7 @@ function parse(tokens: Token[]): BaseCondition {
                 parenCount++;
                 current++;
                 let result = parseExpression();
+                // Ensure matching closing parenthesis
                 if (tokens[current].type !== 'paren' || tokens[current].value !== ')') {
                     throw new SyntaxError('Expected closing parenthesis');
                 }
@@ -48,6 +57,7 @@ function parse(tokens: Token[]): BaseCondition {
         throw new TypeError(`Unexpected token type: ${token.type}`);
     }
 
+    /** Parses expressions, handling AND and OR operations */
     function parseExpression(): BaseCondition {
         let left: BaseCondition = walk();
     
@@ -55,6 +65,7 @@ function parse(tokens: Token[]): BaseCondition {
             let operator = tokens[current].value;
             current++;
             let right: BaseCondition = walk();
+            // Create AndCondition or OrCondition based on the operator
             left = operator === 'AND' ? new AndCondition([left, right]) : new OrCondition([left, right]);
         }
     
@@ -63,7 +74,7 @@ function parse(tokens: Token[]): BaseCondition {
 
     let result = parseExpression();
     
-    // Check if there are any unexpected tokens left
+    // Check for any unexpected tokens after parsing
     if (current < tokens.length) {
         if (tokens[current].type === 'paren' && tokens[current].value === ')') {
             throw new SyntaxError('Unexpected closing parenthesis');
@@ -75,6 +86,11 @@ function parse(tokens: Token[]): BaseCondition {
     return result;
 }
 
+/**
+ * Tokenizes an input string into an array of tokens
+ * @param input - The string to tokenize
+ * @returns An array of Token objects
+ */
 function tokenize(input: string): Token[] {
     const tokens: Token[] = [];
     let current = 0;
@@ -82,18 +98,21 @@ function tokenize(input: string): Token[] {
     while (current < input.length) {
         let char = input[current];
 
+        // Handle parentheses
         if (char === '(' || char === ')') {
             tokens.push({ type: 'paren', value: char });
             current++;
             continue;
         }
 
+        // Skip whitespace
         const WHITESPACE = /\s/;
         if (WHITESPACE.test(char)) {
             current++;
             continue;
         }
 
+        // Check for AND operator
         function isANDToken(slice: string): RegExpMatchArray | null {
             return slice.match(/^AND\b/);
         }
@@ -104,6 +123,7 @@ function tokenize(input: string): Token[] {
             continue;
         }
 
+        // Check for OR operator
         function isORToken(slice: string): RegExpMatchArray | null {
             return slice.match(/^OR\b/);
         }
@@ -114,6 +134,7 @@ function tokenize(input: string): Token[] {
             continue;
         }
 
+        // Handle numbers (including + and - for operators)
         const NUMBERS = /[0-9]/;
         if (NUMBERS.test(char)) {
             let value = '';
@@ -129,6 +150,7 @@ function tokenize(input: string): Token[] {
             continue;
         }
 
+        // Handle card names (including spaces and hyphens)
         const NAME_CHARS = /[A-Za-z0-9\-]/;
         if (NAME_CHARS.test(char)) {
             let value = '';
@@ -138,6 +160,7 @@ function tokenize(input: string): Token[] {
                 }
                 char = input[++current];
 
+                // Break if we encounter an AND or OR operator
                 if (isANDToken(input.slice(current)) || isORToken(input.slice(current))) {
                     break;
                 }
@@ -152,6 +175,11 @@ function tokenize(input: string): Token[] {
     return tokens;
 }
 
+/**
+ * Parses a condition string into a BaseCondition
+ * @param conditions - The condition string to parse
+ * @returns A BaseCondition representing the parsed condition
+ */
 export function parseCondition(conditions: string): BaseCondition {
     const tokens = tokenize(conditions);
     return parse(tokens);
