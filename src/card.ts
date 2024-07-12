@@ -1,49 +1,42 @@
-import { Deck } from './deck.js';
-
 export interface CardDetails {
-    qty?: number;
-    tags?: string[];
-    free?: {
-        cost?: number;
-        cards?: number;
-        destination?: string;
+    readonly qty?: number;
+    readonly tags?: readonly string[];
+    readonly free?: {
+        readonly cost?: number;
+        readonly cards?: number;
+        readonly destination?: string;
     };
 }
 
 export class Card {
-    private _name: string;
-    private _details: CardDetails;
-    private _tags: string[] | null;
-    private _free: CardDetails['free'] | null;
+    private readonly _tags: string[] | null;
+    private readonly _free: CardDetails['free'] | null;
 
-    constructor(cardName: string, cardDetails: CardDetails) {
-        this._name = cardName;
-        this._details = cardDetails;
-        this._tags = cardDetails.tags || null;
-        this._free = cardDetails.free || null;
+    constructor(
+        private readonly _name: string,
+        private readonly _details: CardDetails
+    ) {
+        this._tags = _details.tags ? [..._details.tags] : null;
+        this._free = _details.free ?? null;
     }
 
-    get name(): string {
+    get name(): Readonly<string> {
         return this._name;
     }
 
-    get nameLower(): string {
-        return this.name.toLowerCase();
-    }
-
-    get tags(): string[] | null {
+    get tags(): Readonly<string[]> | null {
         return this._tags;
     }
 
-    get details(): CardDetails {
+    get details(): Readonly<CardDetails> {
         return this._details;
     }
 
-    get cardIsFree(): boolean {
+    get cardIsFree(): Readonly<boolean> {
         return this._free != null;
     }
 
-    get freeCardDetails(): CardDetails['free'] | null {
+    get freeCardDetails(): Readonly<CardDetails['free']> | null {
         return this._free;
     }
 }

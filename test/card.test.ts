@@ -16,11 +16,6 @@ describe('Card', () => {
         expect(card.name).toBe(cardName);
     });
 
-    it('should return the correct lower case name', () => {
-        const card = new Card(cardName, cardDetails);
-        expect(card.nameLower).toBe(cardName.toLowerCase());
-    });
-
     it('should have the correct tags', () => {
         const card = new Card(cardName, cardDetails);
         expect(card.tags).toEqual(cardDetails.tags);
@@ -36,11 +31,6 @@ describe('Card', () => {
         expect(nonFreeCard.cardIsFree).toBe(false);
     });
 
-    it('should return correct lower case name', () => {
-        const card = new Card('Card C', {});
-        expect(card.nameLower).toBe('card c');
-    });
-    
     it('should handle cards without tags', () => {
         const card = new Card('Card B', {});
         expect(card.tags).toBeNull();
