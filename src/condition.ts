@@ -1,23 +1,36 @@
 import { Card } from './card.js';
 
+/** Base condition interface for card evaluation */
 export interface BaseCondition {
+    /** Evaluates the condition against a hand of cards */
     evaluate(hand: Card[]): boolean;
-    successes: number;
+    /** Number of successful evaluations */
+    get successes(): Readonly<number>;
 }
 
+/** Specific condition for card evaluation */
 export class Condition implements BaseCondition {
-    cardName: string;
-    quantity: number;
-    operator: string;
-    successes: number;
+    private _successes: number = 0;
 
-    constructor(cardName: string, quantity: number = 1, operator: string = '>=') {
-        this.cardName = cardName;
-        this.quantity = quantity;
-        this.operator = operator;
-        this.successes = 0;
+    /**
+     * Creates a new Condition
+     * @param cardName - Name of the card to evaluate
+     * @param quantity - Quantity to compare against
+     * @param operator - Comparison operator
+     */
+    constructor(
+        readonly cardName: string, 
+        readonly quantity: number = 1, 
+        readonly operator: string = '>='
+    ) {
     }
 
+    /** Number of successful evaluations */
+    get successes(): Readonly<number> {
+        return this._successes;
+    }
+
+    /** Evaluates the condition against a hand of cards */
     evaluate(hand: Card[]): boolean {
         const count = hand.filter(card => card.name === this.cardName || (card.tags && card.tags.includes(this.cardName))).length;
 
@@ -29,45 +42,61 @@ export class Condition implements BaseCondition {
             default: throw new Error(`Unknown operator: ${this.operator}`);
         }
 
-        this.successes += result ? 1 : 0;
+        this._successes += result ? 1 : 0;
         return result;
     }
 }
 
+/** Logical AND condition composed of multiple base conditions */
 export class AndCondition implements BaseCondition {
-    conditions: BaseCondition[];
-    successes: number;
+    private _successes: number = 0;
 
-    constructor(conditions: BaseCondition[]) {
+    /**
+     * Creates a new AndCondition
+     * @param conditions - Array of BaseCondition objects
+     */
+    constructor(readonly conditions: BaseCondition[]) {
         if (conditions.some(condition => condition == undefined)) {
             console.error(`Found a dead condition`);
         }
-        this.conditions = conditions;
-        this.successes = 0;
     }
 
+    /** Number of successful evaluations */
+    get successes(): Readonly<number> {
+        return this._successes;
+    }
+
+    /** Evaluates the AND condition against a hand of cards */
     evaluate(hand: Card[]): boolean {
         let result = this.conditions.every(condition => condition.evaluate(hand));
-        this.successes += result ? 1 : 0;
+        this._successes += result ? 1 : 0;
         return result;
     }
 }
 
+/** Logical OR condition composed of multiple base conditions */
 export class OrCondition implements BaseCondition {
-    conditions: BaseCondition[];
-    successes: number;
+    private _successes: number = 0;
 
-    constructor(conditions: BaseCondition[]) {
+    /**
+     * Creates a new OrCondition
+     * @param conditions - Array of BaseCondition objects
+     */
+    constructor(readonly conditions: BaseCondition[]) {
         if (conditions.some(condition => condition == undefined)) {
             console.error(`Found a dead condition`);
         }
-        this.conditions = conditions;
-        this.successes = 0;
     }
 
+    /** Number of successful evaluations */
+    get successes(): Readonly<number> {
+        return this._successes;
+    }
+
+    /** Evaluates the OR condition against a hand of cards */
     evaluate(hand: Card[]): boolean {
         let result = this.conditions.some(condition => condition.evaluate(hand));
-        this.successes += result ? 1 : 0;
+        this._successes += result ? 1 : 0;
         return result;
     }
 }

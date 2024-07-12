@@ -1,7 +1,8 @@
 // card-api.test.ts
 
-import { CardInformation, getCardById, getCardByName, fuzzySearchCard, getCardImage, clearCardDatabase } from '../src/card-api';
+import { getCardById, getCardByName, fuzzySearchCard, getCardImage, clearCardDatabase } from '../src/card-api';
 import { IDBPDatabase, openDB } from 'idb';
+import { CardInformation } from '../src/card-information';
 
 jest.mock('idb');
 
@@ -79,7 +80,7 @@ describe('card-api', () => {
 
             expect(card).toEqual(mockCardData);
             expect(mockFetch).toHaveBeenCalledWith(
-                'https://db.ygoprodeck.com/api/v7/cardinfo.php?id=63176202'
+                new URL('https://db.ygoprodeck.com/api/v7/cardinfo.php?id=63176202')
             );
             expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, '63176202');
             expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, 'Great Shogun Shien');
@@ -142,7 +143,7 @@ describe('card-api', () => {
 
             expect(card).toEqual(mockCardData);
             expect(mockFetch).toHaveBeenCalledWith(
-                'https://db.ygoprodeck.com/api/v7/cardinfo.php?name=Great%20Shogun%20Shien'
+                new URL('https://db.ygoprodeck.com/api/v7/cardinfo.php?name=Great%20Shogun%20Shien')
             );
             expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, '63176202');
             expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, 'Great Shogun Shien');
@@ -186,7 +187,7 @@ describe('card-api', () => {
 
             expect(cards).toEqual([mockCardData]);
             expect(mockFetch).toHaveBeenCalledWith(
-                'https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=Shogun'
+                new URL('https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=Shogun')
             );
             expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, '63176202');
             expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, 'Great Shogun Shien');
