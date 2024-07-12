@@ -2,22 +2,19 @@ import { Card, CardDetails } from "./card.js";
 
 export class Deck {
     private _cards: Card[];
-    private _deck_list: Card[];
 
     constructor(cards: Card[]) {
         const missingCount = 40 - cards.length;
         if (missingCount > 0) {
             cards.push(...Array(missingCount).fill(new Card("Empty Card", {tags: ["Empty", "Blank", "Non Engine"]})));
         }
-        this._cards = cards;
-        this._deck_list = cards.slice()
+        this._cards = cards.slice();
         this.shuffle();
     }
 
     deepCopy(): Deck {
         const newDeck = new Deck([]);
         newDeck._cards = this._cards.map(card => new Card(card.name, { ...card.details }));
-        newDeck._deck_list = newDeck._cards.slice();
         return newDeck;
     }
 
