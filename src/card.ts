@@ -6,29 +6,29 @@ export interface CardDetails {
     /**
      * The quantity of the card in the deck.
      */
-    readonly qty?: number;
+    qty?: number;
     /**
      * The tags associated with the card.
      */
-    readonly tags?: readonly string[];
+    tags?: readonly string[];
     /**
      * The details of a free card.
      */
-    readonly free?: {
+    free?: {
         /**
          * The cost of the card.
          */
-        readonly cost?: number;
+        cost?: number;
 
         /**
          * The number of cards to draw.
          */
-        readonly cards?: number;
+        cards?: number;
 
         /**
          * Where the cost is sent.
          */
-        readonly destination?: string;
+        destination?: string;
     };
 }
 
