@@ -10,4 +10,21 @@ module.exports = {
     transform: {
         '^.+\\.tsx?$': 'ts-jest',
     },
+    // Coverage configuration
+    collectCoverage: true,
+    coverageReporters: ['text', 'lcov', 'html'],
+    coverageDirectory: 'coverage',
+    coverageThreshold: {
+        global: {
+            branches: 80,
+            functions: 80,
+            lines: 80,
+            statements: 80
+        }
+    },
+    // Ignore coverage for certain files or directories
+    coveragePathIgnorePatterns: [
+        '/node_modules/',
+        '/test/'
+    ]
 };
