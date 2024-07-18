@@ -1,4 +1,4 @@
-import { Card } from "./card";
+import { Card, CreateCard } from "./card";
 import { Deck } from "./deck";
 
 /** Represents the current state of a game */
@@ -23,9 +23,9 @@ export class GameState {
     deepCopy(): GameState {
         const newState = new GameState(this._deck);
         this._deck = this._deck.deepCopy(); // need to recopy the deck since the constructor will draw a hand
-        newState._hand = this._hand.map(card => new Card(card.name, { ...card.details }));
-        newState._banishPile = this._banishPile.map(card => new Card(card.name, { ...card.details }));
-        newState._graveyard = this._graveyard.map(card => new Card(card.name, { ...card.details }));
+        newState._hand = this._hand.map(card => CreateCard(card.name, { ...card.details }));
+        newState._banishPile = this._banishPile.map(card => CreateCard(card.name, { ...card.details }));
+        newState._graveyard = this._graveyard.map(card => CreateCard(card.name, { ...card.details }));
         return newState;
     }
 

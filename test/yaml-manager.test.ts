@@ -1,6 +1,6 @@
 import { YamlManager, SimulationInput } from '../src/yaml-manager';
 import { Deck } from '../src/deck';
-import { Card } from '../src/card';
+import { Card, CreateCard } from '../src/card';
 import { Condition, AndCondition, OrCondition, BaseCondition } from '../src/condition';
 import * as yaml from 'js-yaml';
 import * as cardApi from '../src/card-api';
@@ -210,9 +210,9 @@ describe('YamlManager', () => {
     describe('serializeDeckToYaml', () => {
         it('should correctly serialize a deck to YAML', () => {
             const cards = [
-                new Card('Card1', { tags: ['Tag1', 'Tag2'] }),
-                new Card('Card1', { tags: ['Tag1', 'Tag2'] }),
-                new Card('Card2', { tags: ['Tag3'] })
+                CreateCard('Card1', { tags: ['Tag1', 'Tag2'] }),
+                CreateCard('Card1', { tags: ['Tag1', 'Tag2'] }),
+                CreateCard('Card2', { tags: ['Tag3'] })
             ];
             const deck = new Deck(cards);
             const result = yamlManager.serializeDeckToYaml(deck);
@@ -223,9 +223,9 @@ describe('YamlManager', () => {
 
         it('should correctly handle duplicate cards', () => {
             const cards = [
-                new Card('Card1', { tags: ['Tag1'] }),
-                new Card('Card1', { tags: ['Tag1'] }),
-                new Card('Card2', { tags: ['Tag2'] }),
+                CreateCard('Card1', { tags: ['Tag1'] }),
+                CreateCard('Card1', { tags: ['Tag1'] }),
+                CreateCard('Card2', { tags: ['Tag2'] }),
             ];
             const deck = new Deck(cards);
             const result = yamlManager.serializeDeckToYaml(deck);
@@ -268,8 +268,8 @@ describe('YamlManager', () => {
     describe('serializeSimulationInputToYaml', () => {
         it('should correctly serialize a complete simulation input to YAML', () => {
             const cards = [
-                new Card('Card1', { tags: ['Tag1'] }),
-                new Card('Card2', { tags: ['Tag2'] })
+                CreateCard('Card1', { tags: ['Tag1'] }),
+                CreateCard('Card2', { tags: ['Tag2'] })
             ];
             const deck = new Deck(cards);
             const conditions = [

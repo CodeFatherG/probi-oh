@@ -1,46 +1,13 @@
-/**
- * Represents the details of a card in the game.
- * @interface
- */
-export interface CardDetails {
-    /**
-     * The quantity of the card in the deck.
-     */
-    qty?: number;
-    /**
-     * The tags associated with the card.
-     */
-    tags?: readonly string[];
-    /**
-     * The details of a free card.
-     */
-    free?: {
-        /**
-         * The cost of the card.
-         */
-        cost?: number;
-
-        /**
-         * The number of cards to draw.
-         */
-        cards?: number;
-
-        /**
-         * Where the cost is sent.
-         */
-        destination?: string;
-    };
-}
+import { CardDetails, ConditionType, CostType, RestrictionType } from "./card-details";
 
 /**
  * Represents a card in the game.
  * @class
  */
-export class Card {
+class Card {
     private readonly _name: string;
     private readonly _details: CardDetails;
     private readonly _tags: readonly string[] | null;
-    private readonly _free: CardDetails['free'] | null;
 
     /**
      * Creates an instance of Card.
@@ -51,7 +18,6 @@ export class Card {
         this._name = cardName;
         this._details = cardDetails;
         this._tags = cardDetails.tags || null;
-        this._free = cardDetails.free || null;
     }
 
     /**
@@ -91,14 +57,62 @@ export class Card {
      * @returns {boolean} True if the card is free, false otherwise.
      */
     get isFree(): boolean {
-        return this._free != null;
-    }
-
-    /**
-     * Gets the free card details if the card is free.
-     * @returns {Readonly<CardDetails['free']> | null} The free card details or null if the card is not free.
-     */
-    get freeCardDetails(): Readonly<CardDetails['free']> | null {
-        return this._free;
+        return false;
     }
 }
+
+class FreeCard extends Card
+{
+    constructor(cardName: string, cardDetails: CardDetails)
+    {
+        if (!cardDetails.free)
+        {
+            throw new Error('Card does not have free details');
+        }
+        super(cardName, cardDetails);
+    }
+
+    get isFree(): boolean
+    {
+        return true;
+    }
+
+    get Count(): number
+    {
+        return this.details.free!.count;
+    }
+
+    get OncePerTurn(): boolean
+    {
+        return this.details.free!.oncePerTurn;
+    }
+
+    get Restrictions(): RestrictionType[]
+    {
+        return this.details.free!.restriction || [];
+    }
+
+    get Cost(): {type: CostType, value: number | string[]} | null
+    {
+        return this.details.free!.cost!;
+    }
+
+    get Condition(): {type: ConditionType, value: number | string} | null
+    {
+        return this.details.free!.condition!;
+    }
+
+    get Excavate(): {count: number, pick: number} | null
+    {
+        return this.details.free!.excavate!;
+    }
+}
+
+export function CreateCard(cardName: string, cardDetails: CardDetails): Card {
+    if (cardDetails.free) {
+        return new FreeCard(cardName, cardDetails);
+    }
+    return new Card(cardName, cardDetails);
+}
+
+export type { Card, FreeCard};

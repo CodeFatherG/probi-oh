@@ -1,4 +1,5 @@
-import { Card, CardDetails } from "./card.js";
+import { CardDetails } from "./card-details.js";
+import { Card, CreateCard } from "./card.js";
 
 /** Represents a deck of cards */
 export class Deck {
@@ -11,7 +12,7 @@ export class Deck {
     constructor(cards: Card[]) {
         const missingCount = 40 - cards.length;
         if (missingCount > 0) {
-            cards.push(...Array(missingCount).fill(new Card("Empty Card", {tags: ["Empty", "Blank", "Non Engine"]})));
+            cards.push(...Array(missingCount).fill(CreateCard("Empty Card", {tags: ["Empty", "Blank", "Non Engine"]})));
         }
         this._cards = cards.slice();
         this.shuffle();
@@ -20,7 +21,7 @@ export class Deck {
     /** Creates a deep copy of the deck */
     deepCopy(): Deck {
         const newDeck = new Deck([]);
-        newDeck._cards = this._cards.map(card => new Card(card.name, { ...card.details }));
+        newDeck._cards = this._cards.map(card => CreateCard(card.name, { ...card.details }));
         return newDeck;
     }
 
@@ -58,7 +59,7 @@ export function buildDeck(deckList: Record<string, CardDetails>): Deck {
     const cards: Card[] = [];
     for (const [card, details] of Object.entries(deckList)) {
         const qty = details.qty ?? 1;
-        cards.push(...Array(qty).fill(new Card(card, details)));
+        cards.push(...Array(qty).fill(CreateCard(card, details)));
     }
     return new Deck(cards);
 }

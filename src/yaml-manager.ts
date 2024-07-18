@@ -3,7 +3,7 @@ import { Deck, buildDeck } from './deck.js';
 import { AndCondition, BaseCondition, Condition, OrCondition } from './condition.js';
 import { parseCondition } from './parser.js';
 import { convertYdkToYaml } from './ydk-to-yaml.js';
-import { CardDetails } from './card.js';
+import { CardDetails } from './card-details.js';
 
 /** Represents the input for a simulation */
 export interface SimulationInput {

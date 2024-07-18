@@ -1,4 +1,4 @@
-import { Card } from '../src/card';
+import { Card, CreateCard } from '../src/card';
 import { Condition, AndCondition, OrCondition } from '../src/condition';
 
 describe('Condition', () => {
@@ -6,9 +6,9 @@ describe('Condition', () => {
 
     beforeEach(() => {
         testCards = [
-        new Card('Card A', { tags: ['Tag1'] }),
-        new Card('Card B', { tags: ['Tag2'] }),
-        new Card('Card C', { tags: ['Tag1', 'Tag3'] }),
+        CreateCard('Card A', { tags: ['Tag1'] }),
+        CreateCard('Card B', { tags: ['Tag2'] }),
+        CreateCard('Card C', { tags: ['Tag1', 'Tag3'] }),
         ];
     });
 
@@ -46,9 +46,9 @@ describe('Condition', () => {
     test('should evaluate correctly with quantity and <= operator', () => {
         const condition = new Condition('Tag1', 2, '<=');
         const testCards = [
-            new Card('Card A', { tags: ['Tag1'] }),
-            new Card('Card B', { tags: ['Tag1'] }),
-            new Card('Card C', { tags: ['Tag1'] }),
+            CreateCard('Card A', { tags: ['Tag1'] }),
+            CreateCard('Card B', { tags: ['Tag1'] }),
+            CreateCard('Card C', { tags: ['Tag1'] }),
         ];
         expect(condition.evaluate(testCards)).toBe(false);
         expect(condition.successes).toBe(0);
@@ -57,8 +57,8 @@ describe('Condition', () => {
     test('should evaluate correctly with exact quantity', () => {
         const condition = new Condition('Tag2', 2, '=');
         const testCards = [
-            new Card('Card A', { tags: ['Tag2'] }),
-            new Card('Card B', { tags: ['Tag2'] }),
+            CreateCard('Card A', { tags: ['Tag2'] }),
+            CreateCard('Card B', { tags: ['Tag2'] }),
         ];
         expect(condition.evaluate(testCards)).toBe(true);
         expect(condition.successes).toBe(1);
@@ -67,9 +67,9 @@ describe('Condition', () => {
     test('should handle cards with multiple tags', () => {
         const condition = new Condition('Tag3', 2, '>=');
         const testCards = [
-            new Card('Card A', { tags: ['Tag1', 'Tag3'] }),
-            new Card('Card B', { tags: ['Tag2', 'Tag3'] }),
-            new Card('Card C', { tags: ['Tag3', 'Tag4'] }),
+            CreateCard('Card A', { tags: ['Tag1', 'Tag3'] }),
+            CreateCard('Card B', { tags: ['Tag2', 'Tag3'] }),
+            CreateCard('Card C', { tags: ['Tag3', 'Tag4'] }),
         ];
         expect(condition.evaluate(testCards)).toBe(true);
         expect(condition.successes).toBe(1);
@@ -77,27 +77,27 @@ describe('Condition', () => {
 
     it('should evaluate greater than or equal correctly', () => {
         const condition = new Condition('Test Card', 2, '>=');
-        expect(condition.evaluate([new Card('Test Card', {}), new Card('Test Card', {})])).toBe(true);
-        expect(condition.evaluate([new Card('Test Card', {})])).toBe(false);
+        expect(condition.evaluate([CreateCard('Test Card', {}), CreateCard('Test Card', {})])).toBe(true);
+        expect(condition.evaluate([CreateCard('Test Card', {})])).toBe(false);
     });
 
     it('should evaluate less than or equal correctly', () => {
         const condition = new Condition('Test Card', 2, '<=');
-        expect(condition.evaluate([new Card('Test Card', {})])).toBe(true);
-        expect(condition.evaluate([new Card('Test Card', {}), new Card('Test Card', {}), new Card('Test Card', {})])).toBe(false);
+        expect(condition.evaluate([CreateCard('Test Card', {})])).toBe(true);
+        expect(condition.evaluate([CreateCard('Test Card', {}), CreateCard('Test Card', {}), CreateCard('Test Card', {})])).toBe(false);
     });
 
     it('should evaluate equal correctly', () => {
         const condition = new Condition('Test Card', 2, '=');
-        expect(condition.evaluate([new Card('Test Card', {}), new Card('Test Card', {})])).toBe(true);
-        expect(condition.evaluate([new Card('Test Card', {})])).toBe(false);
-        expect(condition.evaluate([new Card('Test Card', {}), new Card('Test Card', {}), new Card('Test Card', {})])).toBe(false);
+        expect(condition.evaluate([CreateCard('Test Card', {}), CreateCard('Test Card', {})])).toBe(true);
+        expect(condition.evaluate([CreateCard('Test Card', {})])).toBe(false);
+        expect(condition.evaluate([CreateCard('Test Card', {}), CreateCard('Test Card', {}), CreateCard('Test Card', {})])).toBe(false);
     });
 
     it('should handle card tags', () => {
         const condition = new Condition('TestTag', 1, '>=');
-        expect(condition.evaluate([new Card('Different Card', { tags: ['TestTag'] })])).toBe(true);
-        expect(condition.evaluate([new Card('Different Card', { tags: ['OtherTag'] })])).toBe(false);
+        expect(condition.evaluate([CreateCard('Different Card', { tags: ['TestTag'] })])).toBe(true);
+        expect(condition.evaluate([CreateCard('Different Card', { tags: ['OtherTag'] })])).toBe(false);
     });
 });
 
@@ -108,8 +108,8 @@ describe('AndCondition', () => {
         const andCondition = new AndCondition([condition1, condition2]);
 
         const testCards = [
-        new Card('Card A', { tags: ['Tag1'] }),
-        new Card('Card B', { tags: ['Tag2'] }),
+        CreateCard('Card A', { tags: ['Tag1'] }),
+        CreateCard('Card B', { tags: ['Tag2'] }),
         ];
 
         expect(andCondition.evaluate(testCards)).toBe(true);
@@ -122,8 +122,8 @@ describe('AndCondition', () => {
         const andCondition = new AndCondition([condition1, condition2]);
 
         const testCards = [
-        new Card('Card A', { tags: ['Tag1'] }),
-        new Card('Card B', { tags: ['Tag2'] }),
+        CreateCard('Card A', { tags: ['Tag1'] }),
+        CreateCard('Card B', { tags: ['Tag2'] }),
         ];
 
         expect(andCondition.evaluate(testCards)).toBe(false);
@@ -137,9 +137,9 @@ describe('AndCondition', () => {
         const andCondition = new AndCondition([condition1, condition2, condition3]);
 
         const testCards = [
-            new Card('Card A', { tags: ['Tag1'] }),
-            new Card('Card B', { tags: ['Tag1', 'Tag2'] }),
-            new Card('Card C', { tags: ['Tag3'] }),
+            CreateCard('Card A', { tags: ['Tag1'] }),
+            CreateCard('Card B', { tags: ['Tag1', 'Tag2'] }),
+            CreateCard('Card C', { tags: ['Tag3'] }),
         ];
 
         expect(andCondition.evaluate(testCards)).toBe(true);
@@ -152,8 +152,8 @@ describe('AndCondition', () => {
         const andCondition = new AndCondition([condition1, condition2]);
 
         const testCards = [
-            new Card('Card A', { tags: ['Tag1'] }),
-            new Card('Card B', { tags: ['Tag1', 'Tag2'] }),
+            CreateCard('Card A', { tags: ['Tag1'] }),
+            CreateCard('Card B', { tags: ['Tag1', 'Tag2'] }),
         ];
 
         expect(andCondition.evaluate(testCards)).toBe(false);
@@ -176,8 +176,8 @@ describe('OrCondition', () => {
         const orCondition = new OrCondition([condition1, condition2]);
 
         const testCards = [
-        new Card('Card A', { tags: ['Tag1'] }),
-        new Card('Card B', { tags: ['Tag2'] }),
+        CreateCard('Card A', { tags: ['Tag1'] }),
+        CreateCard('Card B', { tags: ['Tag2'] }),
         ];
 
         expect(orCondition.evaluate(testCards)).toBe(true);
@@ -190,8 +190,8 @@ describe('OrCondition', () => {
         const orCondition = new OrCondition([condition1, condition2]);
 
         const testCards = [
-        new Card('Card A', { tags: ['Tag1'] }),
-        new Card('Card B', { tags: ['Tag2'] }),
+        CreateCard('Card A', { tags: ['Tag1'] }),
+        CreateCard('Card B', { tags: ['Tag2'] }),
         ];
 
         expect(orCondition.evaluate(testCards)).toBe(false);
@@ -205,8 +205,8 @@ describe('OrCondition', () => {
         const orCondition = new OrCondition([condition1, condition2, condition3]);
 
         const testCards = [
-            new Card('Card A', { tags: ['Tag1'] }),
-            new Card('Card B', { tags: ['Tag2'] }),
+            CreateCard('Card A', { tags: ['Tag1'] }),
+            CreateCard('Card B', { tags: ['Tag2'] }),
         ];
 
         expect(orCondition.evaluate(testCards)).toBe(true);
@@ -220,9 +220,9 @@ describe('OrCondition', () => {
         const orCondition = new OrCondition([condition1, condition2, condition3]);
 
         const testCards = [
-            new Card('Card A', { tags: ['Tag1'] }),
-            new Card('Card B', { tags: ['Tag1'] }),
-            new Card('Card C', { tags: ['Tag3'] }),
+            CreateCard('Card A', { tags: ['Tag1'] }),
+            CreateCard('Card B', { tags: ['Tag1'] }),
+            CreateCard('Card C', { tags: ['Tag3'] }),
         ];
 
         expect(orCondition.evaluate(testCards)).toBe(true);
@@ -250,9 +250,9 @@ describe('Complex nested conditions', () => {
         const complexCondition = new AndCondition([nestedAnd, nestedOr]);
 
         const testCards = [
-            new Card('Card A', { tags: ['Tag1'] }),
-            new Card('Card B', { tags: ['Tag1', 'Tag2'] }),
-            new Card('Card D', { tags: ['Tag3'] }),
+            CreateCard('Card A', { tags: ['Tag1'] }),
+            CreateCard('Card B', { tags: ['Tag1', 'Tag2'] }),
+            CreateCard('Card D', { tags: ['Tag3'] }),
         ];
 
         expect(complexCondition.evaluate(testCards)).toBe(true);
@@ -270,9 +270,9 @@ describe('Complex nested conditions', () => {
         const complexCondition = new AndCondition([nestedAnd, nestedOr]);
 
         const testCards = [
-            new Card('Card A', { tags: ['Tag1'] }),
-            new Card('Card B', { tags: ['Tag1', 'Tag2'] }),
-            new Card('Card D', { tags: ['Tag3'] }),
+            CreateCard('Card A', { tags: ['Tag1'] }),
+            CreateCard('Card B', { tags: ['Tag1', 'Tag2'] }),
+            CreateCard('Card D', { tags: ['Tag3'] }),
         ];
 
         expect(complexCondition.evaluate(testCards)).toBe(false);

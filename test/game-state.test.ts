@@ -1,12 +1,12 @@
 import { GameState } from '../src/game-state';
 import { Deck } from '../src/deck';
-import { Card } from '../src/card';
+import { Card, CreateCard } from '../src/card';
 
 describe('GameState', () => {
     let testDeck: Deck;
 
     beforeEach(() => {
-        testDeck = new Deck(Array(40).fill(null).map((_, i) => new Card(`Card ${i}`, {})));
+        testDeck = new Deck(Array(40).fill(null).map((_, i) => CreateCard(`Card ${i}`, {})));
     });
 
     it('should initialize with the correct hand size', () => {

@@ -1,5 +1,5 @@
 import { Simulation } from '../src/simulation';
-import { Card } from '../src/card';
+import { Card, CreateCard } from '../src/card';
 import { Deck } from '../src/deck';
 import { Condition, AndCondition, OrCondition } from '../src/condition';
 import { GameState } from '../src/game-state';
@@ -10,10 +10,10 @@ describe('Simulation', () => {
 
     beforeEach(() => {
         const testDeck = new Deck([
-            new Card('Card A', { qty: 10, tags: ['Tag1'] }),
-            new Card('Card B', { qty: 10, tags: ['Tag2'] }),
-            new Card('Card C', { qty: 10, tags: ['Tag3'] }),
-            new Card('Card D', { qty: 10, tags: ['Tag4'] }),
+            CreateCard('Card A', { qty: 10, tags: ['Tag1'] }),
+            CreateCard('Card B', { qty: 10, tags: ['Tag2'] }),
+            CreateCard('Card C', { qty: 10, tags: ['Tag3'] }),
+            CreateCard('Card D', { qty: 10, tags: ['Tag4'] }),
         ]);
         gameState = new GameState(testDeck);
         testCondition = new Condition('Card A');
@@ -29,7 +29,7 @@ describe('Simulation', () => {
     test('should run the simulation and update the result', () => {
         const simulation = new Simulation(
             new GameState(
-                new Deck(Array.from({ length: 40 }, () => new Card("Card A", {})))
+                new Deck(Array.from({ length: 40 }, () => CreateCard("Card A", {})))
             ), testCondition);
         simulation.run();
         expect(simulation.result).toBe(true);
@@ -47,8 +47,8 @@ describe('Simulation', () => {
         ]);
         const simulation = new Simulation(new GameState(
             new Deck([
-                ...Array.from({ length: 20 }, () => new Card("Card A", {})),
-                ...Array.from({ length: 20 }, () => new Card("Card B", {}))
+                ...Array.from({ length: 20 }, () => CreateCard("Card A", {})),
+                ...Array.from({ length: 20 }, () => CreateCard("Card B", {}))
             ])
         ), complexCondition);
         simulation.run();
