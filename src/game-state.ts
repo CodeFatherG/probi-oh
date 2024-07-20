@@ -75,7 +75,7 @@ export class GameState {
     }
 
     /** Gets the current deck */
-    get deck(): Readonly<Deck> {
+    get deck(): Deck {
         return this._deck;
     }
 
@@ -86,12 +86,12 @@ export class GameState {
 
     /** Gets the banish pile */
     get banishPile(): Readonly<Card[]> {
-        return Object.freeze(this._banishPile);
+        return this._banishPile;
     }
 
     /** Gets the graveyard */
     get graveyard(): Readonly<Card[]> {
-        return Object.freeze(this._graveyard);
+        return this._graveyard;
     }
 
     /** Gets the free cards in hand */

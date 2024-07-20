@@ -9,6 +9,8 @@ function cardCanPayCost(gameState: GameState, card: FreeCard): boolean {
         return true;
     }
 
+    const handLessCard = gameState.hand.filter(handCard => handCard !== card);
+
     switch (card.cost.type)
     {
         case CostType.BanishFromDeck:
@@ -19,14 +21,14 @@ function cardCanPayCost(gameState: GameState, card: FreeCard): boolean {
             break;
 
         case CostType.BanishFromHand:
-            if (gameState.hand.length < (card.cost.value as number))
+            if (handLessCard.length < (card.cost.value as number))
             {
                 return false;
             }
             break;
 
         case CostType.Discard:
-            if (gameState.hand.length < (card.cost.value as number))
+            if (handLessCard.length < (card.cost.value as number))
             {
                 return false;
             }
@@ -139,11 +141,7 @@ function handleFreeCard(gameState: GameState, card: FreeCard): void {
         return;
     }
 
-    // remove card from hand
-    const index = gameState.hand.indexOf(card, 0);
-    if (index > -1) {
-        gameState.hand.splice(index, 1);
-    }
+    gameState.playCard(card);
 
     // pay cost
     payCost(gameState, card);
@@ -151,7 +149,6 @@ function handleFreeCard(gameState: GameState, card: FreeCard): void {
     // draw cards
     if (card.count > 0)
     {
-        gameState.playCard(card);
         gameState.hand.push(...[...Array(card.count)].map(() => gameState.deck.drawCard()));
     }
 
