@@ -33,7 +33,7 @@ export interface FreeCardDetails {
     /**
      * The number of free draws this card gives
      */
-    count: number;
+    count?: number;
 
     /**
      * If this card can only be used once per turn

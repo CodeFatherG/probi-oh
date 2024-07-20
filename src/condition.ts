@@ -4,6 +4,7 @@ import { Card } from './card.js';
 export interface BaseCondition {
     /** Evaluates the condition against a hand of cards */
     evaluate(hand: Card[]): boolean;
+
     /** Number of successful evaluations */
     get successes(): Readonly<number>;
 }

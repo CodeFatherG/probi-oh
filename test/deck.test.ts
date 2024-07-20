@@ -106,9 +106,9 @@ describe('buildDeck', () => {
 
         expect(deck).toBeInstanceOf(Deck);
         expect(deck.deckCount).toBe(40);
-        expect(deck.deckList.filter(card => card.name === 'Card A')).toHaveLength(3);
-        expect(deck.deckList.filter(card => card.name === 'Card B')).toHaveLength(2);
-        expect(deck.deckList.filter(card => card.name === 'Card C')).toHaveLength(1);
+        expect(deck.deckList.filter((card: Card) => card.name === 'Card A')).toHaveLength(3);
+        expect(deck.deckList.filter((card: Card) => card.name === 'Card B')).toHaveLength(2);
+        expect(deck.deckList.filter((card: Card) => card.name === 'Card C')).toHaveLength(1);
     });
 
     it('should handle empty deck list', () => {
@@ -117,6 +117,6 @@ describe('buildDeck', () => {
 
         expect(deck).toBeInstanceOf(Deck);
         expect(deck.deckCount).toBe(40);
-        expect(deck.deckList.every(card => card.name === 'Empty Card')).toBe(true);
+        expect(deck.deckList.every((card: Card) => card.name === 'Empty Card')).toBe(true);
     });
 });

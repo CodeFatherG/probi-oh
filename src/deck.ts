@@ -8,9 +8,10 @@ export class Deck {
     /**
      * Creates a new Deck
      * @param cards - Initial array of Cards
+     * @param deckSize - Size of the deck (default 40)
      */
-    constructor(cards: Card[]) {
-        const missingCount = 40 - cards.length;
+    constructor(cards: Card[], deckSize: number = 40) {
+        const missingCount = deckSize - cards.length;
         if (missingCount > 0) {
             cards.push(...Array(missingCount).fill(CreateCard("Empty Card", {tags: ["Empty", "Blank", "Non Engine"]})));
         }
@@ -20,15 +21,18 @@ export class Deck {
 
     /** Creates a deep copy of the deck */
     deepCopy(): Deck {
-        const newDeck = new Deck([]);
+        const newDeck = new Deck([], this._cards.length);
         newDeck._cards = this._cards.map(card => CreateCard(card.name, { ...card.details }));
         return newDeck;
     }
 
-    /** Draws a random card from the deck */
+    /** Draws a card from the top of the deck */
     drawCard(): Card {
-        const index = Math.floor(Math.random() * this._cards.length);
-        return this._cards.splice(index, 1)[0];
+        if (this._cards.length === 0) {
+            throw new Error("Cannot draw from an empty deck");
+        }
+        
+        return this._cards.pop()!;
     }
 
     /** Shuffles the deck */

@@ -65,10 +65,6 @@ class FreeCard extends Card
 {
     constructor(cardName: string, cardDetails: CardDetails)
     {
-        if (!cardDetails.free)
-        {
-            throw new Error('Card does not have free details');
-        }
         super(cardName, cardDetails);
     }
 
@@ -77,34 +73,34 @@ class FreeCard extends Card
         return true;
     }
 
-    get Count(): number
+    get count(): number
     {
-        return this.details.free!.count;
+        return this.details.free!.count ? this.details.free!.count : 0;
     }
 
-    get OncePerTurn(): boolean
+    get oncePerTurn(): boolean
     {
         return this.details.free!.oncePerTurn;
     }
 
-    get Restrictions(): RestrictionType[]
+    get restrictions(): RestrictionType[]
     {
-        return this.details.free!.restriction || [];
+        return this.details.free?.restriction || [];
     }
 
-    get Cost(): {type: CostType, value: number | string[]} | null
+    get cost(): {type: CostType, value: number | string[]} | null
     {
-        return this.details.free!.cost!;
+        return this.details.free?.cost ?? null;
     }
 
-    get Condition(): {type: ConditionType, value: number | string} | null
+    get condition(): {type: ConditionType, value: number | string} | null
     {
-        return this.details.free!.condition!;
+        return this.details.free?.condition ?? null;
     }
 
-    get Excavate(): {count: number, pick: number} | null
+    get excavate(): {count: number, pick: number} | null
     {
-        return this.details.free!.excavate!;
+        return this.details.free?.excavate ?? null;
     }
 }
 
@@ -115,4 +111,4 @@ export function CreateCard(cardName: string, cardDetails: CardDetails): Card {
     return new Card(cardName, cardDetails);
 }
 
-export type { Card, FreeCard};
+export type { Card, FreeCard };

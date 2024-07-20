@@ -32,7 +32,7 @@ export class Simulation {
     }
 
     /** Gets the game state used in the simulation */
-    get gameState(): Readonly<GameState> {
+    get gameState(): GameState {
         return this._gameState;
     }
 }
