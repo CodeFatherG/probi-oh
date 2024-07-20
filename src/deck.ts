@@ -43,6 +43,10 @@ export class Deck {
         }
     }
 
+    public addToBottom(cards: Card[]): void {
+        this._cards.push(...cards);
+    }
+
     /** Gets the list of cards in the deck */
     get deckList(): Readonly<Card[]> {
         return Object.freeze([...this._cards]);

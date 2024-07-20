@@ -1,7 +1,8 @@
 import { Card, FreeCard } from "./card";
-import { CostType, RestrictionType } from "./card-details";
-import { Simulation } from "./simulation";
+import { ConditionType, CostType, RestrictionType } from "./card-details";
+import { SimulationBranch } from "./simulation";
 import { GameState } from './game-state';
+import { AndCondition, BaseCondition, Condition, OrCondition } from "./condition";
 
 function cardCanPayCost(gameState: GameState, card: FreeCard): boolean {
     if (!card.cost) {
@@ -70,7 +71,7 @@ function checkCardRestrictions(gameState: GameState, card: FreeCard): boolean {
     return true;
 }
 
-function freeCardIsUsable(gameState: GameState, card: FreeCard): boolean {
+export function freeCardIsUsable(gameState: GameState, card: FreeCard): boolean {
     // Check if the card is once per turn and has already been used 
     if (card.oncePerTurn && gameState.cardsPlayedThisTurn.some(usedCard => usedCard.name === card.name))
     {
@@ -78,7 +79,7 @@ function freeCardIsUsable(gameState: GameState, card: FreeCard): boolean {
     }
 
     // Check there are enough cards in the deck to draw
-    if (gameState.deck.deckCount < card.count)
+    if (gameState.deck.deckCount < card.activationCount)
     {
         return false;
     }
@@ -103,25 +104,35 @@ function freeCardIsUsable(gameState: GameState, card: FreeCard): boolean {
     return true;
 }
 
-function payCost(gameState: GameState, card: FreeCard): void {
+function payCost(gameState: GameState, card: FreeCard, condition: BaseCondition): void {
     if (!card.cost) {
         return;
     }
 
-    switch (card.cost.type)
-    {
+    const requiredCards = condition.requiredCards(gameState.hand);
+
+    switch (card.cost.type) {
         case CostType.BanishFromDeck:
-            gameState.banish([...Array(card.cost.value as number)].map(() => gameState.deck.drawCard()));
+            gameState.banishFromHand([...Array(card.cost.value as number)].map(() => gameState.deck.drawCard()));
             break;
 
         case CostType.BanishFromHand:
-            // We need to get the cards to banish from the hand
-            // we should not banish anything in the hand that is already being used
-            break;
-
         case CostType.Discard:
-            // We need to get the cards to discard from the hand
-            // we should not discard anything in the hand that is already being used
+            const availableCards = gameState.hand.filter(c => !requiredCards.includes(c));
+            const cardsToRemove = availableCards.slice(0, card.cost.value as number);
+            
+            if (cardsToRemove.length < (card.cost.value as number)) {
+                throw new Error("Not enough cards to pay cost");
+            }
+
+            if (card.cost.type === CostType.BanishFromHand) {
+                gameState.banishFromHand(cardsToRemove);
+            } else {
+                gameState.discardFromHand(cardsToRemove);
+            }
+
+            let hand = gameState.hand;
+            hand = gameState.hand.filter(c => !cardsToRemove.includes(c));
             break;
 
         case CostType.PayLife:
@@ -130,7 +141,100 @@ function payCost(gameState: GameState, card: FreeCard): void {
     }
 }
 
-function handleFreeCard(gameState: GameState, card: FreeCard): void {
+export function excavate(gameState: GameState, card: FreeCard, condition: BaseCondition): void {
+    if (!card.excavate) {
+        return;
+    }
+
+    const { count, pick } = card.excavate;
+    const excavatedCards = [...Array(count)].map(() => gameState.deck.drawCard());
+    
+    // Calculate the base score (how many conditions are met with the current hand)
+    const baseScore = countMetConditions(condition, gameState.hand);
+
+    // Sort excavated cards based on their contribution to completing the condition
+    const sortedCards = excavatedCards.sort((a, b) => {
+        const aScore = countMetConditions(condition, [...gameState.hand, a]) - baseScore;
+        const bScore = countMetConditions(condition, [...gameState.hand, b]) - baseScore;
+        return bScore - aScore; // Sort in descending order
+    });
+
+    // Add the best cards to the hand
+    gameState.hand.push(...sortedCards.slice(0, pick));
+
+    // Put the rest back on top of the deck
+    gameState.deck.addToBottom(sortedCards.slice(pick));
+}
+
+function countMetConditions(condition: BaseCondition, hand: Card[]): number {
+    if (condition instanceof Condition) {
+        return condition.evaluate(hand) ? 1 : 0;
+    } else if (condition instanceof AndCondition) {
+        return condition.conditions.filter(c => countMetConditions(c, hand) > 0).length;
+    } else if (condition instanceof OrCondition) {
+        return condition.conditions.some(c => countMetConditions(c, hand) > 0) ? 1 : 0;
+    }
+    return 0;
+}
+
+function payPostConditions(gameState: GameState, card: FreeCard, condition: BaseCondition): boolean {
+    if (!card.condition) {
+        return true;
+    }
+
+    const requiredCards = condition.requiredCards(gameState.hand);
+
+    switch (card.condition.type) {
+        case ConditionType.BanishFromDeck:
+            gameState.banishFromHand([...Array(card.condition.value as number)].map(() => gameState.deck.drawCard()));
+            break;
+
+        case ConditionType.Discard:
+        case ConditionType.BanishFromHand:
+            const availableCards = gameState.hand.filter(c => !requiredCards.includes(c));
+
+            if (typeof(card.condition.value) === "number") {
+                const count = card.condition.value as number;
+                if (availableCards.length < count) {
+                    return false;
+                }
+
+                const cardsToRemove = availableCards.slice(0, count);
+
+                if (card.condition.type === ConditionType.BanishFromHand) {
+                    gameState.banishFromHand(cardsToRemove);
+                } else {
+                    gameState.discardFromHand(cardsToRemove);
+                }
+    
+                let hand = gameState.hand;
+                hand = gameState.hand.filter(c => !cardsToRemove.includes(c));
+            } else {
+                const requirement = card.condition.value as string;
+                
+                const cardToRemove = availableCards.find(c => c.tags?.includes(requirement) || c.name === requirement);
+
+                if (!cardToRemove) {
+                    return false;
+                }
+
+                if (card.condition.type === ConditionType.BanishFromHand) {
+                    gameState.banishFromHand([cardToRemove]);
+                } else {
+                    gameState.discardFromHand([cardToRemove]);
+                }
+    
+                let hand = gameState.hand;
+                hand = gameState.hand.filter(c => c === cardToRemove);
+                break;
+            }
+            break;
+    }
+
+    return true;
+}
+
+function handleFreeCard(gameState: GameState, card: FreeCard, condition: BaseCondition): void {
     if (!gameState.hand.includes(card)) {
         console.error("Card is not in the player's hand");
         return;
@@ -143,30 +247,35 @@ function handleFreeCard(gameState: GameState, card: FreeCard): void {
     gameState.playCard(card);
 
     // pay cost
-    payCost(gameState, card);
+    payCost(gameState, card, condition);
 
     // draw cards
-    if (card.count > 0)
-    {
+    if (card.count > 0) {
         gameState.hand.push(...[...Array(card.count)].map(() => gameState.deck.drawCard()));
     }
 
     // excavate
-    if (card.excavate)
-    {
-        // draw cards from the deck, pick some based on the requirements still in the simulation
+    excavate(gameState, card, condition);
+
+    if (!payPostConditions(gameState, card, condition)) {
+        // we failed the post condition. This should be considered a total failure, how? idk
+        // for the moment discard hand so we kill conditions
+        gameState.discardFromHand(gameState.hand);
+        return;
     }
 }
 
-export function processFreeCard(simulation: Simulation, freeCard: FreeCard): void {
-    if (!simulation.gameState.hand.includes(freeCard)) {
+export function processFreeCard(simulation: SimulationBranch, freeCard: FreeCard): void {
+    if (!simulation.gameState.hand.find(c => c.name === freeCard.name)) {
         console.error("Card is not in the player's hand");
         return;
     }
 
-    if (!freeCardIsUsable(simulation.gameState, freeCard)) {
+    const cardInHand = simulation.gameState.hand.find(c => c.name === freeCard.name) as FreeCard;
+
+    if (!freeCardIsUsable(simulation.gameState, cardInHand)) {
         return;
     }
 
-    handleFreeCard(simulation.gameState, freeCard);
+    handleFreeCard(simulation.gameState, cardInHand, simulation.condition);
 }

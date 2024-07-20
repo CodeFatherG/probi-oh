@@ -76,9 +76,10 @@ deck:
     tags:
       - Free Card
     free:
-      cost: 3
-      cards: 2
-      destination: grave  
+      cost:
+        type: Discard,
+        value: 3
+      count: 2
 
 conditions:
   - 2+ Six Samurai OR (1+ Six Samurai AND 1+ Counter)

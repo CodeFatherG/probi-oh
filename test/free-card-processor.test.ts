@@ -1,24 +1,26 @@
-import { processFreeCard } from '../src/free-card-processor';
-import { Simulation } from '../src/simulation';
+import { excavate, processFreeCard } from '../src/free-card-processor';
+import { Simulation, SimulationBranch } from '../src/simulation';
 import { GameState } from '../src/game-state';
 import { Deck } from '../src/deck';
 import { Card, CreateCard, FreeCard } from '../src/card';
-import { CardDetails, CostType, RestrictionType } from '../src/card-details';
-import { BaseCondition } from '../src/condition';
+import { CardDetails, ConditionType, CostType, RestrictionType } from '../src/card-details';
+import { AndCondition, BaseCondition, Condition, OrCondition } from '../src/condition';
 
 describe('free-card-processor', () => {
     let testDeck: Deck;
-    let simulation: Simulation;
+    let simulation: SimulationBranch;
     let mockCondition: BaseCondition;
 
     beforeEach(() => {
         testDeck = new Deck(Array(40).fill(null).map((_, i) => CreateCard(`Card ${i}`, {})));
-        const gameState = new GameState(testDeck, 5);
+        const gameState = new GameState(testDeck);
+        gameState.drawHand(5);
         mockCondition = {
             evaluate: jest.fn().mockReturnValue(true),
+            requiredCards: jest.fn().mockReturnValue([CreateCard('Required Card', {})]),
             successes: 0
         };
-        simulation = new Simulation(gameState, mockCondition);
+        simulation = new SimulationBranch(gameState, mockCondition);
     });
 
     describe('processFreeCard', () => {
@@ -209,5 +211,205 @@ describe('free-card-processor', () => {
 
             expect(simulation.gameState.cardsPlayedThisTurn).not.toContain(freeCard);
         });
+    });
+});
+
+describe('Free Card Tests', () => {
+    let testDeck: Deck;
+    let simulation: SimulationBranch;
+    let mockCondition: BaseCondition;
+
+    beforeEach(() => {
+        testDeck = new Deck(Array(40).fill(null).map((_, i) => CreateCard(`Card ${i}`, {})));
+        const gameState = new GameState(testDeck);
+        gameState.drawHand(5);
+        mockCondition = {
+            evaluate: jest.fn().mockReturnValue(true),
+            requiredCards: jest.fn().mockReturnValue([CreateCard('Required Card', {})]),
+            successes: 0
+        };
+        simulation = new SimulationBranch(gameState, mockCondition);
+    });
+
+    test('Pot of Desires', () => {
+        const potOfDesires = CreateCard('Pot of Desires', {
+            free: {
+                count: 2,
+                oncePerTurn: true,
+                cost: {
+                    type: CostType.BanishFromDeck,
+                    value: 10
+                }
+            }
+        }) as FreeCard;
+        simulation.gameState.hand.push(potOfDesires);
+
+        const initialDeckCount = simulation.gameState.deck.deckCount;
+        processFreeCard(simulation, potOfDesires);
+
+        expect(simulation.gameState.cardsPlayedThisTurn).toContain(potOfDesires);
+        expect(simulation.gameState.deck.deckCount).toBe(initialDeckCount - 12); // -10 for cost, -2 for draw
+        expect(simulation.gameState.banishPile).toHaveLength(10);
+        expect(simulation.gameState.hand).toHaveLength(7); // 5 initial + 1 seed card - 1 played + 2 drawn
+
+        // Test once per turn
+        processFreeCard(simulation, potOfDesires);
+        expect(simulation.gameState.cardsPlayedThisTurn).toHaveLength(1);
+    });
+
+    test('Pot of Extravagance', () => {
+        const potOfExtravagance = CreateCard('Pot of Extravagance', {
+            free: {
+                count: 2,
+                oncePerTurn: false,
+                restriction: [RestrictionType.NoPreviousDraws, RestrictionType.NoMoreDraws]
+            }
+        }) as FreeCard;
+        simulation.gameState.hand.push(potOfExtravagance);
+
+        processFreeCard(simulation, potOfExtravagance);
+        expect(simulation.gameState.cardsPlayedThisTurn).toContain(potOfExtravagance);
+        expect(simulation.gameState.hand).toHaveLength(7); // 5 initial + 1 seed card - 1 played + 2 drawn
+
+        // Test no more draws restriction
+        const anotherDraw = CreateCard('Another Draw', { free: { count: 1, oncePerTurn: false } }) as FreeCard;
+        simulation.gameState.hand.push(anotherDraw);
+        processFreeCard(simulation, anotherDraw);
+        expect(simulation.gameState.cardsPlayedThisTurn).toHaveLength(1);
+    });
+
+    test('Pot of Prosperity', () => {
+        const potOfProsperity = CreateCard('Pot of Prosperity', {
+            free: {
+                count: 1,
+                oncePerTurn: true,
+                restriction: [RestrictionType.NoPreviousDraws, RestrictionType.NoMoreDraws],
+                excavate: {
+                    count: 6,
+                    pick: 1
+                }
+            }
+        }) as FreeCard;
+        simulation.gameState.hand.push(potOfProsperity);
+
+        processFreeCard(simulation, potOfProsperity);
+        expect(simulation.gameState.cardsPlayedThisTurn).toContain(potOfProsperity);
+        expect(simulation.gameState.hand).toHaveLength(6); // 5 initial + 1 seed card - 1 played + 1 drawn
+        // Add more assertions for excavate functionality when implemented
+    });
+
+    test('Upstart Goblin', () => {
+        const upstartGoblin = CreateCard('Upstart Goblin', {
+            free: {
+                count: 1,
+                oncePerTurn: false,
+                cost: {
+                    type: CostType.PayLife,
+                    value: -1000
+                }
+            }
+        }) as FreeCard;
+        simulation.gameState.hand.push(upstartGoblin);
+
+        processFreeCard(simulation, upstartGoblin);
+        expect(simulation.gameState.cardsPlayedThisTurn).toContain(upstartGoblin);
+        expect(simulation.gameState.hand).toHaveLength(6); // 5 initial + 1 seed card - 1 played + 1 drawn
+    });
+
+    test('Allure of Darkness', () => {
+        const allureOfDarkness = CreateCard('Allure of Darkness', {
+            free: {
+                count: 2,
+                oncePerTurn: false,
+                condition: {
+                    type: ConditionType.BanishFromHand,
+                    value: "DARK"
+                }
+            }
+        }) as FreeCard;
+        const darkMonster = CreateCard('Dark Monster', { tags: ['DARK'] });
+        simulation.gameState.hand.push(allureOfDarkness, darkMonster);
+
+        processFreeCard(simulation, allureOfDarkness);
+        expect(simulation.gameState.cardsPlayedThisTurn).toContain(allureOfDarkness);
+        expect(simulation.gameState.hand).toHaveLength(8); // 5 initial + 2 seed card + 1 dark - 1 played + 2 drawn - 1 banished
+        expect(simulation.gameState.banishPile).toContain(darkMonster);
+    });
+
+    test('Into The Void', () => {
+        const intoTheVoid = CreateCard('Into The Void', {
+            free: {
+                count: 1,
+                oncePerTurn: false
+            }
+        }) as FreeCard;
+        simulation.gameState.hand.push(intoTheVoid);
+
+        processFreeCard(simulation, intoTheVoid);
+        expect(simulation.gameState.cardsPlayedThisTurn).toContain(intoTheVoid);
+        expect(simulation.gameState.hand).toHaveLength(5); // 5 initial - 1 played + 1 drawn
+    });
+
+    test('Pot of Duality', () => {
+        const potOfDuality = CreateCard('Pot of Duality', {
+            free: {
+                count: 1,
+                oncePerTurn: true,
+                excavate: {
+                    count: 3,
+                    pick: 1
+                }
+            }
+        }) as FreeCard;
+        simulation.gameState.hand.push(potOfDuality);
+
+        processFreeCard(simulation, potOfDuality);
+        expect(simulation.gameState.cardsPlayedThisTurn).toContain(potOfDuality);
+        expect(simulation.gameState.hand).toHaveLength(5); // 5 initial - 1 played + 1 drawn
+        // Add more assertions for excavate functionality when implemented
+    });
+
+    test('Trade-In', () => {
+        const tradeIn = CreateCard('Trade-In', {
+            free: {
+                count: 2,
+                oncePerTurn: false,
+                cost: {
+                    type: CostType.Discard,
+                    value: ["Level 8"]
+                }
+            }
+        }) as FreeCard;
+        const level8Monster = CreateCard('Level 8 Monster', { tags: ['Level 8'] });
+        simulation.gameState.hand.push(tradeIn, level8Monster);
+
+        processFreeCard(simulation, tradeIn);
+        expect(simulation.gameState.cardsPlayedThisTurn).toContain(tradeIn);
+        expect(simulation.gameState.hand).toHaveLength(6); // 5 initial + 1 level 8 - 1 played - 1 discarded + 2 drawn
+        expect(simulation.gameState.graveyard).toContain(level8Monster);
+    });
+
+    test('Spellbook of Knowledge', () => {
+        const spellbookOfKnowledge = CreateCard('Spellbook of Knowledge', {
+            free: {
+                count: 2,
+                oncePerTurn: true,
+                cost: {
+                    type: CostType.Discard,
+                    value: ["Spellcaster", "Spellbook"]
+                }
+            }
+        }) as FreeCard;
+        const spellcaster = CreateCard('Spellcaster', { tags: ['Spellcaster'] });
+        simulation.gameState.hand.push(spellbookOfKnowledge, spellcaster);
+
+        processFreeCard(simulation, spellbookOfKnowledge);
+        expect(simulation.gameState.cardsPlayedThisTurn).toContain(spellbookOfKnowledge);
+        expect(simulation.gameState.hand).toHaveLength(6); // 5 initial + 1 spellcaster - 1 played - 1 discarded + 2 drawn
+        expect(simulation.gameState.graveyard).toContain(spellcaster);
+
+        // Test once per turn
+        processFreeCard(simulation, spellbookOfKnowledge);
+        expect(simulation.gameState.cardsPlayedThisTurn).toHaveLength(1);
     });
 });

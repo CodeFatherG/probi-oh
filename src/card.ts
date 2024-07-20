@@ -102,6 +102,39 @@ class FreeCard extends Card
     {
         return this.details.free?.excavate ?? null;
     }
+
+    get activationCount(): number
+    {
+        let count = this.count;
+
+        function costCount(cost: {type: CostType, value: number | string[]} | null): number {
+            if (typeof cost === "undefined" || cost === null) {
+                return 0;
+            }
+            if (typeof cost.value === "number") {
+                return cost.value;
+            }
+            if ( typeof cost.value === "string") {
+                return 1;
+            }
+
+            return 0;
+        }
+
+        switch (this.cost?.type) {
+            case CostType.BanishFromDeck:
+                count += costCount(this.cost);
+                break;
+
+            case CostType.BanishFromHand:
+            case CostType.Discard:
+            case CostType.PayLife:
+                break;
+        
+        }
+
+        return count;
+    }
 }
 
 export function CreateCard(cardName: string, cardDetails: CardDetails): Card {

@@ -99,6 +99,20 @@ describe('Condition', () => {
         expect(condition.evaluate([CreateCard('Different Card', { tags: ['TestTag'] })])).toBe(true);
         expect(condition.evaluate([CreateCard('Different Card', { tags: ['OtherTag'] })])).toBe(false);
     });
+
+    it ('should only pick one required card', () => {
+        const condition = new Condition('TestTag', 1, '>=');
+        const requiredCards = condition.requiredCards([CreateCard('Different Card', { tags: ['TestTag'] }), CreateCard('Different Card', { tags: ['TestTag'] })]);
+
+        expect(requiredCards.length).toBe(1);
+    });
+
+    it ('should pick all required card', () => {
+        const condition = new Condition('TestTag', 2, '=');
+        const requiredCards = condition.requiredCards([CreateCard('Different Card', { tags: ['TestTag'] }), CreateCard('Different Card', { tags: ['TestTag'] })]);
+
+        expect(requiredCards.length).toBe(2);
+    });
 });
 
 describe('AndCondition', () => {

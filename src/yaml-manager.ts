@@ -52,7 +52,7 @@ export class YamlManager {
                 if (typeof cardDetails !== 'object' || Array.isArray(cardDetails)) {
                     throw new Error(`Invalid card details for ${cardName}`);
                 }
-                if (typeof cardDetails.qty !== 'number' || !Array.isArray(cardDetails.tags)) {
+                if (typeof cardDetails.qty !== 'number') {
                     throw new Error(`Invalid card structure for ${cardName}`);
                 }
             }

@@ -28,9 +28,10 @@ async function simulateDraw(deck: Deck, conditions: (BaseCondition)[], handSize:
 
     for (let i = 0; i < trials; i++) {
         conditions.forEach((condition, index) => {
-            const simulation = new Simulation(new GameState(deck, handSize), condition);
+            const simulation = new Simulation(new GameState(deck), condition);
+            simulation.gameState.drawHand(handSize);
             simulations[index].push(simulation);
-            simulation.run();
+            simulation.iterate();
         });
         
         if (i % 100 === 0 || i === trials - 1) {

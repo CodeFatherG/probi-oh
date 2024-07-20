@@ -20,7 +20,7 @@ export interface handCostCb {(hand: Card[], costType: CostType): Card[]};
 /** Represents the current state of a game */
 export class GameState {
     private _deck: Deck;
-    private _hand: Card[];
+    private _hand: Card[] = [];
     private _banishPile: Card[] = [];
     private _graveyard: Card[] = [];
     private _cardsPlayed: Card[] = [];
@@ -30,10 +30,9 @@ export class GameState {
      * @param deck - The deck to use for this game
      * @param handSize - The number of cards to draw for the initial hand
      */
-    constructor(deck: Deck, handSize: number = 5) {
+    constructor(deck: Deck) {
         this._deck = deck.deepCopy();
         this._deck.shuffle();
-        this._hand = [...Array(handSize)].map(() => this._deck.drawCard());
     }
 
     /** Creates a deep copy of the game state */
@@ -44,6 +43,10 @@ export class GameState {
         newState._banishPile = this._banishPile.map(card => CreateCard(card.name, { ...card.details }));
         newState._graveyard = this._graveyard.map(card => CreateCard(card.name, { ...card.details }));
         return newState;
+    }
+
+    public drawHand(handSize: number = 5): void {
+        this._hand = Array(handSize).fill(null).map(() => this._deck.drawCard());
     }
 
     public playCard(card: Card): void {
@@ -64,12 +67,12 @@ export class GameState {
         this._hand = this._hand.filter(handCard => handCard !== card);
     }
 
-    public discard(cards: Card[]) {
+    public discardFromHand(cards: Card[]) {
         this._graveyard.push(...cards);
         this._hand = this._hand.filter(card => !cards.includes(card));
     }
 
-    public banish(cards: Card[]) {
+    public banishFromHand(cards: Card[]) {
         this._banishPile.push(...cards);
         this._hand = this._hand.filter(card => !cards.includes(card));
     }

@@ -12,13 +12,15 @@ describe('GameState', () => {
     });
 
     it('should initialize with the correct hand size', () => {
-        const gameState = new GameState(testDeck, 5);
+        const gameState = new GameState(testDeck);
+        gameState.drawHand(5);
         expect(gameState.hand.length).toBe(5);
         expect(gameState.deck.deckCount).toBe(35);
     });
 
     it('should create a deep copy', () => {
         const gameState = new GameState(testDeck);
+        gameState.drawHand(5);
         const copiedState = gameState.deepCopy();
         expect(copiedState).not.toBe(gameState);
         expect(copiedState.hand).not.toBe(gameState.hand);
@@ -29,6 +31,7 @@ describe('GameState', () => {
 
     it('should have empty banish pile and graveyard initially', () => {
         const gameState = new GameState(testDeck);
+        gameState.drawHand(5);
         expect(gameState.banishPile).toHaveLength(0);
         expect(gameState.graveyard).toHaveLength(0);
     });
@@ -37,7 +40,8 @@ describe('GameState', () => {
         const freeCard = CreateCard('Free Card', { free: { oncePerTurn: false } });
         const nonFreeCard = CreateCard('Non-Free Card', {});
         const customDeck = new Deck([freeCard, nonFreeCard], 2);
-        const gameState = new GameState(customDeck, 2);
+        const gameState = new GameState(customDeck);
+        gameState.drawHand(2);
         expect(gameState.freeCardsInHand).toHaveLength(1);
         expect(gameState.freeCardsInHand[0].name).toBe('Free Card');
     });
@@ -46,6 +50,7 @@ describe('GameState', () => {
         it('should create a deep copy with banish pile and graveyard', () => {
             const initialDeck = new Deck([...Array(40).fill(null).map((_, i) => CreateCard(`Card ${i}`, {}))]);
             const gameState = new GameState(initialDeck);
+            gameState.drawHand(5);
             gameState['_banishPile'].push(CreateCard('Banished Card', {}));
             gameState['_graveyard'].push(CreateCard('Discarded Card', {}));
             
