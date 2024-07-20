@@ -281,7 +281,7 @@ describe('Free Card Tests', () => {
     test('Pot of Prosperity', () => {
         const potOfProsperity = CreateCard('Pot of Prosperity', {
             free: {
-                count: 1,
+                count: 0,
                 oncePerTurn: true,
                 restriction: [RestrictionType.NoPreviousDraws, RestrictionType.NoMoreDraws],
                 excavate: {
@@ -332,7 +332,7 @@ describe('Free Card Tests', () => {
 
         processFreeCard(simulation, allureOfDarkness);
         expect(simulation.gameState.cardsPlayedThisTurn).toContain(allureOfDarkness);
-        expect(simulation.gameState.hand).toHaveLength(8); // 5 initial + 2 seed card + 1 dark - 1 played + 2 drawn - 1 banished
+        expect(simulation.gameState.hand).toHaveLength(7); // 5 initial + 2 seed card - 1 played + 2 drawn - 1 banished
         expect(simulation.gameState.banishPile).toContain(darkMonster);
     });
 
@@ -347,13 +347,13 @@ describe('Free Card Tests', () => {
 
         processFreeCard(simulation, intoTheVoid);
         expect(simulation.gameState.cardsPlayedThisTurn).toContain(intoTheVoid);
-        expect(simulation.gameState.hand).toHaveLength(5); // 5 initial - 1 played + 1 drawn
+        expect(simulation.gameState.hand).toHaveLength(6); // 5 initial + 1 seed card - 1 played + 1 drawn
     });
 
     test('Pot of Duality', () => {
         const potOfDuality = CreateCard('Pot of Duality', {
             free: {
-                count: 1,
+                count: 0,
                 oncePerTurn: true,
                 excavate: {
                     count: 3,
@@ -365,7 +365,7 @@ describe('Free Card Tests', () => {
 
         processFreeCard(simulation, potOfDuality);
         expect(simulation.gameState.cardsPlayedThisTurn).toContain(potOfDuality);
-        expect(simulation.gameState.hand).toHaveLength(5); // 5 initial - 1 played + 1 drawn
+        expect(simulation.gameState.hand).toHaveLength(6); // 5 initial + 1 seed card - 1 played + 1 drawn
         // Add more assertions for excavate functionality when implemented
     });
 
@@ -385,7 +385,7 @@ describe('Free Card Tests', () => {
 
         processFreeCard(simulation, tradeIn);
         expect(simulation.gameState.cardsPlayedThisTurn).toContain(tradeIn);
-        expect(simulation.gameState.hand).toHaveLength(6); // 5 initial + 1 level 8 - 1 played - 1 discarded + 2 drawn
+        expect(simulation.gameState.hand).toHaveLength(7); // 5 initial + 2 seed card - 1 played - 1 discarded + 2 drawn
         expect(simulation.gameState.graveyard).toContain(level8Monster);
     });
 
@@ -405,7 +405,7 @@ describe('Free Card Tests', () => {
 
         processFreeCard(simulation, spellbookOfKnowledge);
         expect(simulation.gameState.cardsPlayedThisTurn).toContain(spellbookOfKnowledge);
-        expect(simulation.gameState.hand).toHaveLength(6); // 5 initial + 1 spellcaster - 1 played - 1 discarded + 2 drawn
+        expect(simulation.gameState.hand).toHaveLength(7); // 5 initial + 2 seed cards - 1 played - 1 discarded + 2 drawn
         expect(simulation.gameState.graveyard).toContain(spellcaster);
 
         // Test once per turn

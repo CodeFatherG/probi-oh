@@ -119,10 +119,21 @@ function payCost(gameState: GameState, card: FreeCard, condition: BaseCondition)
         case CostType.BanishFromHand:
         case CostType.Discard:
             const availableCards = gameState.hand.filter(c => !requiredCards.includes(c));
-            const cardsToRemove = availableCards.slice(0, card.cost.value as number);
-            
-            if (cardsToRemove.length < (card.cost.value as number)) {
-                throw new Error("Not enough cards to pay cost");
+            let cardsToRemove = [];
+
+            if (typeof(card.cost.value) === "number") {
+                cardsToRemove.push(...availableCards.slice(0, card.cost.value as number));
+                
+                if (cardsToRemove.length < (card.cost.value as number)) {
+                    throw new Error("Not enough cards to pay cost");
+                }
+            } else {
+                const requirements = card.cost.value as string[];
+                cardsToRemove = availableCards.filter(c => requirements.includes(c.name) || c.tags?.some(t => requirements.includes(t)));
+
+                if (!cardsToRemove) {
+                    throw new Error("No card to pay cost");
+                }
             }
 
             if (card.cost.type === CostType.BanishFromHand) {
@@ -130,9 +141,6 @@ function payCost(gameState: GameState, card: FreeCard, condition: BaseCondition)
             } else {
                 gameState.discardFromHand(cardsToRemove);
             }
-
-            let hand = gameState.hand;
-            hand = gameState.hand.filter(c => !cardsToRemove.includes(c));
             break;
 
         case CostType.PayLife:
