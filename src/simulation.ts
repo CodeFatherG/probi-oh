@@ -1,5 +1,5 @@
-import { BaseCondition } from "./condition.js";
-import { GameState } from "./game-state.js";
+import { BaseCondition } from "./condition";
+import { GameState } from "./game-state";
 
 /** Represents a single simulation run */
 export class Simulation {

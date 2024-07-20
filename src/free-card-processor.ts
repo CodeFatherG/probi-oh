@@ -2,7 +2,6 @@ import { Card, FreeCard } from "./card";
 import { CostType, RestrictionType } from "./card-details";
 import { Simulation } from "./simulation";
 import { GameState } from './game-state';
-import { BaseCondition } from './condition';
 
 function cardCanPayCost(gameState: GameState, card: FreeCard): boolean {
     if (!card.cost) {

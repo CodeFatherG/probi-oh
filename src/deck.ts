@@ -1,5 +1,5 @@
-import { CardDetails } from "./card-details.js";
-import { Card, CreateCard } from "./card.js";
+import { CardDetails } from "./card-details";
+import { Card, CreateCard } from "./card";
 
 /** Represents a deck of cards */
 export class Deck {

@@ -1,8 +1,8 @@
-import { Deck } from './deck.js';
-import { AndCondition, BaseCondition, Condition, OrCondition } from './condition.js';
-import { Simulation } from './simulation.js';
-import { YamlManager } from './yaml-manager.js';
-import { GameState } from './game-state.js';
+import { Deck } from './deck';
+import { AndCondition, BaseCondition, Condition, OrCondition } from './condition';
+import { Simulation } from './simulation';
+import { YamlManager } from './yaml-manager';
+import { GameState } from './game-state';
 
 let infoOutput: HTMLTextAreaElement;
 const yamlManager = YamlManager.getInstance();

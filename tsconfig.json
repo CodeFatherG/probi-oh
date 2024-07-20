@@ -8,8 +8,8 @@
       "outDir": "./dist",
       "strict": true,
       "esModuleInterop": true,
-      "rootDir": "./src"
+      "sourceMap": true
   },
   "include": ["src/**/*"],
-  "exclude": ["test", "dist"]
+  "exclude": ["node_modules", "**/*.test.ts"]
 }

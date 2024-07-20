@@ -1,4 +1,4 @@
-import { Card } from './card.js';
+import { Card } from './card';
 
 /** Base condition interface for card evaluation */
 export interface BaseCondition {
