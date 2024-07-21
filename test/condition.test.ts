@@ -1,5 +1,5 @@
 import { Card, CreateCard } from '../src/card';
-import { Condition, AndCondition, OrCondition } from '../src/condition';
+import { Condition, AndCondition, OrCondition, LocationConditionTarget as LocationTarget } from '../src/condition';
 import { Deck } from '../src/deck';
 import { GameState } from '../src/game-state';
 
@@ -10,26 +10,28 @@ describe('Condition', () => {
     let mockDeck: jest.Mocked<Deck>;
 
     beforeEach(() => {
-        mockDeck = new Deck([]) as jest.Mocked<Deck>;
-        mockGameState = new GameState(mockDeck) as jest.Mocked<GameState>;
         testCards = [
-        CreateCard('Card A', { tags: ['Tag1'] }),
-        CreateCard('Card B', { tags: ['Tag2'] }),
-        CreateCard('Card C', { tags: ['Tag1', 'Tag3'] }),
+            CreateCard('Card A', { tags: ['Tag1'] }),
+            CreateCard('Card B', { tags: ['Tag2'] }),
+            CreateCard('Card C', { tags: ['Tag1', 'Tag3'] }),
         ];
-        testDeck = [...Array(40 - testCards.length)].map(i => CreateCard(`Deck Card ${i}`, {}));
-    
-        // Mock GameState properties and methods
-        mockGameState.deepCopy = jest.fn().mockReturnValue(mockGameState);
+        testDeck = [...Array(40)].map((_, i) => CreateCard(`Deck Card ${i}`, {}));
         
-        // Mock the hand getter
-        Object.defineProperty(mockGameState, 'hand', {
-            get: jest.fn().mockImplementation(() => { return testCards; })
-        });
-    
+        mockDeck = new Deck([]) as jest.Mocked<Deck>;
         Object.defineProperty(mockDeck, 'deckList', {
             get: jest.fn().mockImplementation(() => { return testDeck; })
         });
+        mockDeck.deepCopy = jest.fn().mockReturnValue(mockDeck);
+        mockDeck.shuffle = jest.fn();
+
+        mockGameState = new GameState(mockDeck) as jest.Mocked<GameState>;
+        Object.defineProperty(mockGameState, 'hand', {
+            get: jest.fn().mockImplementation(() => { return testCards; })
+        });
+        Object.defineProperty(mockGameState, 'deck', {
+            get: jest.fn().mockImplementation(() => { return mockDeck; })
+        });
+        mockGameState.deepCopy = jest.fn().mockReturnValue(mockGameState);
     });
 
     test('should evaluate correctly for card name', () => {
@@ -70,6 +72,7 @@ describe('Condition', () => {
             CreateCard('Card B', { tags: ['Tag1'] }),
             CreateCard('Card C', { tags: ['Tag1'] }),
         ];
+        
         expect(condition.evaluate(mockGameState)).toBe(false);
         expect(condition.successes).toBe(0);
     });
@@ -141,6 +144,24 @@ describe('Condition', () => {
         const requiredCards = condition.requiredCards([CreateCard('Different Card', { tags: ['TestTag'] }), CreateCard('Different Card', { tags: ['TestTag'] })]);
 
         expect(requiredCards.length).toBe(2);
+    });
+
+    describe('Location targets', () => {
+        it ('should evaluate correctly for deck', () => {
+            const condition = new Condition('Test Card', 1, '=', LocationTarget.Deck);
+            testDeck = [CreateCard('Test Card', {})];
+            expect(condition.evaluate(mockGameState)).toBe(true);
+            testDeck = [CreateCard('Different Card', {})];
+            expect(condition.evaluate(mockGameState)).toBe(false);
+        });
+
+        it ('should evaluate correctly for hand', () => {
+            const condition = new Condition('Test Card', 1, '=', LocationTarget.Hand);
+            testCards = [CreateCard('Test Card', {})];
+            expect(condition.evaluate(mockGameState)).toBe(true);
+            testCards = [CreateCard('Different Card', {})];
+            expect(condition.evaluate(mockGameState)).toBe(false);
+        });
     });
 });
 
