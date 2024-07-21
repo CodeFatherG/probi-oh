@@ -380,3 +380,63 @@ describe('YamlManager', () => {
         });
     });
 });
+
+describe('Edge Cases', () => {
+    it('should deserialise a condition with a numbered card name', () => {
+        const yamlString = `
+            deck:
+                1:
+                    qty: 3
+                    tags: [Tag1, Tag2]
+                2:
+                    qty: 2
+                    tags: [Tag3]
+            conditions:
+                - 2+ 1
+                - (1 2 OR 2 1)
+        `;
+        const yamlManager = YamlManager.getInstance();
+        const result = yamlManager.loadFromYamlString(yamlString);
+        
+        expect(result.deck).toBeInstanceOf(Deck);
+        expect(result.deck.deckCount).toBe(40);
+        expect(result.conditions).toHaveLength(2);
+        expect(result.conditions[0]).toBeInstanceOf(Condition);
+        expect(result.conditions[1]).toBeInstanceOf(OrCondition);
+        expect((result.conditions[0] as Condition).cardName).toBe('1');
+        expect((result.conditions[0] as Condition).quantity).toBe(2);
+        expect((result.conditions[0] as Condition).operator).toBe('>=');
+        expect((result.conditions[1] as OrCondition).conditions[0]).toBeInstanceOf(Condition);
+        expect((result.conditions[1] as OrCondition).conditions[1]).toBeInstanceOf(Condition);
+        expect(((result.conditions[1] as OrCondition).conditions[0] as Condition).cardName).toBe('2');
+        expect(((result.conditions[1] as OrCondition).conditions[0] as Condition).quantity).toBe(1);
+        expect(((result.conditions[1] as OrCondition).conditions[0] as Condition).operator).toBe('=');
+        expect(((result.conditions[1] as OrCondition).conditions[1] as Condition).cardName).toBe('1');
+        expect(((result.conditions[1] as OrCondition).conditions[1] as Condition).quantity).toBe(2);
+        expect(((result.conditions[1] as OrCondition).conditions[1] as Condition).operator).toBe('=');
+    });
+
+    describe('Handle "" card names', () => {
+        it('should deserialise a condition with card name starting ""', () => {
+            const yamlString = `
+                deck:
+                    "Card A":
+                        qty: 3
+                        tags: [Tag1, Tag2]
+                conditions:
+                    - 2+ "Card A"
+            `;
+            const yamlManager = YamlManager.getInstance();
+            const result = yamlManager.loadFromYamlString(yamlString);
+            
+            expect(result.deck).toBeInstanceOf(Deck);
+            expect(result.deck.deckCount).toBe(40);
+            expect(result.conditions).toHaveLength(1);
+            expect(result.conditions[0]).toBeInstanceOf(Condition);
+            expect((result.conditions[0] as Condition).cardName).toBe('"Card A"');
+            expect((result.conditions[0] as Condition).quantity).toBe(2);
+            expect((result.conditions[0] as Condition).operator).toBe('>=');
+        });
+    })
+    
+});

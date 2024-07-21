@@ -98,6 +98,67 @@ function tokenize(input: string): Token[] {
     while (current < input.length) {
         let char = input[current];
 
+        function tokenizeQuantity(): boolean {
+            // Handle numbers (including + and - for operators)
+            const NUMBERS = /[0-9]/;
+            const validNumber = /[0-9](\+||\-)? /;
+            const test = input.slice(current, 3);
+            if (validNumber.test(input.slice(current))) {
+                
+
+                let value = '';
+                while (NUMBERS.test(char)) {
+                    value += char;
+                    char = input[++current];
+                }
+                if (char === '+' || char === '-') {
+                    value += char;
+                    char = input[++current];
+                }
+
+                tokens.push({ type: 'number', value });
+                return true;
+            }
+
+            return false;
+        }
+
+        function tokenizeName(): boolean {
+            const NAME_CHARS = /^[a-zA-Z0-9\s\-',.&:!?"]+$/;
+
+            function isCharIllegal(char: string): boolean {
+                const ILLEGAL_CHARS = new RegExp(`[^${NAME_CHARS.source.slice(1, -1)}]`);
+                if (ILLEGAL_CHARS.test(char)) {
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (NAME_CHARS.test(char)) {
+                let value = '';
+                while (current < input.length && (NAME_CHARS.test(char) || char === ' ')) {
+                    if (isCharIllegal(char)) {
+                        throw new TypeError('Illegal character in card name: ' + char);
+                    }
+
+                    if (char !== ' ' || (value && NAME_CHARS.test(input[current + 1]))) {
+                        value += char;
+                    }
+                    char = input[++current];
+
+                    // Break if we encounter an AND or OR operator
+                    if (isANDToken(input.slice(current)) || isORToken(input.slice(current))) {
+                        break;
+                    }
+                }
+                tokens.push({ type: 'name', value: value.trim() });
+                return true;
+            }
+
+            return false;
+        }
+
         // Handle parentheses
         if (char === '(' || char === ')') {
             tokens.push({ type: 'paren', value: char });
@@ -134,38 +195,19 @@ function tokenize(input: string): Token[] {
             continue;
         }
 
-        // Handle numbers (including + and - for operators)
-        const NUMBERS = /[0-9]/;
-        if (NUMBERS.test(char)) {
-            let value = '';
-            while (NUMBERS.test(char)) {
-                value += char;
-                char = input[++current];
+        if (tokens[tokens.length - 1]?.type === 'number') {
+            if (tokenizeName()) {
+                continue;
+            } else {
+                throw new TypeError('Expected card name after number');
             }
-            if (char === '+' || char === '-') {
-                value += char;
-                current++;
-            }
-            tokens.push({ type: 'number', value });
+        }
+
+        if (tokenizeQuantity()) {
             continue;
         }
 
-        // Handle card names (including spaces and hyphens)
-        const NAME_CHARS = /[A-Za-z0-9\-]/;
-        if (NAME_CHARS.test(char)) {
-            let value = '';
-            while (current < input.length && (NAME_CHARS.test(char) || char === ' ')) {
-                if (char !== ' ' || (value && NAME_CHARS.test(input[current + 1]))) {
-                    value += char;
-                }
-                char = input[++current];
-
-                // Break if we encounter an AND or OR operator
-                if (isANDToken(input.slice(current)) || isORToken(input.slice(current))) {
-                    break;
-                }
-            }
-            tokens.push({ type: 'name', value: value.trim() });
+        if (tokenizeName()) {
             continue;
         }
 
