@@ -167,7 +167,7 @@ describe('SimulationBranch', () => {
         const branch = new SimulationBranch(mockGameState, mockCondition);
         branch.run();
         expect(branch.result).toBe(true);
-        expect(mockCondition.evaluate).toHaveBeenCalledWith(mockGameState.hand);
+        expect(mockCondition.evaluate).toHaveBeenCalledWith(mockGameState);
     });
 });
 

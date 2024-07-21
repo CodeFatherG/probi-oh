@@ -158,12 +158,12 @@ export function excavate(gameState: GameState, card: FreeCard, condition: BaseCo
     const excavatedCards = [...Array(count)].map(() => gameState.deck.drawCard());
     
     // Calculate the base score (how many conditions are met with the current hand)
-    const baseScore = countMetConditions(condition, gameState.hand);
+    const baseScore = countMetConditions(condition, gameState, null);
 
     // Sort excavated cards based on their contribution to completing the condition
     const sortedCards = excavatedCards.sort((a, b) => {
-        const aScore = countMetConditions(condition, [...gameState.hand, a]) - baseScore;
-        const bScore = countMetConditions(condition, [...gameState.hand, b]) - baseScore;
+        const aScore = countMetConditions(condition, gameState, a) - baseScore;
+        const bScore = countMetConditions(condition, gameState, b) - baseScore;
         return bScore - aScore; // Sort in descending order
     });
 
@@ -174,13 +174,20 @@ export function excavate(gameState: GameState, card: FreeCard, condition: BaseCo
     gameState.deck.addToBottom(sortedCards.slice(pick));
 }
 
-function countMetConditions(condition: BaseCondition, hand: Card[]): number {
+function countMetConditions(condition: BaseCondition, gameState: GameState, card: Card | null): number {
+    const localGameState = gameState.deepCopy();
+
     if (condition instanceof Condition) {
-        return condition.evaluate(hand) ? 1 : 0;
+        if (card) {
+            let hand = localGameState.hand;
+            hand.push(card);
+        }
+
+        return condition.evaluate(gameState) ? 1 : 0;
     } else if (condition instanceof AndCondition) {
-        return condition.conditions.filter(c => countMetConditions(c, hand) > 0).length;
+        return condition.conditions.filter(c => countMetConditions(c, localGameState, card) > 0).length;
     } else if (condition instanceof OrCondition) {
-        return condition.conditions.some(c => countMetConditions(c, hand) > 0) ? 1 : 0;
+        return condition.conditions.some(c => countMetConditions(c, localGameState, card) > 0) ? 1 : 0;
     }
     return 0;
 }

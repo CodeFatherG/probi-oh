@@ -1,15 +1,21 @@
 import { Card } from './card';
+import { GameState } from './game-state';
 
 /** Base condition interface for card evaluation */
 export interface BaseCondition {
-    /** Evaluates the condition against a hand of cards */
-    evaluate(hand: Card[]): boolean;
+    /** Evaluates the condition against a game state */
+    evaluate(gameState: GameState): boolean;
 
     /** The cards in the hand required for this condition */
     requiredCards(hand: Card[]): Card[];
 
     /** Number of successful evaluations */
     get successes(): Readonly<number>;
+}
+
+export enum LocationConditionTarget {
+    Hand,
+    Deck
 }
 
 /** Specific condition for card evaluation */
@@ -25,7 +31,8 @@ export class Condition implements BaseCondition {
     constructor(
         readonly cardName: string, 
         readonly quantity: number = 1, 
-        readonly operator: string = '>='
+        readonly operator: string = '>=',
+        readonly location: LocationConditionTarget = LocationConditionTarget.Hand
     ) {
     }
 
@@ -35,8 +42,13 @@ export class Condition implements BaseCondition {
     }
 
     /** Evaluates the condition against a hand of cards */
-    evaluate(hand: Card[]): boolean {
-        const count = hand.filter(card => card.name === this.cardName || (card.tags && card.tags.includes(this.cardName))).length;
+    evaluate(gameState: GameState): boolean {
+        let count = 0;
+        if (this.location === LocationConditionTarget.Deck) {
+            count = gameState.deck.deckList.filter(card => card.name === this.cardName || (card.tags && card.tags.includes(this.cardName))).length            
+        } else {
+            count = gameState.hand.filter(card => card.name === this.cardName || (card.tags && card.tags.includes(this.cardName))).length;
+        }
 
         let result = false;
         switch(this.operator) {
@@ -88,9 +100,9 @@ export class AndCondition implements BaseCondition {
         return this._successes;
     }
 
-    /** Evaluates the AND condition against a hand of cards */
-    evaluate(hand: Card[]): boolean {
-        let result = this.conditions.every(condition => condition.evaluate(hand));
+    /** Evaluates the AND condition against a game state */
+    evaluate(gameState: GameState): boolean {
+        let result = this.conditions.every(condition => condition.evaluate(gameState));
         this._successes += result ? 1 : 0;
         return result;
     }
@@ -125,9 +137,9 @@ export class OrCondition implements BaseCondition {
         return this._successes;
     }
 
-    /** Evaluates the OR condition against a hand of cards */
-    evaluate(hand: Card[]): boolean {
-        let result = this.conditions.some(condition => condition.evaluate(hand));
+    /** Evaluates the OR condition against a a game state */
+    evaluate(gameState: GameState): boolean {
+        let result = this.conditions.some(condition => condition.evaluate(gameState));
         this._successes += result ? 1 : 0;
         return result;
     }
