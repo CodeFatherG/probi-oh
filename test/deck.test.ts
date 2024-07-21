@@ -69,6 +69,23 @@ describe('Deck', () => {
             expect(shuffledOrder).not.toEqual(originalOrder);
             expect(shuffledOrder.sort()).toEqual(originalOrder.sort());
         });
+
+        test('shuffle uses injected random function', () => {
+            const cards = [
+                CreateCard('Card1', {}),
+                CreateCard('Card2', {}),
+                CreateCard('Card3', {})
+            ];
+            const deck = new Deck(cards, 3);
+            const mockRandom = jest.fn()
+                .mockReturnValueOnce(0.5)
+                .mockReturnValueOnce(0.2);
+        
+            deck.shuffle(mockRandom);
+        
+            expect(mockRandom).toHaveBeenCalledTimes(2);
+            // You can add more specific assertions about the order of cards if needed
+        });
     });
 
     describe('deckList', () => {
