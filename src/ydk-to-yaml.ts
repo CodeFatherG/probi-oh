@@ -1,5 +1,5 @@
 import * as yaml from 'js-yaml';
-import { getCardById } from './card-api.js';
+import { getCardById } from './card-api';
 
 /**
  * Converts YDK content to YAML format

@@ -1,9 +1,9 @@
 import yaml from 'js-yaml';
-import { Deck, buildDeck } from './deck.js';
-import { AndCondition, BaseCondition, Condition, OrCondition } from './condition.js';
-import { parseCondition } from './parser.js';
-import { convertYdkToYaml } from './ydk-to-yaml.js';
-import { CardDetails } from './card.js';
+import { Deck, buildDeck } from './deck';
+import { AndCondition, BaseCondition, Condition, OrCondition } from './condition';
+import { parseCondition } from './parser';
+import { convertYdkToYaml } from './ydk-to-yaml';
+import { CardDetails } from './card-details';
 
 /** Represents the input for a simulation */
 export interface SimulationInput {
@@ -52,7 +52,7 @@ export class YamlManager {
                 if (typeof cardDetails !== 'object' || Array.isArray(cardDetails)) {
                     throw new Error(`Invalid card details for ${cardName}`);
                 }
-                if (typeof cardDetails.qty !== 'number' || !Array.isArray(cardDetails.tags)) {
+                if (typeof cardDetails.qty !== 'number') {
                     throw new Error(`Invalid card structure for ${cardName}`);
                 }
             }

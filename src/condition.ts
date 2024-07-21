@@ -1,9 +1,13 @@
-import { Card } from './card.js';
+import { Card } from './card';
 
 /** Base condition interface for card evaluation */
 export interface BaseCondition {
     /** Evaluates the condition against a hand of cards */
     evaluate(hand: Card[]): boolean;
+
+    /** The cards in the hand required for this condition */
+    requiredCards(hand: Card[]): Card[];
+
     /** Number of successful evaluations */
     get successes(): Readonly<number>;
 }
@@ -45,6 +49,24 @@ export class Condition implements BaseCondition {
         this._successes += result ? 1 : 0;
         return result;
     }
+
+    requiredCards(hand: Card[]): Card[] {
+        let _hand = hand.slice();
+        let _requiredCards = [];
+        // Remove cards used for this condition
+        for (let i = 0; i < this.quantity; i++) {
+            const index = _hand.findIndex(card => card.name === this.cardName || (card.tags && card.tags.includes(this.cardName)));
+            if (index === -1) {
+                console.error(`Failed to find card: ${this.cardName}`);
+                return [];
+            }
+
+            _requiredCards.push(_hand[index]);
+            _hand.splice(index, 1);
+        }
+
+        return _requiredCards;
+    }
 }
 
 /** Logical AND condition composed of multiple base conditions */
@@ -72,6 +94,16 @@ export class AndCondition implements BaseCondition {
         this._successes += result ? 1 : 0;
         return result;
     }
+
+    requiredCards(hand: Card[]): Card[] {
+        let _hand = hand.slice();
+
+        return this.conditions.flatMap(condition => {
+            let cardsUsed = condition.requiredCards(_hand);
+            _hand = _hand.filter(card => !cardsUsed.includes(card));
+            return cardsUsed;
+        });
+    }
 }
 
 /** Logical OR condition composed of multiple base conditions */
@@ -98,5 +130,15 @@ export class OrCondition implements BaseCondition {
         let result = this.conditions.some(condition => condition.evaluate(hand));
         this._successes += result ? 1 : 0;
         return result;
+    }
+
+    requiredCards(hand: Card[]): Card[] {
+        let _hand = hand.slice();
+
+        return this.conditions.flatMap(condition => {
+            let cardsUsed = condition.requiredCards(_hand);
+            _hand = _hand.filter(card => !cardsUsed.includes(card));
+            return cardsUsed;
+        });
     }
 }

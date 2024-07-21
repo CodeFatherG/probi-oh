@@ -3,13 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="importmap">
-        {
-            "imports": {
-                "js-yaml": "https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/+esm"
-            }
-        }
-    </script>
     <title>Yu-Gi-Oh! Simulator</title>
     <style>
         #infoOutput {
@@ -62,14 +55,14 @@
     <button id="importYdk">Import YDK</button>
     <input type="file" id="yamlFile" accept=".yaml,.yml">
     <button id="runSimulation">Run Simulation</button>
+
     <div id="progressBarContainer" style="display: none;">
         <div id="progressBar"></div>
         <div id="progressText"></div>
     </div>
+
     <div id="spinner" class="spinner" style="display: none;"></div>
     <div id="result"></div> 
     <textarea id="infoOutput" readonly></textarea>
-
-    <script type="module" src="./dist/src/main.js"></script>
 </body>
 </html>

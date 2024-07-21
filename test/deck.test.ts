@@ -1,12 +1,13 @@
 import { Deck, buildDeck } from '../src/deck';
-import { Card, CardDetails } from '../src/card';
+import { Card, CreateCard } from '../src/card';
+import { CardDetails } from '../src/card-details';
 
 describe('Deck', () => {
     describe('constructor', () => {
         it('should create a deck with the given cards', () => {
             const cards = [
-                new Card('Card A', { tags: ['Tag1'] }),
-                new Card('Card B', { tags: ['Tag2'] })
+                CreateCard('Card A', { tags: ['Tag1'] }),
+                CreateCard('Card B', { tags: ['Tag2'] })
             ];
             const deck = new Deck(cards);
             expect(deck.deckCount).toBe(40);
@@ -14,14 +15,14 @@ describe('Deck', () => {
         });
 
         it('should fill the deck with Empty Cards if less than 40 cards are provided', () => {
-            const cards = [new Card('Card A', { tags: ['Tag1'] })];
+            const cards = [CreateCard('Card A', { tags: ['Tag1'] })];
             const deck = new Deck(cards);
             expect(deck.deckCount).toBe(40);
             expect(deck.deckList.filter(card => card.name === 'Empty Card').length).toBe(39);
         });
 
         it('should not add Empty Cards if 40 or more cards are provided', () => {
-            const cards = Array(40).fill(null).map((_, i) => new Card(`Card ${i}`, { tags: ['Tag'] }));
+            const cards = Array(40).fill(null).map((_, i) => CreateCard(`Card ${i}`, { tags: ['Tag'] }));
             const deck = new Deck(cards);
             expect(deck.deckCount).toBe(40);
             expect(deck.deckList.filter(card => card.name === 'Empty Card').length).toBe(0);
@@ -30,7 +31,7 @@ describe('Deck', () => {
 
     describe('deepCopy', () => {
         it('should create a deep copy of the deck', () => {
-            const originalDeck = new Deck([new Card('Card A', { tags: ['Tag1'] })]);
+            const originalDeck = new Deck([CreateCard('Card A', { tags: ['Tag1'] })]);
             const copiedDeck = originalDeck.deepCopy();
 
             expect(copiedDeck).not.toBe(originalDeck);
@@ -44,7 +45,7 @@ describe('Deck', () => {
     describe('drawCard', () => {
         it('should remove and return a random card from the deck', () => {
             const cards: Card[] = Array(40).fill(null).map((_, index) => 
-                new Card(`Card ${String.fromCharCode(65 + index % 26)}`, { tags: ['Tag1'] })
+                CreateCard(`Card ${String.fromCharCode(65 + index % 26)}`, { tags: ['Tag1'] })
             );
 
             const deck = new Deck(cards);
@@ -58,7 +59,7 @@ describe('Deck', () => {
 
     describe('shuffle', () => {
         it('should shuffle the deck', () => {
-            const cards = Array(40).fill(null).map((_, i) => new Card(`Card ${i}`, { tags: ['Tag'] }));
+            const cards = Array(40).fill(null).map((_, i) => CreateCard(`Card ${i}`, { tags: ['Tag'] }));
             const deck = new Deck(cards);
             const originalOrder = [...deck.deckList].map(card => card.name);
             
@@ -68,13 +69,30 @@ describe('Deck', () => {
             expect(shuffledOrder).not.toEqual(originalOrder);
             expect(shuffledOrder.sort()).toEqual(originalOrder.sort());
         });
+
+        test('shuffle uses injected random function', () => {
+            const cards = [
+                CreateCard('Card1', {}),
+                CreateCard('Card2', {}),
+                CreateCard('Card3', {})
+            ];
+            const deck = new Deck(cards, 3);
+            const mockRandom = jest.fn()
+                .mockReturnValueOnce(0.5)
+                .mockReturnValueOnce(0.2);
+        
+            deck.shuffle(mockRandom);
+        
+            expect(mockRandom).toHaveBeenCalledTimes(2);
+            // You can add more specific assertions about the order of cards if needed
+        });
     });
 
     describe('deckList', () => {
         it('should return the list of cards in the deck', () => {
             const cards = [
-                new Card('Card A', { tags: ['Tag1'] }),
-                new Card('Card B', { tags: ['Tag2'] })
+                CreateCard('Card A', { tags: ['Tag1'] }),
+                CreateCard('Card B', { tags: ['Tag2'] })
             ];
             const deck = new Deck(cards);
             expect(deck.deckList.length).toBe(40);
@@ -85,8 +103,8 @@ describe('Deck', () => {
     describe('deckCount', () => {
         it('should return the number of cards in the deck', () => {
             const cards = [
-                new Card('Card A', { tags: ['Tag1'] }),
-                new Card('Card B', { tags: ['Tag2'] })
+                CreateCard('Card A', { tags: ['Tag1'] }),
+                CreateCard('Card B', { tags: ['Tag2'] })
             ];
             const deck = new Deck(cards);
             expect(deck.deckCount).toBe(40);
@@ -105,9 +123,9 @@ describe('buildDeck', () => {
 
         expect(deck).toBeInstanceOf(Deck);
         expect(deck.deckCount).toBe(40);
-        expect(deck.deckList.filter(card => card.name === 'Card A')).toHaveLength(3);
-        expect(deck.deckList.filter(card => card.name === 'Card B')).toHaveLength(2);
-        expect(deck.deckList.filter(card => card.name === 'Card C')).toHaveLength(1);
+        expect(deck.deckList.filter((card: Card) => card.name === 'Card A')).toHaveLength(3);
+        expect(deck.deckList.filter((card: Card) => card.name === 'Card B')).toHaveLength(2);
+        expect(deck.deckList.filter((card: Card) => card.name === 'Card C')).toHaveLength(1);
     });
 
     it('should handle empty deck list', () => {
@@ -116,6 +134,6 @@ describe('buildDeck', () => {
 
         expect(deck).toBeInstanceOf(Deck);
         expect(deck.deckCount).toBe(40);
-        expect(deck.deckList.every(card => card.name === 'Empty Card')).toBe(true);
+        expect(deck.deckList.every((card: Card) => card.name === 'Empty Card')).toBe(true);
     });
 });

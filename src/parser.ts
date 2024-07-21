@@ -1,4 +1,4 @@
-import { AndCondition, BaseCondition, Condition, OrCondition } from "./condition.js";
+import { AndCondition, BaseCondition, Condition, OrCondition } from "./condition";
 
 /** Represents a token in the parsed input */
 interface Token {
