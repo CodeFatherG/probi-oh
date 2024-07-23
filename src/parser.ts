@@ -1,4 +1,4 @@
-import { AndCondition, BaseCondition, Condition, OrCondition } from "./condition";
+import { AndCondition, BaseCondition, Condition, LocationConditionTarget, OrCondition } from "./condition";
 
 /** Represents a token in the parsed input */
 interface Token {
@@ -17,24 +17,55 @@ function parse(tokens: Token[]): BaseCondition {
 
     /** Walks through tokens and constructs conditions */
     function walk(): BaseCondition {
+
+        function GetLocationToken(token: {type: string, value: string} | undefined): LocationConditionTarget {
+            // If this token is not location then the default location is hand
+            if (!token || token?.type !== 'location') {
+                return LocationConditionTarget.Hand;
+            }
+
+            current++;
+
+            // parse the token and return the type
+            switch (token.value.toLowerCase()) {
+                case 'deck':
+                    return LocationConditionTarget.Deck;
+                case 'hand':
+                    return LocationConditionTarget.Hand;
+                default:
+                    throw new TypeError('Invalid location: ' + token.value);
+            }
+        }
+
         let token = tokens[current];
         if (token.type === 'number') {
             current++;
             let nextToken = tokens[current];
-            if (nextToken && nextToken.type === 'name') {
-                current++;
-                let quantity = parseInt(token.value);
-                // Determine the operator based on the presence of + or -
-                let operator = token.value.includes('+') ? '>=' : token.value.includes('-') ? '<=' : '=';
-                return new Condition(nextToken.value, quantity, operator);
-            } else {
-                throw new TypeError('Expected card name after number');
+            let location = LocationConditionTarget.Hand;
+            if (nextToken) {
+                if (nextToken.type === 'name') {
+                    current++;
+                    let quantity = parseInt(token.value);
+                    // Determine the operator based on the presence of + or -
+                    let operator = token.value.includes('+') ? '>=' : token.value.includes('-') ? '<=' : '=';
+
+                    // Check for location token
+                    let location = GetLocationToken(tokens[current]);
+
+                    return new Condition(nextToken.value, quantity, operator, location);
+                } else {
+                    throw new TypeError('Expected card name after number');
+                }
             }
         }
 
         if (token.type === 'name') {
             current++;
-            return new Condition(token.value);
+            
+            // Check for location token
+            let location = GetLocationToken(tokens[current]);
+
+            return new Condition(token.value, 1, '>=', location=location);
         }
 
         if (token.type === 'paren') {
@@ -98,13 +129,16 @@ function tokenize(input: string): Token[] {
     while (current < input.length) {
         let char = input[current];
 
+        function isLocationToken(slice: string): RegExpMatchArray | null {
+            return slice.match(/^IN /);
+        }
+
         function tokenizeQuantity(): boolean {
             // Handle numbers (including + and - for operators)
             const NUMBERS = /[0-9]/;
             const validNumber = /[0-9](\+||\-)? /;
-            if (validNumber.test(input.slice(current))) {
-                
-
+            const s = input.slice(current, current + 3);
+            if (validNumber.test(input.slice(current, current + 3))) {
                 let value = '';
                 while (NUMBERS.test(char)) {
                     value += char;
@@ -123,7 +157,7 @@ function tokenize(input: string): Token[] {
         }
 
         function tokenizeName(): boolean {
-            const NAME_CHARS = /^[a-zA-Z0-9\s\-',.&:!?"]+$/;
+            const NAME_CHARS = /[a-zA-Z0-9\s\-',.&:!?"]+$/;
 
             function isCharIllegal(char: string): boolean {
                 const ILLEGAL_CHARS = new RegExp(`[^${NAME_CHARS.source.slice(1, -1)}]`);
@@ -147,7 +181,7 @@ function tokenize(input: string): Token[] {
                     char = input[++current];
 
                     // Break if we encounter an AND or OR operator
-                    if (isANDToken(input.slice(current)) || isORToken(input.slice(current))) {
+                    if (isANDToken(input.slice(current)) || isORToken(input.slice(current)) || isLocationToken(input.slice(current))) {
                         break;
                     }
                 }
@@ -155,6 +189,25 @@ function tokenize(input: string): Token[] {
                 return true;
             }
 
+            return false;
+        }
+
+        function tokenizeLocation(slice: string): boolean {
+            if (isLocationToken(slice)) {
+                current += 3;
+                const locationPattern = /(deck|hand)/i;
+                const location = input.slice(current).match(locationPattern)![0];
+                
+                if (!location) {
+                    throw new TypeError('Expected location after "IN"');
+                }
+
+                tokens.push({ type: 'location', value: location });
+
+                current += location.length;
+
+                return true;
+            }
             return false;
         }
 
@@ -194,15 +247,18 @@ function tokenize(input: string): Token[] {
             continue;
         }
 
-        if (tokens[tokens.length - 1]?.type === 'number') {
+        const last_token = tokens[tokens.length - 1];
+        if (last_token?.type === 'number') {
             if (tokenizeName()) {
                 continue;
-            } else {
-                throw new TypeError('Expected card name after number');
             }
         }
 
         if (tokenizeQuantity()) {
+            continue;
+        }
+
+        if (tokenizeLocation(input.slice(current))) {
             continue;
         }
 
