@@ -137,7 +137,6 @@ function tokenize(input: string): Token[] {
             // Handle numbers (including + and - for operators)
             const NUMBERS = /[0-9]/;
             const validNumber = /[0-9](\+||\-)? /;
-            const s = input.slice(current, current + 3);
             if (validNumber.test(input.slice(current, current + 3))) {
                 let value = '';
                 while (NUMBERS.test(char)) {
