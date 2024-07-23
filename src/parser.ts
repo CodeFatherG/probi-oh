@@ -192,7 +192,9 @@ function tokenize(input: string): Token[] {
         }
 
         function tokenizeLocation(slice: string): boolean {
+            // Check if this is a valid location token
             if (isLocationToken(slice)) {
+                // it is so pull the location
                 current += 3;
                 const LOCATION_PATTERN = /(deck|hand)/i;
                 const location = input.slice(current).match(LOCATION_PATTERN)![0];
@@ -201,12 +203,13 @@ function tokenize(input: string): Token[] {
                     throw new TypeError('Expected location after "IN"');
                 }
 
+                // push the location token
                 tokens.push({ type: 'location', value: location });
-
                 current += location.length;
-
                 return true;
             }
+
+            // no location token found
             return false;
         }
 
@@ -246,6 +249,7 @@ function tokenize(input: string): Token[] {
             continue;
         }
 
+        // if the last token was a number the next token must be a name
         const last_token = tokens[tokens.length - 1];
         if (last_token?.type === 'number') {
             if (tokenizeName()) {
