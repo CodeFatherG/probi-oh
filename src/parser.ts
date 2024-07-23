@@ -194,8 +194,8 @@ function tokenize(input: string): Token[] {
         function tokenizeLocation(slice: string): boolean {
             if (isLocationToken(slice)) {
                 current += 3;
-                const locationPattern = /(deck|hand)/i;
-                const location = input.slice(current).match(locationPattern)![0];
+                const LOCATION_PATTERN = /(deck|hand)/i;
+                const location = input.slice(current).match(LOCATION_PATTERN)![0];
                 
                 if (!location) {
                     throw new TypeError('Expected location after "IN"');
