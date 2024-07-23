@@ -41,13 +41,22 @@ export class Condition implements BaseCondition {
         return this._successes;
     }
 
+    private CardsInList(list: Card[] | Readonly<Card[]>): number {
+        return list.filter(card => card.name === this.cardName || (card.tags && card.tags.includes(this.cardName))).length;
+    }
+
     /** Evaluates the condition against a hand of cards */
-    evaluate(gameState: GameState): boolean {
+    public evaluate(gameState: GameState): boolean {
         let count = 0;
-        if (this.location === LocationConditionTarget.Deck) {
-            count = gameState.deck.deckList.filter(card => card.name === this.cardName || (card.tags && card.tags.includes(this.cardName))).length            
-        } else {
-            count = gameState.hand.filter(card => card.name === this.cardName || (card.tags && card.tags.includes(this.cardName))).length;
+        switch (this.location) {
+            case LocationConditionTarget.Deck:
+                count = this.CardsInList(gameState.deck.deckList);
+                break;
+            default:
+                console.error(`Unknown location: ${this.location}`);
+            case LocationConditionTarget.Hand:
+                count = this.CardsInList(gameState.hand);
+                break;
         }
 
         let result = false;
