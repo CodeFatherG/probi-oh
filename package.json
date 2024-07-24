@@ -1,12 +1,18 @@
 {
   "devDependencies": {
+    "@eslint/js": "^8.56.0",
     "@types/jest": "^29.5.12",
     "@types/js-yaml": "^4.0.9",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-jest": "^28.6.0",
+    "globals": "^15.8.0",
     "html-webpack-plugin": "^5.6.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.5",
     "ts-loader": "^9.5.1",
-    "typescript": "^5.5.3",
+    "typescript": "^5.3.3",
     "webpack": "^5.93.0",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^5.0.4"
@@ -23,7 +29,9 @@
     "build": "webpack --mode production",
     "test": "jest",
     "test:single": "jest -t",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --format stylish",
+    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --format stylish --fix"
   },
   "keywords": [],
   "author": "",

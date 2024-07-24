@@ -2,8 +2,9 @@ name: Run Tests
 
 on:
   pull_request:
-    branches:
-      - main
+    types: [opened, synchronize, reopened]
+  pull_request_target:
+    types: [opened, synchronize, reopened]
 
 jobs:
   test:
@@ -19,7 +20,7 @@ jobs:
         node-version: '20'
 
     - name: Install dependencies
-      run: npm install
+      run: npm ci
 
     - name: Run Jest tests
       run: npm test

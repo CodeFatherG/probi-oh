@@ -1,5 +1,5 @@
 import { Card, CreateCard, FreeCard } from "./card";
-import { CostType, RestrictionType } from "./card-details";
+import { CostType } from "./card-details";
 import { Deck } from "./deck";
 
 /**
@@ -7,7 +7,7 @@ import { Deck } from "./deck";
  * @param cards - The cards to choose from
  * @returns The card chosen
  */
-export interface excavationCb {(cards: Card[]): Card};
+export interface excavationCb {(cards: Card[]): Card}
 
 /**
  * Callback function for determining the cost of a card from hand
@@ -15,7 +15,7 @@ export interface excavationCb {(cards: Card[]): Card};
  * @param costType - The type of cost to pay
  * @returns The cards to pay the cost
  */
-export interface handCostCb {(hand: Card[], costType: CostType): Card[]};
+export interface handCostCb {(hand: Card[], costType: CostType): Card[]}
 
 /** Represents the current state of a game */
 export class GameState {

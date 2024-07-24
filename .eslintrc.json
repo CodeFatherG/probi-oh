@@ -1,0 +1,29 @@
+{
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint"],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "env": {
+        "node": true,
+        "browser": true
+    },
+    "parserOptions": {
+        "ecmaVersion": 2021,
+        "sourceType": "module",
+        "project": "./tsconfig.json"
+    },
+    "rules": {
+      // Add any custom rules here
+    },
+    "ignorePatterns": [
+        "webpack.config.js",
+        "*.config.js",
+        "*.config.ts",
+        "tsconfig.json",
+        "tsconfig.*.json",
+        "test/**/*"
+    ]
+}

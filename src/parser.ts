@@ -13,6 +13,7 @@ interface Token {
  */
 function parse(tokens: Token[]): BaseCondition {
     let current = 0;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let parenCount = 0;
 
     /** Walks through tokens and constructs conditions */
@@ -37,20 +38,19 @@ function parse(tokens: Token[]): BaseCondition {
             }
         }
 
-        let token = tokens[current];
+        const token = tokens[current];
         if (token.type === 'number') {
             current++;
-            let nextToken = tokens[current];
-            let location = LocationConditionTarget.Hand;
+            const nextToken = tokens[current];
             if (nextToken) {
                 if (nextToken.type === 'name') {
                     current++;
-                    let quantity = parseInt(token.value);
+                    const quantity = parseInt(token.value);
                     // Determine the operator based on the presence of + or -
-                    let operator = token.value.includes('+') ? '>=' : token.value.includes('-') ? '<=' : '=';
+                    const operator = token.value.includes('+') ? '>=' : token.value.includes('-') ? '<=' : '=';
 
                     // Check for location token
-                    let location = GetLocationToken(tokens[current]);
+                    const location = GetLocationToken(tokens[current]);
 
                     return new Condition(nextToken.value, quantity, operator, location);
                 } else {
@@ -63,16 +63,16 @@ function parse(tokens: Token[]): BaseCondition {
             current++;
             
             // Check for location token
-            let location = GetLocationToken(tokens[current]);
+            const location = GetLocationToken(tokens[current]);
 
-            return new Condition(token.value, 1, '>=', location=location);
+            return new Condition(token.value, 1, '>=', location);
         }
 
         if (token.type === 'paren') {
             if (token.value === '(') {
                 parenCount++;
                 current++;
-                let result = parseExpression();
+                const result = parseExpression();
                 // Ensure matching closing parenthesis
                 if (tokens[current].type !== 'paren' || tokens[current].value !== ')') {
                     throw new SyntaxError('Expected closing parenthesis');
@@ -93,9 +93,9 @@ function parse(tokens: Token[]): BaseCondition {
         let left: BaseCondition = walk();
     
         while (current < tokens.length && tokens[current].type === 'operator') {
-            let operator = tokens[current].value;
+            const operator = tokens[current].value;
             current++;
-            let right: BaseCondition = walk();
+            const right: BaseCondition = walk();
             // Create AndCondition or OrCondition based on the operator
             left = operator === 'AND' ? new AndCondition([left, right]) : new OrCondition([left, right]);
         }
@@ -103,7 +103,7 @@ function parse(tokens: Token[]): BaseCondition {
         return left;
     }
 
-    let result = parseExpression();
+    const result = parseExpression();
     
     // Check for any unexpected tokens after parsing
     if (current < tokens.length) {
@@ -126,92 +126,102 @@ function tokenize(input: string): Token[] {
     const tokens: Token[] = [];
     let current = 0;
 
-    while (current < input.length) {
+    function isLocationToken(slice: string): RegExpMatchArray | null {
+        return slice.match(/^IN /);
+    }
+
+    function tokenizeQuantity(): boolean {
+        // Handle numbers (including + and - for operators)
+        const NUMBERS = /[0-9]/;
+        const validNumber = /[0-9](\+||-)? /;
+        let char = input[current];
+        if (validNumber.test(input.slice(current, current + 3))) {
+            let value = '';
+            while (NUMBERS.test(char)) {
+                value += char;
+                char = input[++current];
+            }
+            if (char === '+' || char === '-') {
+                value += char;
+                char = input[++current];
+            }
+
+            tokens.push({ type: 'number', value });
+            return true;
+        }
+
+        return false;
+    }
+
+    function tokenizeName(): boolean {
+        const NAME_CHARS = /[a-zA-Z0-9\s\-',.&:!?"]+$/;
         let char = input[current];
 
-        function isLocationToken(slice: string): RegExpMatchArray | null {
-            return slice.match(/^IN /);
+        function isCharIllegal(char: string): boolean {
+            const ILLEGAL_CHARS = new RegExp(`[^${NAME_CHARS.source.slice(1, -1)}]`);
+            if (ILLEGAL_CHARS.test(char)) {
+                return true;
+            }
+
+            return false;
         }
 
-        function tokenizeQuantity(): boolean {
-            // Handle numbers (including + and - for operators)
-            const NUMBERS = /[0-9]/;
-            const validNumber = /[0-9](\+||\-)? /;
-            if (validNumber.test(input.slice(current, current + 3))) {
-                let value = '';
-                while (NUMBERS.test(char)) {
+        if (NAME_CHARS.test(char)) {
+            let value = '';
+            while (current < input.length && (NAME_CHARS.test(char) || char === ' ')) {
+                if (isCharIllegal(char)) {
+                    throw new TypeError('Illegal character in card name: ' + char);
+                }
+
+                if (char !== ' ' || (value && NAME_CHARS.test(input[current + 1]))) {
                     value += char;
-                    char = input[++current];
                 }
-                if (char === '+' || char === '-') {
-                    value += char;
-                    char = input[++current];
-                }
+                char = input[++current];
 
-                tokens.push({ type: 'number', value });
-                return true;
+                // Break if we encounter an AND or OR operator
+                if (isANDToken(input.slice(current)) || isORToken(input.slice(current)) || isLocationToken(input.slice(current))) {
+                    break;
+                }
             }
-
-            return false;
+            tokens.push({ type: 'name', value: value.trim() });
+            return true;
         }
 
-        function tokenizeName(): boolean {
-            const NAME_CHARS = /[a-zA-Z0-9\s\-',.&:!?"]+$/;
+        return false;
+    }
 
-            function isCharIllegal(char: string): boolean {
-                const ILLEGAL_CHARS = new RegExp(`[^${NAME_CHARS.source.slice(1, -1)}]`);
-                if (ILLEGAL_CHARS.test(char)) {
-                    return true;
-                }
-
-                return false;
+    function tokenizeLocation(slice: string): boolean {
+        // Check if this is a valid location token
+        if (isLocationToken(slice)) {
+            // it is so pull the location
+            current += 3;
+            const LOCATION_PATTERN = /(deck|hand)/i;
+            const location = input.slice(current).match(LOCATION_PATTERN)![0];
+            
+            if (!location) {
+                throw new TypeError('Expected location after "IN"');
             }
 
-            if (NAME_CHARS.test(char)) {
-                let value = '';
-                while (current < input.length && (NAME_CHARS.test(char) || char === ' ')) {
-                    if (isCharIllegal(char)) {
-                        throw new TypeError('Illegal character in card name: ' + char);
-                    }
-
-                    if (char !== ' ' || (value && NAME_CHARS.test(input[current + 1]))) {
-                        value += char;
-                    }
-                    char = input[++current];
-
-                    // Break if we encounter an AND or OR operator
-                    if (isANDToken(input.slice(current)) || isORToken(input.slice(current)) || isLocationToken(input.slice(current))) {
-                        break;
-                    }
-                }
-                tokens.push({ type: 'name', value: value.trim() });
-                return true;
-            }
-
-            return false;
+            // push the location token
+            tokens.push({ type: 'location', value: location });
+            current += location.length;
+            return true;
         }
 
-        function tokenizeLocation(slice: string): boolean {
-            // Check if this is a valid location token
-            if (isLocationToken(slice)) {
-                // it is so pull the location
-                current += 3;
-                const LOCATION_PATTERN = /(deck|hand)/i;
-                const location = input.slice(current).match(LOCATION_PATTERN)![0];
-                
-                if (!location) {
-                    throw new TypeError('Expected location after "IN"');
-                }
+        // no location token found
+        return false;
+    }
 
-                // push the location token
-                tokens.push({ type: 'location', value: location });
-                current += location.length;
-                return true;
-            }
+    function isANDToken(slice: string): RegExpMatchArray | null {
+        return slice.match(/^AND\b/);
+    }
 
-            // no location token found
-            return false;
-        }
+    function isORToken(slice: string): RegExpMatchArray | null {
+        return slice.match(/^OR\b/);
+    }
+
+    while (current < input.length) {
+        const char = input[current];
 
         // Handle parentheses
         if (char === '(' || char === ')') {
@@ -228,10 +238,6 @@ function tokenize(input: string): Token[] {
         }
 
         // Check for AND operator
-        function isANDToken(slice: string): RegExpMatchArray | null {
-            return slice.match(/^AND\b/);
-        }
-
         if (isANDToken(input.slice(current))) {
             tokens.push({ type: 'operator', value: 'AND' });
             current += 3;
@@ -239,10 +245,6 @@ function tokenize(input: string): Token[] {
         }
 
         // Check for OR operator
-        function isORToken(slice: string): RegExpMatchArray | null {
-            return slice.match(/^OR\b/);
-        }
-
         if (isORToken(input.slice(current))) {
             tokens.push({ type: 'operator', value: 'OR' });
             current += 2;
