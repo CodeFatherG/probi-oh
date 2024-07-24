@@ -2,7 +2,9 @@ name: ESLint
 
 on:
   pull_request:
-    branches: [main]
+    types: [opened, synchronize, reopened]
+  pull_request_target:
+    types: [opened, synchronize, reopened]
 
 jobs:
   eslint:
