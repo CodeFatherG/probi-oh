@@ -118,6 +118,7 @@ function payCost(gameState: GameState, card: FreeCard, condition: BaseCondition)
 
         case CostType.BanishFromHand:
         case CostType.Discard:
+        {
             const availableCards = gameState.hand.filter(c => !requiredCards.includes(c));
             let cardsToRemove = [];
 
@@ -141,6 +142,7 @@ function payCost(gameState: GameState, card: FreeCard, condition: BaseCondition)
             } else {
                 gameState.discardFromHand(cardsToRemove);
             }
+        }
             break;
 
         case CostType.PayLife:
@@ -206,6 +208,7 @@ function payPostConditions(gameState: GameState, card: FreeCard, condition: Base
 
         case ConditionType.Discard:
         case ConditionType.BanishFromHand:
+        {
             const availableCards = gameState.hand.filter(c => !requiredCards.includes(c));
 
             if (typeof(card.condition.value) === "number") {
@@ -223,6 +226,7 @@ function payPostConditions(gameState: GameState, card: FreeCard, condition: Base
                 }
     
                 let hand = gameState.hand;
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 hand = gameState.hand.filter(c => !cardsToRemove.includes(c));
             } else {
                 const requirement = card.condition.value as string;
@@ -240,9 +244,11 @@ function payPostConditions(gameState: GameState, card: FreeCard, condition: Base
                 }
     
                 let hand = gameState.hand;
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 hand = gameState.hand.filter(c => c === cardToRemove);
                 break;
             }
+        }
             break;
     }
 

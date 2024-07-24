@@ -51,7 +51,7 @@ async function simulateDraw(deck: Deck, conditions: (BaseCondition)[], handSize:
 
     // Write detailed results
     writeInfo("\nDetailed Condition Results:");
-    conditions.forEach((condition, index) => {
+    conditions.forEach((condition) => {
         writeDetailedResults(condition, trials, 0);
     });
 
@@ -105,15 +105,6 @@ async function runSimulation(input: SimulationInput): Promise<void> {
     });
     
     console.log(`Simulation complete. Maximum success probability: ${(maxProbability * 100).toFixed(2)}%`);
-}
-
-function readFileContent(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (event) => resolve(event.target?.result as string);
-        reader.onerror = (error) => reject(error);
-        reader.readAsText(file);
-    });
 }
 
 let isSimulationRunning = false;

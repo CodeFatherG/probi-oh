@@ -54,6 +54,7 @@ export class Condition implements BaseCondition {
                 break;
             default:
                 console.error(`Unknown location: ${this.location}`);
+                // fallthrough
             case LocationConditionTarget.Hand:
                 count = this.CardsInList(gameState.hand);
                 break;

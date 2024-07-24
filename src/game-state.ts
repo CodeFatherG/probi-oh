@@ -1,5 +1,5 @@
 import { Card, CreateCard, FreeCard } from "./card";
-import { CostType, RestrictionType } from "./card-details";
+import { CostType } from "./card-details";
 import { Deck } from "./deck";
 
 /**
