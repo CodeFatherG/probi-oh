@@ -14,8 +14,12 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '20'
-      - run: npm install
+      - name: Install dependencies
+        run: npm ci
+      - name: Run ESLint
+        run: npx eslint . --ext .ts,.tsx
       - uses: reviewdog/action-eslint@v1
         with:
           reporter: github-pr-review
-          eslint_flags: '--ext .ts .'
+          eslint_flags: '--ext .ts,.tsx .'
+          fail_on_error: true
