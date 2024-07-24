@@ -30,7 +30,8 @@
     "test": "jest",
     "test:single": "jest -t",
     "test:coverage": "jest --coverage",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --format stylish"
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --format stylish",
+    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --format stylish --fix"
   },
   "keywords": [],
   "author": "",

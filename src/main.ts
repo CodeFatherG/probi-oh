@@ -24,7 +24,7 @@ interface SimulationInput {
 async function simulateDraw(deck: Deck, conditions: (BaseCondition)[], handSize: number, trials: number): Promise<number[]> {
     const progressBar = document.getElementById('progressBar') as HTMLElement;
     const progressText = document.getElementById('progressText') as HTMLElement;
-    let simulations: Simulation[][] = Array(conditions.length).fill([]).map(() => []);
+    const simulations: Simulation[][] = Array(conditions.length).fill([]).map(() => []);
 
     for (let i = 0; i < trials; i++) {
         conditions.forEach((condition, index) => {
@@ -77,7 +77,7 @@ function writeDetailedResults(condition: BaseCondition, trials: number, depth: n
 }
 
 function describeCondition(condition: Condition): string {
-    let quantityText = condition.quantity === 1 ? "" : `${condition.quantity}${condition.operator} `;
+    const quantityText = condition.quantity === 1 ? "" : `${condition.quantity}${condition.operator} `;
     return `${quantityText}${condition.cardName}`;
 }
 

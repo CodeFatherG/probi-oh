@@ -1,15 +1,13 @@
 {
     "root": true,
     "parser": "@typescript-eslint/parser",
-    "plugins": ["@typescript-eslint", "jest"],
+    "plugins": ["@typescript-eslint"],
     "extends": [
         "eslint:recommended",
-        "plugin:@typescript-eslint/recommended",
-        "plugin:jest/recommended"
+        "plugin:@typescript-eslint/recommended"
     ],
     "env": {
         "node": true,
-        "jest": true,
         "browser": true
     },
     "parserOptions": {
@@ -18,14 +16,14 @@
         "project": "./tsconfig.json"
     },
     "rules": {
-        // Add any custom rules here
+      // Add any custom rules here
     },
-    "overrides": [
-        {
-            "files": ["src/**/*.ts", "test/**/*.ts"],
-            "env": {
-                "jest": true
-            }
-        }
+    "ignorePatterns": [
+        "webpack.config.js",
+        "*.config.js",
+        "*.config.ts",
+        "tsconfig.json",
+        "tsconfig.*.json",
+        "test/**/*"
     ]
 }

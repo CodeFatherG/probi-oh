@@ -72,8 +72,8 @@ export class Condition implements BaseCondition {
     }
 
     requiredCards(hand: Card[]): Card[] {
-        let _hand = hand.slice();
-        let _requiredCards = [];
+        const _hand = hand.slice();
+        const _requiredCards = [];
         // Remove cards used for this condition
         for (let i = 0; i < this.quantity; i++) {
             const index = _hand.findIndex(card => card.name === this.cardName || (card.tags && card.tags.includes(this.cardName)));
@@ -111,7 +111,7 @@ export class AndCondition implements BaseCondition {
 
     /** Evaluates the AND condition against a game state */
     evaluate(gameState: GameState): boolean {
-        let result = this.conditions.every(condition => condition.evaluate(gameState));
+        const result = this.conditions.every(condition => condition.evaluate(gameState));
         this._successes += result ? 1 : 0;
         return result;
     }
@@ -120,7 +120,7 @@ export class AndCondition implements BaseCondition {
         let _hand = hand.slice();
 
         return this.conditions.flatMap(condition => {
-            let cardsUsed = condition.requiredCards(_hand);
+            const cardsUsed = condition.requiredCards(_hand);
             _hand = _hand.filter(card => !cardsUsed.includes(card));
             return cardsUsed;
         });
@@ -148,7 +148,7 @@ export class OrCondition implements BaseCondition {
 
     /** Evaluates the OR condition against a a game state */
     evaluate(gameState: GameState): boolean {
-        let result = this.conditions.some(condition => condition.evaluate(gameState));
+        const result = this.conditions.some(condition => condition.evaluate(gameState));
         this._successes += result ? 1 : 0;
         return result;
     }
@@ -157,7 +157,7 @@ export class OrCondition implements BaseCondition {
         let _hand = hand.slice();
 
         return this.conditions.flatMap(condition => {
-            let cardsUsed = condition.requiredCards(_hand);
+            const cardsUsed = condition.requiredCards(_hand);
             _hand = _hand.filter(card => !cardsUsed.includes(card));
             return cardsUsed;
         });

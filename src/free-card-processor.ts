@@ -179,7 +179,7 @@ function countMetConditions(condition: BaseCondition, gameState: GameState, card
 
     if (condition instanceof Condition) {
         if (card) {
-            let hand = localGameState.hand;
+            const hand = localGameState.hand;
             hand.push(card);
         }
 

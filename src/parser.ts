@@ -37,20 +37,20 @@ function parse(tokens: Token[]): BaseCondition {
             }
         }
 
-        let token = tokens[current];
+        const token = tokens[current];
         if (token.type === 'number') {
             current++;
-            let nextToken = tokens[current];
-            let location = LocationConditionTarget.Hand;
+            const nextToken = tokens[current];
+            const location = LocationConditionTarget.Hand;
             if (nextToken) {
                 if (nextToken.type === 'name') {
                     current++;
-                    let quantity = parseInt(token.value);
+                    const quantity = parseInt(token.value);
                     // Determine the operator based on the presence of + or -
-                    let operator = token.value.includes('+') ? '>=' : token.value.includes('-') ? '<=' : '=';
+                    const operator = token.value.includes('+') ? '>=' : token.value.includes('-') ? '<=' : '=';
 
                     // Check for location token
-                    let location = GetLocationToken(tokens[current]);
+                    const location = GetLocationToken(tokens[current]);
 
                     return new Condition(nextToken.value, quantity, operator, location);
                 } else {
@@ -72,7 +72,7 @@ function parse(tokens: Token[]): BaseCondition {
             if (token.value === '(') {
                 parenCount++;
                 current++;
-                let result = parseExpression();
+                const result = parseExpression();
                 // Ensure matching closing parenthesis
                 if (tokens[current].type !== 'paren' || tokens[current].value !== ')') {
                     throw new SyntaxError('Expected closing parenthesis');
@@ -93,9 +93,9 @@ function parse(tokens: Token[]): BaseCondition {
         let left: BaseCondition = walk();
     
         while (current < tokens.length && tokens[current].type === 'operator') {
-            let operator = tokens[current].value;
+            const operator = tokens[current].value;
             current++;
-            let right: BaseCondition = walk();
+            const right: BaseCondition = walk();
             // Create AndCondition or OrCondition based on the operator
             left = operator === 'AND' ? new AndCondition([left, right]) : new OrCondition([left, right]);
         }
@@ -103,7 +103,7 @@ function parse(tokens: Token[]): BaseCondition {
         return left;
     }
 
-    let result = parseExpression();
+    const result = parseExpression();
     
     // Check for any unexpected tokens after parsing
     if (current < tokens.length) {
