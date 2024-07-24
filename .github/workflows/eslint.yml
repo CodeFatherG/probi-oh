@@ -17,9 +17,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run ESLint
-        run: npx eslint . --ext .ts,.tsx
+        run: npx eslint "**/*.{ts,tsx}"
       - uses: reviewdog/action-eslint@v1
         with:
           reporter: github-pr-review
-          eslint_flags: '--ext .ts,.tsx .'
+          eslint_flags: "**/*.{ts,tsx}"
           fail_on_error: true
