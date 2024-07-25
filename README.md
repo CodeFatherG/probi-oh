@@ -14,7 +14,7 @@ We strive to offer these advanced features while maintaining a user-friendly int
 
 ## Input Format
 
-The calculator uses YAML as its input format. You can read the [full specification here](yaml-spec.md).
+The calculator uses YAML as its input format. You can read the [full specification here](docs/yaml-spec.md).
 
 ### Deck
 
