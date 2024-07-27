@@ -18,7 +18,6 @@ describe('free-card-processor', () => {
         mockCondition = {
             evaluate: jest.fn().mockReturnValue(true),
             requiredCards: jest.fn().mockReturnValue([CreateCard('Required Card', {})]),
-            successes: 0
         };
         simulation = new SimulationBranch(gameState, mockCondition);
     });
@@ -226,7 +225,6 @@ describe('Free Card Tests', () => {
         mockCondition = {
             evaluate: jest.fn().mockReturnValue(true),
             requiredCards: jest.fn().mockReturnValue([CreateCard('Required Card', {})]),
-            successes: 0
         };
         simulation = new SimulationBranch(gameState, mockCondition);
     });

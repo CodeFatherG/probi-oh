@@ -37,19 +37,16 @@ describe('Condition', () => {
     test('should evaluate correctly for card name', () => {
         const condition = new Condition('Card A');
         expect(condition.evaluate(mockGameState)).toBe(true);
-        expect(condition.successes).toBe(1);
     });
 
     test('should evaluate correctly for tag', () => {
         const condition = new Condition('Tag2');
         expect(condition.evaluate(mockGameState)).toBe(true);
-        expect(condition.successes).toBe(1);
     });
 
     test('should evaluate correctly with quantity', () => {
         const condition = new Condition('Tag1', 2, '>=');
         expect(condition.evaluate(mockGameState)).toBe(true);
-        expect(condition.successes).toBe(1);
     });
 
     test('should evaluate correctly with different operators', () => {
@@ -74,7 +71,6 @@ describe('Condition', () => {
         ];
         
         expect(condition.evaluate(mockGameState)).toBe(false);
-        expect(condition.successes).toBe(0);
     });
 
     test('should evaluate correctly with exact quantity', () => {
@@ -84,7 +80,6 @@ describe('Condition', () => {
             CreateCard('Card B', { tags: ['Tag2'] }),
         ];
         expect(condition.evaluate(mockGameState)).toBe(true);
-        expect(condition.successes).toBe(1);
     });
 
     test('should handle cards with multiple tags', () => {
@@ -95,7 +90,6 @@ describe('Condition', () => {
             CreateCard('Card C', { tags: ['Tag3', 'Tag4'] }),
         ];
         expect(condition.evaluate(mockGameState)).toBe(true);
-        expect(condition.successes).toBe(1);
     });
 
     it('should evaluate greater than or equal correctly', () => {
@@ -201,7 +195,6 @@ describe('AndCondition', () => {
         ];
 
         expect(andCondition.evaluate(mockGameState)).toBe(true);
-        expect(andCondition.successes).toBe(1);
     });
 
     test('should fail if one condition fails', () => {
@@ -215,7 +208,6 @@ describe('AndCondition', () => {
         ];
 
         expect(andCondition.evaluate(mockGameState)).toBe(false);
-        expect(andCondition.successes).toBe(0);
     });
 
     test('should evaluate correctly with multiple conditions', () => {
@@ -231,7 +223,6 @@ describe('AndCondition', () => {
         ];
 
         expect(andCondition.evaluate(mockGameState)).toBe(true);
-        expect(andCondition.successes).toBe(1);
     });
 
     test('should fail if any condition fails', () => {
@@ -245,7 +236,6 @@ describe('AndCondition', () => {
         ];
 
         expect(andCondition.evaluate(mockGameState)).toBe(false);
-        expect(andCondition.successes).toBe(0);
     });
 
     test('should log error for undefined condition in AndCondition', () => {
@@ -293,7 +283,6 @@ describe('OrCondition', () => {
         ];
 
         expect(orCondition.evaluate(mockGameState)).toBe(true);
-        expect(orCondition.successes).toBe(1);
     });
 
     test('should fail if all conditions fail', () => {
@@ -307,7 +296,6 @@ describe('OrCondition', () => {
         ];
 
         expect(orCondition.evaluate(mockGameState)).toBe(false);
-        expect(orCondition.successes).toBe(0);
     });
 
     test('should evaluate correctly with multiple conditions', () => {
@@ -322,7 +310,6 @@ describe('OrCondition', () => {
         ];
 
         expect(orCondition.evaluate(mockGameState)).toBe(true);
-        expect(orCondition.successes).toBe(1);
     });
 
     test('should pass if any condition passes', () => {
@@ -338,7 +325,6 @@ describe('OrCondition', () => {
         ];
 
         expect(orCondition.evaluate(mockGameState)).toBe(true);
-        expect(orCondition.successes).toBe(1);
     });
 
     test('should log error for undefined condition in AndCondition', () => {
@@ -392,7 +378,6 @@ describe('Complex nested conditions', () => {
         ];
 
         expect(complexCondition.evaluate(mockGameState)).toBe(true);
-        expect(complexCondition.successes).toBe(1);
     });
 
     test('should fail a complex nested condition if any part fails', () => {
@@ -412,6 +397,5 @@ describe('Complex nested conditions', () => {
         ];
 
         expect(complexCondition.evaluate(mockGameState)).toBe(false);
-        expect(complexCondition.successes).toBe(0);
     });
 });

@@ -51,30 +51,30 @@ async function simulateDraw(deck: Deck, conditions: (BaseCondition)[], handSize:
 
     // Write detailed results
     writeInfo("\nDetailed Condition Results:");
-    conditions.forEach((condition) => {
-        writeDetailedResults(condition, trials, 0);
-    });
+    // conditions.forEach((condition) => {
+    //     writeDetailedResults(condition, trials, 0);
+    // });
 
     return successRates;
 }
 
-function writeDetailedResults(condition: BaseCondition, trials: number, depth: number): void {
-    const indent = "  ".repeat(depth);
-    const successRate = (condition.successes / trials * 100).toFixed(2);
+// function writeDetailedResults(condition: BaseCondition, trials: number, depth: number): void {
+//     const indent = "  ".repeat(depth);
+//     const successRate = (condition.successes / trials * 100).toFixed(2);
 
-    if (condition instanceof Condition) {
-        writeInfo(`${indent}${describeCondition(condition)}:`);
-        writeInfo(`${indent}  Success rate: ${successRate}% (${condition.successes} out of ${trials})`);
-    } else if (condition instanceof AndCondition) {
-        writeInfo(`${indent}AND Condition:`);
-        writeInfo(`${indent}  Overall success rate: ${successRate}% (${condition.successes} out of ${trials})`);
-        condition.conditions.forEach(subCondition => writeDetailedResults(subCondition, trials, depth + 1));
-    } else if (condition instanceof OrCondition) {
-        writeInfo(`${indent}OR Condition:`);
-        writeInfo(`${indent}  Overall success rate: ${successRate}% (${condition.successes} out of ${trials})`);
-        condition.conditions.forEach(subCondition => writeDetailedResults(subCondition, trials, depth + 1));
-    }
-}
+//     if (condition instanceof Condition) {
+//         writeInfo(`${indent}${describeCondition(condition)}:`);
+//         writeInfo(`${indent}  Success rate: ${successRate}% (${condition.successes} out of ${trials})`);
+//     } else if (condition instanceof AndCondition) {
+//         writeInfo(`${indent}AND Condition:`);
+//         writeInfo(`${indent}  Overall success rate: ${successRate}% (${condition.successes} out of ${trials})`);
+//         condition.conditions.forEach(subCondition => writeDetailedResults(subCondition, trials, depth + 1));
+//     } else if (condition instanceof OrCondition) {
+//         writeInfo(`${indent}OR Condition:`);
+//         writeInfo(`${indent}  Overall success rate: ${successRate}% (${condition.successes} out of ${trials})`);
+//         condition.conditions.forEach(subCondition => writeDetailedResults(subCondition, trials, depth + 1));
+//     }
+// }
 
 function describeCondition(condition: Condition): string {
     const quantityText = condition.quantity === 1 ? "" : `${condition.quantity}${condition.operator} `;

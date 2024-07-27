@@ -8,9 +8,6 @@ export interface BaseCondition {
 
     /** The cards in the hand required for this condition */
     requiredCards(hand: Card[]): Card[];
-
-    /** Number of successful evaluations */
-    get successes(): Readonly<number>;
 }
 
 export enum LocationConditionTarget {
@@ -20,8 +17,6 @@ export enum LocationConditionTarget {
 
 /** Specific condition for card evaluation */
 export class Condition implements BaseCondition {
-    private _successes: number = 0;
-
     /**
      * Creates a new Condition
      * @param cardName - Name of the card to evaluate
@@ -34,11 +29,6 @@ export class Condition implements BaseCondition {
         readonly operator: string = '>=',
         readonly location: LocationConditionTarget = LocationConditionTarget.Hand
     ) {
-    }
-
-    /** Number of successful evaluations */
-    get successes(): Readonly<number> {
-        return this._successes;
     }
 
     private CardsInList(list: Card[] | Readonly<Card[]>): number {
@@ -68,7 +58,6 @@ export class Condition implements BaseCondition {
             default: throw new Error(`Unknown operator: ${this.operator}`);
         }
 
-        this._successes += result ? 1 : 0;
         return result;
     }
 
@@ -93,8 +82,6 @@ export class Condition implements BaseCondition {
 
 /** Logical AND condition composed of multiple base conditions */
 export class AndCondition implements BaseCondition {
-    private _successes: number = 0;
-
     /**
      * Creates a new AndCondition
      * @param conditions - Array of BaseCondition objects
@@ -105,15 +92,9 @@ export class AndCondition implements BaseCondition {
         }
     }
 
-    /** Number of successful evaluations */
-    get successes(): Readonly<number> {
-        return this._successes;
-    }
-
     /** Evaluates the AND condition against a game state */
     evaluate(gameState: GameState): boolean {
         const result = this.conditions.every(condition => condition.evaluate(gameState));
-        this._successes += result ? 1 : 0;
         return result;
     }
 
@@ -130,8 +111,6 @@ export class AndCondition implements BaseCondition {
 
 /** Logical OR condition composed of multiple base conditions */
 export class OrCondition implements BaseCondition {
-    private _successes: number = 0;
-
     /**
      * Creates a new OrCondition
      * @param conditions - Array of BaseCondition objects
@@ -142,15 +121,9 @@ export class OrCondition implements BaseCondition {
         }
     }
 
-    /** Number of successful evaluations */
-    get successes(): Readonly<number> {
-        return this._successes;
-    }
-
     /** Evaluates the OR condition against a a game state */
     evaluate(gameState: GameState): boolean {
         const result = this.conditions.some(condition => condition.evaluate(gameState));
-        this._successes += result ? 1 : 0;
         return result;
     }
 

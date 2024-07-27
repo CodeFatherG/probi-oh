@@ -93,7 +93,7 @@ export class Simulation {
     }
 
     /** Gets the condition being evaluated */
-    public get condition(): Readonly<BaseCondition> {
+    public get condition(): BaseCondition {
         return this._condition;
     }
 
@@ -103,17 +103,17 @@ export class Simulation {
     }
 
     /** Gets the branches of the simulation */
-    public get branches(): Readonly<SimulationBranch[]> {
+    public get branches(): SimulationBranch[] {
         return this._branches;
     }
 
     /** Get the branch that succeeded */
-    public get successfulBranch(): Readonly<SimulationBranch | undefined> {
+    public get successfulBranch(): SimulationBranch | undefined {
         return this._branches.find(b => b.result);
     }
 
     /** Get the branches that failed */
-    public get failedBranches(): Readonly<SimulationBranch[]> {
+    public get failedBranches(): SimulationBranch[] {
         return this._branches.filter(b => !b.result);
     }
 }
