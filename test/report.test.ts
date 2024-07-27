@@ -97,11 +97,15 @@ describe('Report', () => {
         const mockDeck = [createMockCard('Card C', ['Tag1'])];
         const mockGameState = createMockGameState(mockHand, mockDeck);
         const mockBranch = createMockSimulationBranch(mockGameState, true);
+        const mockCondition = new Condition('Card A', 1, '>=');
         mockSimulations = [createMockSimulation([mockBranch], true)];
+        Object.defineProperty(mockSimulations[0], 'condition', { value: mockCondition });
     });
 
     it('should initialize correctly', () => {
-        const report = new Report(mockSimulations);
+        const reports = Report.generateReports(mockSimulations);
+        expect(reports.length).toBe(1);
+        const report = reports[0];
         expect(report.iterations).toBe(1);
         expect(report.successfulSimulations.length).toBe(1);
         expect(report.successRate).toBe(1);
@@ -109,7 +113,9 @@ describe('Report', () => {
     });
 
     it('should calculate card name statistics correctly', () => {
-        const report = new Report(mockSimulations);
+        const reports = Report.generateReports(mockSimulations);
+        expect(reports.length).toBe(1);
+        const report = reports[0];
         const cardNameStats = report.cardNameStats;
         
         expect(cardNameStats.size).toBe(3);
@@ -119,7 +125,9 @@ describe('Report', () => {
     });
 
     it('should calculate card tag statistics correctly', () => {
-        const report = new Report(mockSimulations);
+        const reports = Report.generateReports(mockSimulations);
+        expect(reports.length).toBe(1);
+        const report = reports[0];
         const cardTagStats = report.cardTagStats;
         
         expect(cardTagStats.size).toBe(3);
@@ -129,7 +137,9 @@ describe('Report', () => {
     });
 
     it('should identify free cards correctly', () => {
-        const report = new Report(mockSimulations);
+        const reports = Report.generateReports(mockSimulations);
+        expect(reports.length).toBe(1);
+        const report = reports[0];
         const freeCardStats = report.freeCardStats;
         
         expect(freeCardStats.size).toBe(1);
@@ -155,7 +165,9 @@ describe('Report', () => {
         const successfulBranch = createMockSimulationBranch(finalGameState, true);
         const mockSimulation = createMockSimulation([initialBranch, successfulBranch], true);
 
-        const report = new Report([mockSimulation]);
+        const reports = Report.generateReports([mockSimulation]);
+        expect(reports.length).toBe(1);
+        const report = reports[0];
 
         const freeCardStats = report.freeCardStats;
         expect(freeCardStats.size).toBe(2);
@@ -178,7 +190,9 @@ describe('Report', () => {
         const successfulBranch = createMockSimulationBranch(finalGameState, true);
         const mockSimulation = createMockSimulation([initialBranch, successfulBranch], true);
 
-        const report = new Report([mockSimulation]);
+        const reports = Report.generateReports([mockSimulation]);
+        expect(reports.length).toBe(1);
+        const report = reports[0];
 
         const banishedCardNameStats = report.banishedCardNameStats;
         const banishedCardTagStats = report.banishedCardTagStats;
@@ -193,12 +207,31 @@ describe('Report', () => {
         const successfulSimulation = createMockSimulation([createMockSimulationBranch(createMockGameState([], []), true)], true);
         const failedSimulation = createMockSimulation([createMockSimulationBranch(createMockGameState([], []), false)], false);
         
-        const report = new Report([successfulSimulation, failedSimulation]);
+        const reports = Report.generateReports([successfulSimulation, failedSimulation]);
+        expect(reports.length).toBe(1);
+        const report = reports[0];
 
         expect(report.iterations).toBe(2);
         expect(report.successfulSimulations.length).toBe(1);
         expect(report.successRate).toBe(0.5);
         expect(report.successRatePercentage).toBe('50.00%');
+    });
+
+    it('should create separate reports for different conditions', () => {
+        const condition1 = new Condition('Card A', 1, '>=');
+        const condition2 = new Condition('Card B', 1, '>=');
+        const simulation1 = createMockSimulation([createMockSimulationBranch(createMockGameState([], []), true)], true);
+        const simulation2 = createMockSimulation([createMockSimulationBranch(createMockGameState([], []), false)], false);
+        Object.defineProperty(simulation1, 'condition', { value: condition1 });
+        Object.defineProperty(simulation2, 'condition', { value: condition2 });
+        
+        const reports = Report.generateReports([simulation1, simulation2]);
+
+        expect(reports.length).toBe(2);
+        expect(reports[0].iterations).toBe(1);
+        expect(reports[1].iterations).toBe(1);
+        expect(reports[0].successRate).toBe(1);
+        expect(reports[1].successRate).toBe(0);
     });
 });
 
@@ -446,7 +479,9 @@ describe('Report with Condition Statistics', () => {
     });
 
     it('should process condition statistics correctly', () => {
-        const report = new Report(mockSimulations);
+        const reports = Report.generateReports(mockSimulations);
+        expect(reports.length).toBe(1);
+        const report = reports[0];
         const conditionStats = report.conditionStats;
 
         expect(conditionStats.size).toBe(5); // AND, OR, and 3 individual conditions
@@ -458,7 +493,9 @@ describe('Report with Condition Statistics', () => {
     });
 
     it('should calculate success rates correctly', () => {
-        const report = new Report(mockSimulations);
+        const reports = Report.generateReports(mockSimulations);
+        expect(reports.length).toBe(1);
+        const report = reports[0];
         const conditionStats = report.conditionStats;
 
         expect(conditionStats.get('(2>= Card A IN Hand AND (1= Card B IN Hand OR 3<= Card C IN Hand))')?.successRate).toBe(1);
@@ -469,7 +506,9 @@ describe('Report with Condition Statistics', () => {
     });
 
     it('should handle nested conditions correctly', () => {
-        const report = new Report(mockSimulations);
+        const reports = Report.generateReports(mockSimulations);
+        expect(reports.length).toBe(1);
+        const report = reports[0];
         const conditionStats = report.conditionStats;
 
         const andStats = conditionStats.get('(2>= Card A IN Hand AND (1= Card B IN Hand OR 3<= Card C IN Hand))');
@@ -511,7 +550,9 @@ describe('Report Integration', () => {
         Object.defineProperty((mockCondition.conditions[1] as OrCondition).conditions[0], 'successes', { value: 1 });
         Object.defineProperty((mockCondition.conditions[1] as OrCondition).conditions[1], 'successes', { value: 1 });
 
-        const report = new Report([mockSimulation]);
+        const reports = Report.generateReports([mockSimulation]);
+        expect(reports.length).toBe(1);
+        const report = reports[0];
 
         // Check condition statistics
         expect(report.conditionStats.size).toBe(5);

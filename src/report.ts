@@ -94,8 +94,22 @@ class Report {
     private _successWithUnusedFreeCards: number = 0;
     private _conditionStats: Map<string, ConditionStatistics> = new Map();
 
-    constructor(readonly simulations: Simulation[]) {
+    private constructor(readonly simulations: Simulation[]) {
         this.processSimulations();
+    }
+
+    public static generateReports(simulations: Simulation[]): Report[] {
+        const simulationMap = new Map<string, Simulation[]>();
+
+        for (const simulation of simulations) {
+            const conditionKey = simulation.condition.toString();
+            if (!simulationMap.has(conditionKey)) {
+                simulationMap.set(conditionKey, []);
+            }
+            simulationMap.get(conditionKey)!.push(simulation);
+        }
+
+        return Array.from(simulationMap.values()).map(sims => new Report(sims));
     }
 
     private processSimulations(): void {
