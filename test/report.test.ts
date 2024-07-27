@@ -450,33 +450,33 @@ describe('Report with Condition Statistics', () => {
         const conditionStats = report.conditionStats;
 
         expect(conditionStats.size).toBe(5); // AND, OR, and 3 individual conditions
-        expect(conditionStats.get('AND')).toBeDefined();
-        expect(conditionStats.get('OR')).toBeDefined();
-        expect(conditionStats.get('2>= Card A')).toBeDefined();
-        expect(conditionStats.get('1= Card B')).toBeDefined();
-        expect(conditionStats.get('3<= Card C')).toBeDefined();
+        expect(conditionStats.get('(2>= Card A IN Hand AND (1= Card B IN Hand OR 3<= Card C IN Hand))')).toBeDefined();
+        expect(conditionStats.get('(1= Card B IN Hand OR 3<= Card C IN Hand)')).toBeDefined();
+        expect(conditionStats.get('2>= Card A IN Hand')).toBeDefined();
+        expect(conditionStats.get('1= Card B IN Hand')).toBeDefined();
+        expect(conditionStats.get('3<= Card C IN Hand')).toBeDefined();
     });
 
     it('should calculate success rates correctly', () => {
         const report = new Report(mockSimulations);
         const conditionStats = report.conditionStats;
 
-        expect(conditionStats.get('AND')?.successRate).toBe(1);
-        expect(conditionStats.get('OR')?.successRate).toBe(1);
-        expect(conditionStats.get('2>= Card A')?.successRate).toBe(1);
-        expect(conditionStats.get('1= Card B')?.successRate).toBe(1);
-        expect(conditionStats.get('3<= Card C')?.successRate).toBe(0);
+        expect(conditionStats.get('(2>= Card A IN Hand AND (1= Card B IN Hand OR 3<= Card C IN Hand))')?.successRate).toBe(1);
+        expect(conditionStats.get('(1= Card B IN Hand OR 3<= Card C IN Hand)')?.successRate).toBe(1);
+        expect(conditionStats.get('2>= Card A IN Hand')?.successRate).toBe(1);
+        expect(conditionStats.get('1= Card B IN Hand')?.successRate).toBe(1);
+        expect(conditionStats.get('3<= Card C IN Hand')?.successRate).toBe(0);
     });
 
     it('should handle nested conditions correctly', () => {
         const report = new Report(mockSimulations);
         const conditionStats = report.conditionStats;
 
-        const andStats = conditionStats.get('AND');
+        const andStats = conditionStats.get('(2>= Card A IN Hand AND (1= Card B IN Hand OR 3<= Card C IN Hand))');
         expect(andStats).toBeDefined();
         expect(andStats?.getSubConditionStats().size).toBe(2);
 
-        const orStats = conditionStats.get('OR');
+        const orStats = conditionStats.get('(1= Card B IN Hand OR 3<= Card C IN Hand)');
         expect(orStats).toBeDefined();
         expect(orStats?.getSubConditionStats().size).toBe(2);
     });
@@ -515,11 +515,11 @@ describe('Report Integration', () => {
 
         // Check condition statistics
         expect(report.conditionStats.size).toBe(5);
-        expect(report.conditionStats.get('AND')?.successRate).toBe(1);
-        expect(report.conditionStats.get('OR')?.successRate).toBe(1);
-        expect(report.conditionStats.get('2>= Card A')?.successRate).toBe(1);
-        expect(report.conditionStats.get('1= Card B')?.successRate).toBe(1);
-        expect(report.conditionStats.get('1>= Free Card')?.successRate).toBe(1);
+        expect(report.conditionStats.get('(2>= Card A IN Hand AND (1= Card B IN Hand OR 1>= Free Card IN Hand))')?.successRate).toBe(1);
+        expect(report.conditionStats.get('(1= Card B IN Hand OR 1>= Free Card IN Hand)')?.successRate).toBe(1);
+        expect(report.conditionStats.get('2>= Card A IN Hand')?.successRate).toBe(1);
+        expect(report.conditionStats.get('1= Card B IN Hand')?.successRate).toBe(1);
+        expect(report.conditionStats.get('1>= Free Card IN Hand')?.successRate).toBe(1);
 
         // Check other report features
         expect(report.cardNameStats.get('Card A')?.totalOccurrences).toBe(2);
@@ -529,4 +529,3 @@ describe('Report Integration', () => {
         expect(report.successRate).toBe(1);
     });
 });
-

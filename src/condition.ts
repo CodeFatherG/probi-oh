@@ -9,6 +9,8 @@ export interface BaseCondition {
     /** The cards in the hand required for this condition */
     requiredCards(hand: Card[]): Card[];
 
+    toString(): string;
+
     /** Number of successful evaluations */
     get successes(): number;
 }
@@ -88,6 +90,10 @@ export class Condition implements BaseCondition {
 
         return _requiredCards;
     }
+
+    toString(): string {
+        return `${this.quantity}${this.operator} ${this.cardName} IN ${LocationConditionTarget[this.location]}`;
+    }
 }
 
 /** Logical AND condition composed of multiple base conditions */
@@ -125,6 +131,10 @@ export class AndCondition implements BaseCondition {
             return cardsUsed;
         });
     }
+
+    toString(): string {
+        return `(${this.conditions.map(c => c.toString()).join(' AND ')})`;
+    }
 }
 
 /** Logical OR condition composed of multiple base conditions */
@@ -161,5 +171,9 @@ export class OrCondition implements BaseCondition {
             _hand = _hand.filter(card => !cardsUsed.includes(card));
             return cardsUsed;
         });
+    }
+
+    toString(): string {
+        return `(${this.conditions.map(c => c.toString()).join(' OR ')})`;
     }
 }

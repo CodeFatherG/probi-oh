@@ -178,7 +178,7 @@ class Report {
 
     private processConditionStats(simulation: Simulation): void {
         const processCondition = (condition: BaseCondition) => {
-            const conditionKey = this.getConditionKey(condition);
+            const conditionKey = condition.toString();
             if (!this._conditionStats.has(conditionKey)) {
                 this._conditionStats.set(conditionKey, new ConditionStatistics(condition));
             }
@@ -213,17 +213,6 @@ class Report {
     private getDrawnCards(initialBranch: SimulationBranch, successfulBranch: SimulationBranch): Card[] {
         const initialHandSet = new Set(initialBranch.gameState.hand);
         return successfulBranch.gameState.hand.filter(card => !initialHandSet.has(card));
-    }
-
-    private getConditionKey(condition: BaseCondition): string {
-        if (condition instanceof Condition) {
-            return `${condition.quantity}${condition.operator} ${condition.cardName}`;
-        } else if (condition instanceof AndCondition) {
-            return 'AND';
-        } else if (condition instanceof OrCondition) {
-            return 'OR';
-        }
-        return 'Unknown';
     }
 
     public get iterations(): number {
