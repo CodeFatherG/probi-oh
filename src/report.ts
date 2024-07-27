@@ -1,5 +1,6 @@
 import { Simulation, SimulationBranch } from "./simulation";
 import { Card, FreeCard } from "./card";
+import { BaseCondition, AndCondition, OrCondition, Condition } from "./condition";
 
 class CardStatistics {
     private countMap: Map<number, number> = new Map();
@@ -45,6 +46,43 @@ class FreeCardStatistics extends CardStatistics {
     }
 }
 
+class ConditionStatistics {
+    private totalEvaluations: number = 0;
+    private subConditionStats: Map<string, ConditionStatistics> = new Map();
+
+    constructor(public readonly condition: BaseCondition) {}
+
+    addEvaluation(): void {
+        this.totalEvaluations++;
+    }
+
+    get successRate(): number {
+        return this.condition.successes / this.totalEvaluations || 0;
+    }
+
+    addSubConditionStats(subCondition: BaseCondition): void {
+        const conditionKey = this.getConditionKey(subCondition);
+        if (!this.subConditionStats.has(conditionKey)) {
+            this.subConditionStats.set(conditionKey, new ConditionStatistics(subCondition));
+        }
+    }
+
+    getSubConditionStats(): Map<string, ConditionStatistics> {
+        return this.subConditionStats;
+    }
+
+    private getConditionKey(condition: BaseCondition): string {
+        if (condition instanceof Condition) {
+            return `${condition.quantity}${condition.operator} ${condition.cardName}`;
+        } else if (condition instanceof AndCondition) {
+            return 'AND';
+        } else if (condition instanceof OrCondition) {
+            return 'OR';
+        }
+        return 'Unknown';
+    }
+}
+
 class Report {
     private _cardNameStats: Map<string, CardStatistics> = new Map();
     private _cardTagStats: Map<string, CardStatistics> = new Map();
@@ -54,6 +92,7 @@ class Report {
     private _discardedCardNameStats: Map<string, CardStatistics> = new Map();
     private _discardedCardTagStats: Map<string, CardStatistics> = new Map();
     private _successWithUnusedFreeCards: number = 0;
+    private _conditionStats: Map<string, ConditionStatistics> = new Map();
 
     constructor(readonly simulations: Simulation[]) {
         this.processSimulations();
@@ -66,6 +105,7 @@ class Report {
             this.processBanishedCards(simulation);
             this.processDiscardedCards(simulation);
             this.checkUnusedFreeCards(simulation);
+            this.processConditionStats(simulation);
         }
     }
 
@@ -136,6 +176,26 @@ class Report {
         }
     }
 
+    private processConditionStats(simulation: Simulation): void {
+        const processCondition = (condition: BaseCondition) => {
+            const conditionKey = this.getConditionKey(condition);
+            if (!this._conditionStats.has(conditionKey)) {
+                this._conditionStats.set(conditionKey, new ConditionStatistics(condition));
+            }
+            const stats = this._conditionStats.get(conditionKey)!;
+            stats.addEvaluation();
+
+            if (condition instanceof AndCondition || condition instanceof OrCondition) {
+                for (const subCondition of condition.conditions) {
+                    stats.addSubConditionStats(subCondition);
+                    processCondition(subCondition);
+                }
+            }
+        };
+
+        processCondition(simulation.condition);
+    }
+
     private updateCardStats(statsMap: Map<string, CardStatistics>, key: string): void {
         if (!statsMap.has(key)) {
             statsMap.set(key, new CardStatistics(key));
@@ -153,6 +213,17 @@ class Report {
     private getDrawnCards(initialBranch: SimulationBranch, successfulBranch: SimulationBranch): Card[] {
         const initialHandSet = new Set(initialBranch.gameState.hand);
         return successfulBranch.gameState.hand.filter(card => !initialHandSet.has(card));
+    }
+
+    private getConditionKey(condition: BaseCondition): string {
+        if (condition instanceof Condition) {
+            return `${condition.quantity}${condition.operator} ${condition.cardName}`;
+        } else if (condition instanceof AndCondition) {
+            return 'AND';
+        } else if (condition instanceof OrCondition) {
+            return 'OR';
+        }
+        return 'Unknown';
     }
 
     public get iterations(): number {
@@ -202,6 +273,10 @@ class Report {
     public get successWithUnusedFreeCardsRate(): number {
         return this._successWithUnusedFreeCards / this.successfulSimulations.length;
     }
+
+    public get conditionStats(): Map<string, ConditionStatistics> {
+        return this._conditionStats;
+    }
 }
 
-export { Report, CardStatistics, FreeCardStatistics };
+export { Report, CardStatistics, FreeCardStatistics, ConditionStatistics };

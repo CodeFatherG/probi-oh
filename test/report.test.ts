@@ -1,8 +1,8 @@
-import { Report, CardStatistics, FreeCardStatistics } from '../src/report';
+import { Report, CardStatistics, FreeCardStatistics, ConditionStatistics } from '../src/report';
 import { Simulation, SimulationBranch } from '../src/simulation';
 import { GameState } from '../src/game-state';
 import { Deck } from '../src/deck';
-import { BaseCondition } from '../src/condition';
+import { AndCondition, BaseCondition, Condition, OrCondition } from '../src/condition';
 import { CardDetails } from '../src/card-details';
 
 // Define interfaces to match the structure of Card and FreeCard
@@ -326,3 +326,207 @@ describe('FreeCardStatistics', () => {
         ]);
     });
 });
+
+describe('ConditionStatistics', () => {
+    let mockCondition: BaseCondition;
+
+    beforeEach(() => {
+        mockCondition = {
+            evaluate: jest.fn(),
+            requiredCards: jest.fn(),
+            successes: 0
+        };
+    });
+
+    it('should initialize correctly', () => {
+        const stats = new ConditionStatistics(mockCondition);
+        expect(stats.condition).toBe(mockCondition);
+        expect(stats.successRate).toBe(0);
+    });
+
+    it('should update evaluations correctly', () => {
+        const stats = new ConditionStatistics(mockCondition);
+        stats.addEvaluation();
+        stats.addEvaluation();
+        expect(stats.successRate).toBe(0);
+
+        Object.defineProperty(mockCondition, 'successes', { value: 1 });
+        expect(stats.successRate).toBe(0.5);
+    });
+
+    it('should handle sub-conditions', () => {
+        const stats = new ConditionStatistics(mockCondition);
+        const subCondition1 = new Condition('Card A', 2, '>=');
+        const subCondition2 = new Condition('Card B', 1, '=');
+
+        stats.addSubConditionStats(subCondition1);
+        stats.addSubConditionStats(subCondition2);
+
+        const subStats = stats.getSubConditionStats();
+        expect(subStats.size).toBe(2);
+        expect(subStats.get('2>= Card A')).toBeDefined();
+        expect(subStats.get('1= Card B')).toBeDefined();
+    });
+});
+
+describe('ConditionStatistics', () => {
+    let mockCondition: BaseCondition;
+
+    beforeEach(() => {
+        mockCondition = {
+            evaluate: jest.fn(),
+            requiredCards: jest.fn(),
+            successes: 0
+        };
+    });
+
+    it('should initialize correctly', () => {
+        const stats = new ConditionStatistics(mockCondition);
+        expect(stats.condition).toBe(mockCondition);
+        expect(stats.successRate).toBe(0);
+    });
+
+    it('should update evaluations correctly', () => {
+        const stats = new ConditionStatistics(mockCondition);
+        stats.addEvaluation();
+        stats.addEvaluation();
+        expect(stats.successRate).toBe(0);
+
+        Object.defineProperty(mockCondition, 'successes', { value: 1 });
+        expect(stats.successRate).toBe(0.5);
+    });
+
+    it('should handle sub-conditions', () => {
+        const stats = new ConditionStatistics(mockCondition);
+        const subCondition1 = new Condition('Card A', 2, '>=');
+        const subCondition2 = new Condition('Card B', 1, '=');
+
+        stats.addSubConditionStats(subCondition1);
+        stats.addSubConditionStats(subCondition2);
+
+        const subStats = stats.getSubConditionStats();
+        expect(subStats.size).toBe(2);
+        expect(subStats.get('2>= Card A')).toBeDefined();
+        expect(subStats.get('1= Card B')).toBeDefined();
+    });
+});
+
+describe('Report with Condition Statistics', () => {
+    let mockSimulations: Simulation[];
+    let mockCondition: AndCondition;
+
+    beforeEach(() => {
+        mockCondition = new AndCondition([
+            new Condition('Card A', 2, '>='),
+            new OrCondition([
+                new Condition('Card B', 1, '='),
+                new Condition('Card C', 3, '<=')
+            ])
+        ]);
+
+        const mockHand = [
+            createMockCard('Card A', ['Tag1']),
+            createMockCard('Card B', ['Tag2']),
+            createMockFreeCard('Free Card', ['Tag3']),
+        ];
+        const mockDeck = [createMockCard('Card C', ['Tag1'])];
+        const mockGameState = createMockGameState(mockHand, mockDeck);
+        const mockBranch = createMockSimulationBranch(mockGameState, true);
+        mockSimulations = [createMockSimulation([mockBranch], true)];
+
+        // Set up mock successes
+        Object.defineProperty(mockCondition, 'successes', { value: 1 });
+        Object.defineProperty(mockCondition.conditions[0], 'successes', { value: 1 });
+        Object.defineProperty(mockCondition.conditions[1], 'successes', { value: 1 });
+        Object.defineProperty((mockCondition.conditions[1] as OrCondition).conditions[0], 'successes', { value: 1 });
+        Object.defineProperty((mockCondition.conditions[1] as OrCondition).conditions[1], 'successes', { value: 0 });
+
+        // Assign the mock condition to the simulation
+        Object.defineProperty(mockSimulations[0], 'condition', { value: mockCondition, writable: true });
+    });
+
+    it('should process condition statistics correctly', () => {
+        const report = new Report(mockSimulations);
+        const conditionStats = report.conditionStats;
+
+        expect(conditionStats.size).toBe(5); // AND, OR, and 3 individual conditions
+        expect(conditionStats.get('AND')).toBeDefined();
+        expect(conditionStats.get('OR')).toBeDefined();
+        expect(conditionStats.get('2>= Card A')).toBeDefined();
+        expect(conditionStats.get('1= Card B')).toBeDefined();
+        expect(conditionStats.get('3<= Card C')).toBeDefined();
+    });
+
+    it('should calculate success rates correctly', () => {
+        const report = new Report(mockSimulations);
+        const conditionStats = report.conditionStats;
+
+        expect(conditionStats.get('AND')?.successRate).toBe(1);
+        expect(conditionStats.get('OR')?.successRate).toBe(1);
+        expect(conditionStats.get('2>= Card A')?.successRate).toBe(1);
+        expect(conditionStats.get('1= Card B')?.successRate).toBe(1);
+        expect(conditionStats.get('3<= Card C')?.successRate).toBe(0);
+    });
+
+    it('should handle nested conditions correctly', () => {
+        const report = new Report(mockSimulations);
+        const conditionStats = report.conditionStats;
+
+        const andStats = conditionStats.get('AND');
+        expect(andStats).toBeDefined();
+        expect(andStats?.getSubConditionStats().size).toBe(2);
+
+        const orStats = conditionStats.get('OR');
+        expect(orStats).toBeDefined();
+        expect(orStats?.getSubConditionStats().size).toBe(2);
+    });
+});
+
+describe('Report Integration', () => {
+    it('should integrate condition statistics with other report features', () => {
+        const mockCondition = new AndCondition([
+            new Condition('Card A', 2, '>='),
+            new OrCondition([
+                new Condition('Card B', 1, '='),
+                new Condition('Free Card', 1, '>=')
+            ])
+        ]);
+
+        const mockHand = [
+            createMockCard('Card A', ['Tag1']),
+            createMockCard('Card A', ['Tag1']),
+            createMockCard('Card B', ['Tag2']),
+            createMockFreeCard('Free Card', ['Tag3']),
+        ];
+        const mockDeck = [createMockCard('Card C', ['Tag1'])];
+        const mockGameState = createMockGameState(mockHand, mockDeck);
+        const mockBranch = createMockSimulationBranch(mockGameState, true);
+        const mockSimulation = createMockSimulation([mockBranch], true);
+        Object.defineProperty(mockSimulation, 'condition', { value: mockCondition, writable: true });
+
+        // Set up mock successes
+        Object.defineProperty(mockCondition, 'successes', { value: 1 });
+        Object.defineProperty(mockCondition.conditions[0], 'successes', { value: 1 });
+        Object.defineProperty(mockCondition.conditions[1], 'successes', { value: 1 });
+        Object.defineProperty((mockCondition.conditions[1] as OrCondition).conditions[0], 'successes', { value: 1 });
+        Object.defineProperty((mockCondition.conditions[1] as OrCondition).conditions[1], 'successes', { value: 1 });
+
+        const report = new Report([mockSimulation]);
+
+        // Check condition statistics
+        expect(report.conditionStats.size).toBe(5);
+        expect(report.conditionStats.get('AND')?.successRate).toBe(1);
+        expect(report.conditionStats.get('OR')?.successRate).toBe(1);
+        expect(report.conditionStats.get('2>= Card A')?.successRate).toBe(1);
+        expect(report.conditionStats.get('1= Card B')?.successRate).toBe(1);
+        expect(report.conditionStats.get('1>= Free Card')?.successRate).toBe(1);
+
+        // Check other report features
+        expect(report.cardNameStats.get('Card A')?.totalOccurrences).toBe(2);
+        expect(report.cardNameStats.get('Card B')?.totalOccurrences).toBe(1);
+        expect(report.cardNameStats.get('Free Card')?.totalOccurrences).toBe(1);
+        expect(report.freeCardStats.get('Free Card')).toBeDefined();
+        expect(report.successRate).toBe(1);
+    });
+});
+
