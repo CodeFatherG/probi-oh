@@ -92,9 +92,12 @@ class Report {
     private _discardedCardNameStats: Map<string, CardStatistics> = new Map();
     private _discardedCardTagStats: Map<string, CardStatistics> = new Map();
     private _successWithUnusedFreeCards: number = 0;
-    private _conditionStats: Map<string, ConditionStatistics> = new Map();
+    private _condition: BaseCondition;
+    private _conditionStats: ConditionStatistics;
 
     private constructor(readonly simulations: Simulation[]) {
+        this._condition = simulations[0].condition;
+        this._conditionStats = new ConditionStatistics(this._condition);
         this.processSimulations();
     }
 
@@ -192,16 +195,11 @@ class Report {
 
     private processConditionStats(simulation: Simulation): void {
         const processCondition = (condition: BaseCondition) => {
-            const conditionKey = condition.toString();
-            if (!this._conditionStats.has(conditionKey)) {
-                this._conditionStats.set(conditionKey, new ConditionStatistics(condition));
-            }
-            const stats = this._conditionStats.get(conditionKey)!;
-            stats.addEvaluation();
+            this._conditionStats.addEvaluation();
 
             if (condition instanceof AndCondition || condition instanceof OrCondition) {
                 for (const subCondition of condition.conditions) {
-                    stats.addSubConditionStats(subCondition);
+                    this._conditionStats.addSubConditionStats(subCondition);
                     processCondition(subCondition);
                 }
             }
@@ -277,7 +275,7 @@ class Report {
         return this._successWithUnusedFreeCards / this.successfulSimulations.length;
     }
 
-    public get conditionStats(): Map<string, ConditionStatistics> {
+    public get conditionStats(): ConditionStatistics {
         return this._conditionStats;
     }
 }
