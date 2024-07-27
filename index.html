@@ -5,12 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yu-Gi-Oh! Simulator</title>
     <style>
-        #infoOutput {
-            width: 100%;
-            height: 300px;
-            margin-top: 20px;
-        }
-
         .spinner {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #3498db;
@@ -18,51 +12,57 @@
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
-            margin: 20px auto;
         }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
         #progressBarContainer {
             width: 100%;
             background-color: #f0f0f0;
-            padding: 3px;
-            border-radius: 3px;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);
-            margin: 20px 0;
         }
-
         #progressBar {
-            width: 0;
-            height: 20px;
+            width: 0%;
+            height: 30px;
             background-color: #4CAF50;
-            border-radius: 3px;
-            transition: width 0.3s ease;
-        }
-
-        #progressText {
             text-align: center;
-            margin-top: 5px;
+            line-height: 30px;
+            color: white;
+        }
+        #reportContainer {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
     <h1>Yu-Gi-Oh! Simulator</h1>
-    <input type="file" id="ydkFile" accept=".ydk,.txt" style="display: none;">
+
+    <input type="file" id="ydkFile" style="display: none;" accept=".ydk">
     <button id="importYdk">Import YDK</button>
+
+    <br><br>
+
     <input type="file" id="yamlFile" accept=".yaml,.yml">
     <button id="runSimulation">Run Simulation</button>
 
     <div id="progressBarContainer" style="display: none;">
         <div id="progressBar"></div>
-        <div id="progressText"></div>
     </div>
+    <div id="progressText"></div>
 
     <div id="spinner" class="spinner" style="display: none;"></div>
-    <div id="result"></div> 
-    <textarea id="infoOutput" readonly></textarea>
+
+    <div id="result"></div>
+
+    <br>
+
+    <button id="toggleReport">Show Report</button>
+
+    <div id="reportContainer"></div>
+
+    <script src="bundle.js"></script>
 </body>
 </html>

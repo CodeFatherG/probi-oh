@@ -79,7 +79,6 @@ export class Condition implements BaseCondition {
         for (let i = 0; i < this.quantity; i++) {
             const index = _hand.findIndex(card => card.name === this.cardName || (card.tags && card.tags.includes(this.cardName)));
             if (index === -1) {
-                console.error(`Failed to find card: ${this.cardName}`);
                 return [];
             }
 

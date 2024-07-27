@@ -1,27 +1,18 @@
 import { Deck } from './deck';
-import { AndCondition, BaseCondition, Condition, OrCondition } from './condition';
+import { BaseCondition } from './condition';
 import { Simulation } from './simulation';
 import { YamlManager } from './yaml-manager';
 import { GameState } from './game-state';
+import { Report } from './report';
 
-let infoOutput: HTMLTextAreaElement;
 const yamlManager = YamlManager.getInstance();
-
-function writeInfo(message: string): void {
-    infoOutput.value += message + '\n';
-    infoOutput.scrollTop = infoOutput.scrollHeight; // Auto-scroll to bottom
-}
-
-function clearInfo(): void {
-    infoOutput.value = '';
-}
 
 interface SimulationInput {
     deck: Deck;
     conditions: (BaseCondition)[];
 }
 
-async function simulateDraw(deck: Deck, conditions: (BaseCondition)[], handSize: number, trials: number): Promise<number[]> {
+async function simulateDraw(deck: Deck, conditions: (BaseCondition)[], handSize: number, trials: number): Promise<Report[]> {
     const progressBar = document.getElementById('progressBar') as HTMLElement;
     const progressText = document.getElementById('progressText') as HTMLElement;
     const simulations: Simulation[][] = Array(conditions.length).fill([]).map(() => []);
@@ -44,70 +35,76 @@ async function simulateDraw(deck: Deck, conditions: (BaseCondition)[], handSize:
         }
     }
 
-    // Calculate success rates
-    const successRates = simulations.map(simulationSet => 
-        simulationSet.filter(sim => sim.result).length / trials
-    );
-
-    // Write detailed results
-    writeInfo("\nDetailed Condition Results:");
-    // conditions.forEach((condition) => {
-    //     writeDetailedResults(condition, trials, 0);
-    // });
-
-    return successRates;
-}
-
-// function writeDetailedResults(condition: BaseCondition, trials: number, depth: number): void {
-//     const indent = "  ".repeat(depth);
-//     const successRate = (condition.successes / trials * 100).toFixed(2);
-
-//     if (condition instanceof Condition) {
-//         writeInfo(`${indent}${describeCondition(condition)}:`);
-//         writeInfo(`${indent}  Success rate: ${successRate}% (${condition.successes} out of ${trials})`);
-//     } else if (condition instanceof AndCondition) {
-//         writeInfo(`${indent}AND Condition:`);
-//         writeInfo(`${indent}  Overall success rate: ${successRate}% (${condition.successes} out of ${trials})`);
-//         condition.conditions.forEach(subCondition => writeDetailedResults(subCondition, trials, depth + 1));
-//     } else if (condition instanceof OrCondition) {
-//         writeInfo(`${indent}OR Condition:`);
-//         writeInfo(`${indent}  Overall success rate: ${successRate}% (${condition.successes} out of ${trials})`);
-//         condition.conditions.forEach(subCondition => writeDetailedResults(subCondition, trials, depth + 1));
-//     }
-// }
-
-function describeCondition(condition: Condition): string {
-    const quantityText = condition.quantity === 1 ? "" : `${condition.quantity}${condition.operator} `;
-    return `${quantityText}${condition.cardName}`;
+    return simulations.map(simulationSet => new Report(simulationSet));
 }
 
 async function runSimulation(input: SimulationInput): Promise<void> {
     const deck = input.deck;
     const conditions = input.conditions;
-    clearInfo(); // Clear previous info
     console.log('Starting simulation...');
     console.log(`Deck size: ${deck.deckCount}`);
     console.log(`Cards in deck: ${deck.deckList.map(card => card.name).join(', ')}`);
     
-    const probabilities = await simulateDraw(deck, conditions, 5, 10000);
+    const reports = await simulateDraw(deck, conditions, 5, 10000);
     
     const resultElement = document.getElementById('result') as HTMLElement;
     
     // Find maximum probability
-    const maxProbability = Math.max(...probabilities);
+    const maxProbability = Math.max(...reports.map(report => report.successRate));
     
     resultElement.textContent = `Maximum probability of success: ${(maxProbability * 100).toFixed(2)}%`;
     
-    // Display individual probabilities
-    writeInfo("\nIndividual Condition Probabilities:");
-    conditions.forEach((condition, index) => {
-        writeInfo(`Condition ${index + 1}: ${(probabilities[index] * 100).toFixed(2)}%`);
-    });
+    // Display report data
+    displayReportData(reports);
     
     console.log(`Simulation complete. Maximum success probability: ${(maxProbability * 100).toFixed(2)}%`);
 }
 
+function updateReportVisibility() {
+    const reportContainer = document.getElementById('reportContainer') as HTMLElement;
+    const toggleReportButton = document.getElementById('toggleReport') as HTMLButtonElement;
+    
+    reportContainer.style.display = isReportVisible ? 'block' : 'none';
+    toggleReportButton.textContent = isReportVisible ? 'Hide Report' : 'Show Report';
+}
+
+function displayReportData(reports: Report[]): void {
+    const reportContainer = document.getElementById('reportContainer') as HTMLElement;
+    reportContainer.innerHTML = ''; // Clear previous content
+
+    reports.forEach((report, index) => {
+        const reportDiv = document.createElement('div');
+        reportDiv.innerHTML = `
+            <h3>Condition ${index + 1}</h3>
+            <p>Success Rate: ${report.successRatePercentage}</p>
+            <h4>Card Statistics:</h4>
+            <ul>
+                ${Array.from(report.cardNameStats).map(([name, stats]) => `
+                    <li>${name}: ${stats.averageCount.toFixed(2)} (${(stats.totalOccurrences / report.iterations * 100).toFixed(2)}%)</li>
+                `).join('')}
+            </ul>
+            <h4>Free Card Statistics:</h4>
+            <ul>
+                ${Array.from(report.freeCardStats).map(([name, stats]) => `
+                    <li>${name}: Activation Rate: ${(stats.activationRate * 100).toFixed(2)}%, Failed to Success Rate: ${(stats.failedToSuccessRate * 100).toFixed(2)}%</li>
+                `).join('')}
+            </ul>
+            <h4>Condition Statistics:</h4>
+            <ul>
+                ${Array.from(report.conditionStats).map(([key, stats]) => `
+                    <li>${key}: Success Rate: ${(stats.successRate * 100).toFixed(2)}%</li>
+                `).join('')}
+            </ul>
+        `;
+        reportContainer.appendChild(reportDiv);
+    });
+
+    // Ensure visibility is correct after populating data
+    updateReportVisibility();
+}
+
 let isSimulationRunning = false;
+let isReportVisible = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     const ydkFileInput = document.getElementById('ydkFile') as HTMLInputElement;
@@ -115,7 +112,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const yamlFileInput = document.getElementById('yamlFile') as HTMLInputElement;
     const runButton = document.getElementById('runSimulation') as HTMLButtonElement;
     const resultElement = document.getElementById('result') as HTMLElement;
-    infoOutput = document.getElementById('infoOutput') as HTMLTextAreaElement;
+    const toggleReportButton = document.getElementById('toggleReport') as HTMLButtonElement;
+    const reportContainer = document.getElementById('reportContainer') as HTMLElement;
+
+    toggleReportButton.addEventListener('click', () => {
+        isReportVisible = !isReportVisible;
+        updateReportVisibility();
+    });
+
+    // Initially hide the report container and set button text
+    isReportVisible = false;
+    updateReportVisibility();
 
     importYdkButton.addEventListener('click', () => {
         ydkFileInput.click();
@@ -124,23 +131,20 @@ document.addEventListener('DOMContentLoaded', () => {
     ydkFileInput.addEventListener('change', async (event) => {
         const file = (event.target as HTMLInputElement).files?.[0];
         if (!file) {
-            writeInfo('No file selected.');
+            alert('No file selected.');
             return;
         }
 
         try {
-            writeInfo('Converting YDK to YAML...');
             const yamlContent = await yamlManager.convertYdkToYaml(file);
-            
-            clearInfo();
-            writeInfo('YDK file imported and converted to YAML:');
-            writeInfo(yamlContent);
+            alert('YDK file imported and converted to YAML successfully.');
+            console.log(yamlContent); // You can decide how to use this YAML content
         } catch (error) {
             console.error('Error importing YDK file:', error);
-            writeInfo(`Error importing YDK file: ${(error as Error).message}`);
+            alert(`Error importing YDK file: ${(error as Error).message}`);
         }
-
     });
+
     runButton.addEventListener('click', async () => {
         const file = yamlFileInput.files?.[0];
         if (!file) {
@@ -149,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (isSimulationRunning) {
-            writeInfo('A simulation is already running. Please wait for it to complete.');
+            alert('A simulation is already running. Please wait for it to complete.');
             return;
         }
 
@@ -170,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error running simulation:', error);
             resultElement.textContent = 'Error running simulation. Please check the console for details.';
-            writeInfo(`Error: ${(error as Error).message}`);
+            alert(`Error: ${(error as Error).message}`);
         } finally {
             // Hide progress bar and spinner
             progressBarContainer.style.display = 'none';
