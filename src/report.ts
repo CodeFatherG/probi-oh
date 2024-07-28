@@ -1,5 +1,5 @@
 import { Simulation, SimulationBranch } from "./simulation";
-import { Card, FreeCard } from "./card";
+import { Card } from "./card";
 import { AndCondition, BaseCondition, OrCondition } from "./condition";
 
 class CardStatistics {
