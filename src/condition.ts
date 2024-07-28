@@ -9,8 +9,10 @@ export interface BaseCondition {
     /** The cards in the hand required for this condition */
     requiredCards(hand: Card[]): Card[];
 
+    toString(): string;
+
     /** Number of successful evaluations */
-    get successes(): Readonly<number>;
+    get successes(): number;
 }
 
 export enum LocationConditionTarget {
@@ -79,7 +81,6 @@ export class Condition implements BaseCondition {
         for (let i = 0; i < this.quantity; i++) {
             const index = _hand.findIndex(card => card.name === this.cardName || (card.tags && card.tags.includes(this.cardName)));
             if (index === -1) {
-                console.error(`Failed to find card: ${this.cardName}`);
                 return [];
             }
 
@@ -88,6 +89,18 @@ export class Condition implements BaseCondition {
         }
 
         return _requiredCards;
+    }
+
+    toString(): string {
+        function operatorToSign(operator: string): string {
+            switch (operator) {
+                case '>=': return '+';
+                case '=': return '';
+                case '<=': return '-';
+                default: return operator;
+            }
+        }
+        return `${this.quantity}${operatorToSign(this.operator)} ${this.cardName} IN ${LocationConditionTarget[this.location]}`;
     }
 }
 
@@ -126,6 +139,10 @@ export class AndCondition implements BaseCondition {
             return cardsUsed;
         });
     }
+
+    toString(): string {
+        return `(${this.conditions.map(c => c.toString()).join(' AND ')})`;
+    }
 }
 
 /** Logical OR condition composed of multiple base conditions */
@@ -162,5 +179,9 @@ export class OrCondition implements BaseCondition {
             _hand = _hand.filter(card => !cardsUsed.includes(card));
             return cardsUsed;
         });
+    }
+
+    toString(): string {
+        return `(${this.conditions.map(c => c.toString()).join(' OR ')})`;
     }
 }
