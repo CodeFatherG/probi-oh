@@ -1,92 +1,114 @@
 import { Simulation, SimulationBranch } from "./simulation";
 import { Card, FreeCard } from "./card";
-import { BaseCondition, AndCondition, OrCondition, Condition } from "./condition";
+import { AndCondition, BaseCondition, OrCondition } from "./condition";
 
 class CardStatistics {
-    private countMap: Map<number, number> = new Map();
+    private _cardSeenCount: number = 0;
+    private _cardDrawnCount: number = 0;
 
-    constructor(public readonly name: string) {}
+    constructor(public readonly id: string) {}
 
-    addCount(count: number): void {
-        this.countMap.set(count, (this.countMap.get(count) || 0) + 1);
+    cardSeen(): void {
+        this._cardSeenCount++;
     }
 
-    get totalOccurrences(): number {
-        return Array.from(this.countMap.values()).reduce((sum, count) => sum + count, 0);
+    cardDrawn(): void {
+        this.cardSeen();
+        this._cardDrawnCount++;
     }
 
-    get averageCount(): number {
-        const totalCount = Array.from(this.countMap.entries()).reduce((sum, [count, occurrences]) => sum + count * occurrences, 0);
-        return totalCount / this.totalOccurrences || 0;
+    get cardSeenCount(): number {
+        return this._cardSeenCount;
     }
 
-    getCountDistribution(): { count: number; occurrences: number }[] {
-        return Array.from(this.countMap.entries()).map(([count, occurrences]) => ({ count, occurrences }));
+    get cardDrawnCount(): number {
+        return this._cardDrawnCount;
     }
 }
 
 class FreeCardStatistics extends CardStatistics {
-    private successfulActivations: number = 0;
-    private failedToSuccessCount: number = 0;
+    private _activationCount: number = 0;
+    private _unusedCount: number = 0;
 
-    addSuccessfulActivation(): void {
-        this.successfulActivations++;
+    activated(): void {
+        this._activationCount++;
     }
 
-    addFailedToSuccess(): void {
-        this.failedToSuccessCount++;
+    unused(): void {
+        this._unusedCount++;
+    }
+
+    get activationCount(): number {
+        return this._activationCount;
     }
 
     get activationRate(): number {
-        return this.successfulActivations / this.totalOccurrences;
+        return this.activationCount / this.cardSeenCount;
     }
 
-    get failedToSuccessRate(): number {
-        return this.failedToSuccessCount / this.totalOccurrences;
+    get unusedCount(): number {
+        return this._unusedCount;
+    }
+
+    get unusedRate(): number {
+        return this.unusedCount / this.cardSeenCount;
     }
 }
 
 class ConditionStatistics {
-    private totalEvaluations: number = 0;
-    private subConditionStats: Map<string, ConditionStatistics> = new Map();
+    private _subConditionStats: Map<string, ConditionStatistics> = new Map();
 
-    constructor(public readonly condition: BaseCondition) {}
-
-    addEvaluation(): void {
-        this.totalEvaluations++;
+    constructor(private readonly _condition: BaseCondition,
+                private readonly _totalEvaluations: number
+    ) {
+        this.processConditionStats();
     }
 
-    get successRate(): number {
-        return this.condition.successes / this.totalEvaluations || 0;
+    private processConditionStats(): void {
+        const processCondition = (stats: ConditionStatistics | undefined, condition: BaseCondition) => {
+            if (stats === undefined) {
+                console.error(`Condition statistics not found for condition: ${condition.toString()}`);
+                return;
+            }
+            
+            if (condition instanceof AndCondition || condition instanceof OrCondition) {
+                for (const subCondition of condition.conditions) {
+                    stats.addSubConditionStats(subCondition);
+                    processCondition(stats.subConditionStats.get(subCondition.toString()), subCondition);
+                }
+            }
+        };
+
+        processCondition(this, this._condition);
     }
 
     addSubConditionStats(subCondition: BaseCondition): void {
-        const conditionKey = this.getConditionKey(subCondition);
+        const conditionKey = subCondition.toString();
         if (!this.subConditionStats.has(conditionKey)) {
-            this.subConditionStats.set(conditionKey, new ConditionStatistics(subCondition));
+            this.subConditionStats.set(conditionKey, new ConditionStatistics(subCondition, this._totalEvaluations));
         }
     }
 
-    getSubConditionStats(): Map<string, ConditionStatistics> {
-        return this.subConditionStats;
+    get successRate(): number {
+        return this._condition.successes / this._totalEvaluations || 0;
     }
 
-    private getConditionKey(condition: BaseCondition): string {
-        if (condition instanceof Condition) {
-            return `${condition.quantity}${condition.operator} ${condition.cardName}`;
-        } else if (condition instanceof AndCondition) {
-            return 'AND';
-        } else if (condition instanceof OrCondition) {
-            return 'OR';
-        }
-        return 'Unknown';
+    public get condition(): BaseCondition {
+        return this._condition;
+    }
+
+    public get totalEvaluations(): number {
+        return this._totalEvaluations;
+    }
+
+    public get subConditionStats(): Map<string, ConditionStatistics> {
+        return this._subConditionStats;
     }
 }
 
 class Report {
     private _cardNameStats: Map<string, CardStatistics> = new Map();
     private _cardTagStats: Map<string, CardStatistics> = new Map();
-    private _freeCardStats: Map<string, FreeCardStatistics> = new Map();
     private _banishedCardNameStats: Map<string, CardStatistics> = new Map();
     private _banishedCardTagStats: Map<string, CardStatistics> = new Map();
     private _discardedCardNameStats: Map<string, CardStatistics> = new Map();
@@ -97,7 +119,7 @@ class Report {
 
     private constructor(readonly simulations: Simulation[]) {
         this._condition = simulations[0].condition;
-        this._conditionStats = new ConditionStatistics(this._condition);
+        this._conditionStats = new ConditionStatistics(this._condition, simulations.length);
         this.processSimulations();
     }
 
@@ -117,23 +139,27 @@ class Report {
 
     private processSimulations(): void {
         for (const simulation of this.simulations) {
+            // Process the initial hand recording seen counts
             this.processInitialHand(simulation.branches[0]);
+
+            // Process free card statistics
             this.processFreeCards(simulation);
+
+            // Check game state statistics
             this.processBanishedCards(simulation);
             this.processDiscardedCards(simulation);
+
+            // Check for unused free cards
             this.checkUnusedFreeCards(simulation);
-            this.processConditionStats(simulation);
         }
     }
 
     private processInitialHand(branch: SimulationBranch): void {
         for (const card of branch.gameState.hand) {
-            this.updateCardStats(this._cardNameStats, card.name);
+            this.getCardStatistic(this._cardNameStats, card.name, card.isFree)!.cardSeen();
+
             for (const tag of card.tags || []) {
-                this.updateCardStats(this._cardTagStats, tag);
-            }
-            if (card.isFree) {
-                this.updateFreeCardStats(card as FreeCard);
+                this.getCardStatistic(this._cardTagStats, tag)!.cardSeen();
             }
         }
     }
@@ -142,24 +168,30 @@ class Report {
         const initialBranch = simulation.branches[0];
         const successfulBranch = simulation.successfulBranch;
 
+        // Check if we passed on the initial branch
+        if (successfulBranch == initialBranch) {
+            return;
+        }
+
         if (successfulBranch && successfulBranch !== initialBranch) {
             const drawnCards = this.getDrawnCards(initialBranch, successfulBranch);
+            
             for (const card of drawnCards) {
-                this.updateCardStats(this._cardNameStats, card.name);
+                this.getCardStatistic(this._cardNameStats, card.name, card.isFree)!.cardDrawn();
+                
                 for (const tag of card.tags || []) {
-                    this.updateCardStats(this._cardTagStats, tag);
+                    this.getCardStatistic(this._cardTagStats, tag)!.cardDrawn();
                 }
             }
 
             const usedFreeCards = successfulBranch.gameState.freeCardsPlayedThisTurn;
             for (const freeCard of usedFreeCards) {
-                const stats = this._freeCardStats.get(freeCard.name);
-                if (stats) {
-                    stats.addSuccessfulActivation();
-                    if (!simulation.branches[0].result) {
-                        stats.addFailedToSuccess();
-                    }
-                }
+                (this.getCardStatistic(this._cardNameStats, freeCard.name, freeCard.isFree) as FreeCardStatistics)!.activated();
+            }
+
+            const unusedFreeCards = successfulBranch.gameState.freeCardsInHand;
+            for (const freeCard of unusedFreeCards) {
+                (this.getCardStatistic(this._cardNameStats, freeCard.name, freeCard.isFree) as FreeCardStatistics)!.unused();
             }
         }
     }
@@ -167,9 +199,9 @@ class Report {
     private processBanishedCards(simulation: Simulation): void {
         const banishedCards = simulation.successfulBranch?.gameState.banishPile || [];
         for (const card of banishedCards) {
-            this.updateCardStats(this._banishedCardNameStats, card.name);
+            this.getCardStatistic(this._banishedCardNameStats, card.name)!.cardSeen();
             for (const tag of card.tags || []) {
-                this.updateCardStats(this._banishedCardTagStats, tag);
+                this.getCardStatistic(this._banishedCardTagStats, tag)!.cardSeen();
             }
         }
     }
@@ -177,9 +209,9 @@ class Report {
     private processDiscardedCards(simulation: Simulation): void {
         const discardedCards = simulation.successfulBranch?.gameState.graveyard || [];
         for (const card of discardedCards) {
-            this.updateCardStats(this._discardedCardNameStats, card.name);
+            this.getCardStatistic(this._discardedCardNameStats, card.name)!.cardSeen();
             for (const tag of card.tags || []) {
-                this.updateCardStats(this._discardedCardTagStats, tag);
+                this.getCardStatistic(this._discardedCardTagStats, tag)!.cardSeen();
             }
         }
     }
@@ -193,33 +225,12 @@ class Report {
         }
     }
 
-    private processConditionStats(simulation: Simulation): void {
-        const processCondition = (condition: BaseCondition) => {
-            this._conditionStats.addEvaluation();
-
-            if (condition instanceof AndCondition || condition instanceof OrCondition) {
-                for (const subCondition of condition.conditions) {
-                    this._conditionStats.addSubConditionStats(subCondition);
-                    processCondition(subCondition);
-                }
-            }
-        };
-
-        processCondition(simulation.condition);
-    }
-
-    private updateCardStats(statsMap: Map<string, CardStatistics>, key: string): void {
+    private getCardStatistic(statsMap: Map<string, CardStatistics>, key: string, isFree: boolean = false): CardStatistics | undefined {
         if (!statsMap.has(key)) {
-            statsMap.set(key, new CardStatistics(key));
+            const stat = isFree ? new FreeCardStatistics(key) : new CardStatistics(key);
+            statsMap.set(key, stat);
         }
-        statsMap.get(key)!.addCount(1);
-    }
-
-    private updateFreeCardStats(freeCard: FreeCard): void {
-        if (!this._freeCardStats.has(freeCard.name)) {
-            this._freeCardStats.set(freeCard.name, new FreeCardStatistics(freeCard.name));
-        }
-        this._freeCardStats.get(freeCard.name)!.addCount(1);
+        return statsMap.get(key);
     }
 
     private getDrawnCards(initialBranch: SimulationBranch, successfulBranch: SimulationBranch): Card[] {
@@ -252,7 +263,11 @@ class Report {
     }
 
     public get freeCardStats(): Map<string, FreeCardStatistics> {
-        return this._freeCardStats;
+        return new Map(
+            Array.from(this._cardNameStats.entries())
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                .filter(([_, stat]) => stat instanceof FreeCardStatistics)
+        ) as Map<string, FreeCardStatistics>;
     }
 
     public get banishedCardNameStats(): Map<string, CardStatistics> {
@@ -272,7 +287,7 @@ class Report {
     }
 
     public get successWithUnusedFreeCardsRate(): number {
-        return this._successWithUnusedFreeCards / this.successfulSimulations.length;
+        return (this._successWithUnusedFreeCards / this.successfulSimulations.length) || 0;
     }
 
     public get conditionStats(): ConditionStatistics {

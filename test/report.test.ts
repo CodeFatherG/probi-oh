@@ -1,11 +1,12 @@
 import { Report, CardStatistics, FreeCardStatistics, ConditionStatistics } from '../src/report';
 import { Simulation, SimulationBranch } from '../src/simulation';
 import { GameState } from '../src/game-state';
+import { Card, FreeCard } from '../src/card';
+import { Condition, BaseCondition, AndCondition, OrCondition } from '../src/condition';
 import { Deck } from '../src/deck';
-import { AndCondition, BaseCondition, Condition, OrCondition } from '../src/condition';
 import { CardDetails } from '../src/card-details';
 
-// Define interfaces to match the structure of Card and FreeCard
+// Mock interfaces and factories
 interface IMockCard {
     name: string;
     nameLower: string;
@@ -23,7 +24,6 @@ interface IMockFreeCard extends IMockCard {
     excavate: any;
 }
 
-// Mock factories
 const createMockCard = (name: string, tags: string[] = [], isFree: boolean = false): IMockCard => ({
     name,
     nameLower: name.toLowerCase(),
@@ -51,9 +51,9 @@ const createMockDeck = (cards: IMockCard[]): Deck => ({
     addToBottom: jest.fn(),
 } as unknown as Deck);
 
-const createMockGameState = (hand: IMockCard[], deck: IMockCard[], 
-                            banishPile: IMockCard[] = [], graveyard: IMockCard[] = [],
-                            freecardsUsed: IMockCard[] = []): GameState => ({
+const createMockGameState = (hand: IMockCard[], deck: IMockCard[],
+    banishPile: IMockCard[] = [], graveyard: IMockCard[] = [],
+    freecardsUsed: IMockCard[] = []): GameState => ({
     hand,
     deck: createMockDeck(deck),
     banishPile,
@@ -75,498 +75,533 @@ const createMockSimulationBranch = (gameState: GameState, result: boolean): Simu
     run: jest.fn(),
 } as unknown as SimulationBranch);
 
-const createMockSimulation = (branches: SimulationBranch[], result: boolean): Simulation => ({
+const createMockSimulation = (branches: SimulationBranch[], result: boolean, condition: BaseCondition | undefined = undefined): Simulation => ({
     branches,
     result,
-    condition: {} as BaseCondition,
+    condition: condition ? condition : {} as BaseCondition,
     gameState: branches[0].gameState,
     successfulBranch: result ? branches[branches.length - 1] : undefined,
     iterate: jest.fn(),
 } as unknown as Simulation);
 
+const createMockCondition = (conditionString: string, successRate: number = 0.5): BaseCondition => {
+    let evaluationCount = 0;
+    let successCount = 0;
+
+    const condition = {
+        evaluate: jest.fn().mockImplementation(() => {
+            evaluationCount++;
+            const success = Math.random() < successRate;
+            if (success) {
+                successCount++;
+            }
+            return success;
+        }),
+        requiredCards: jest.fn(),
+        toString: jest.fn().mockReturnValue(conditionString),
+        get successes() { return successCount; },
+    } as BaseCondition;
+
+    // Add a method to get the evaluation count for testing purposes
+    (condition as any).getEvaluationCount = () => evaluationCount;
+
+    return condition;
+};
+
 describe('Report', () => {
-    let mockSimulations: Simulation[];
+    let mockInitialHand: IMockCard[];
+    let mockFinalHand: IMockCard[];
+    let mockDeckCards: IMockCard[];
+    let mockBanishedCards: IMockCard[];
+    let mockDiscardedCards: IMockCard[];
+    let mockGameState: GameState;
+    let mockInitialBranch: SimulationBranch;
+    let mockSuccessfulBranch: SimulationBranch;
+    let mockSimulation: Simulation;
+    let mockComplexCondition: AndCondition;
+    let mockConditionA: BaseCondition;
+    let mockConditionB: BaseCondition;
+    let mockConditionC: BaseCondition;
+    let mockConditionD: BaseCondition;
 
     beforeEach(() => {
-        // Set up mock simulations
-        const mockHand = [
-            createMockCard('Card A', ['Tag1']),
+        // Set up mock data
+        mockInitialHand = [
+            createMockCard('Card A', ['Tag1', 'Tag2']),
             createMockCard('Card B', ['Tag2']),
-            createMockFreeCard('Free Card', ['Tag3']),
+            createMockFreeCard('Free Card', ['Free'])
         ];
-        const mockDeck = [createMockCard('Card C', ['Tag1'])];
-        const mockGameState = createMockGameState(mockHand, mockDeck);
-        const mockBranch = createMockSimulationBranch(mockGameState, true);
-        const mockCondition = new Condition('Card A', 1, '>=');
-        mockSimulations = [createMockSimulation([mockBranch], true)];
-        Object.defineProperty(mockSimulations[0], 'condition', { value: mockCondition });
+
+        mockFinalHand = [
+            ...mockInitialHand,
+            createMockCard('Drawn Card', ['Tag3'])
+        ];
+
+        mockDeckCards = [
+            createMockCard('Deck Card 1'),
+            createMockCard('Deck Card 2')
+        ];
+
+        mockBanishedCards = [
+            createMockCard('Banished Card', ['Tag4', 'Tag5']),
+            createMockCard('Another Banished Card', ['Tag5'])
+        ];
+
+        mockDiscardedCards = [
+            createMockCard('Discarded Card', ['Tag6']),
+            createMockCard('Another Discarded Card', ['Tag6', 'Tag7'])
+        ];
+
+        mockGameState = createMockGameState(mockInitialHand, mockDeckCards);
+        
+        mockInitialBranch = createMockSimulationBranch(mockGameState, false);
+        mockSuccessfulBranch = createMockSimulationBranch(
+            createMockGameState(mockFinalHand, mockDeckCards, mockBanishedCards, mockDiscardedCards, [mockInitialHand[2]]),
+            true
+        );
+
+        // Create mock conditions
+        mockConditionA = createMockCondition('Condition A', 0.7);
+        mockConditionB = createMockCondition('Condition B', 0.6);
+        mockConditionC = createMockCondition('Condition C', 0.5);
+        mockConditionD = createMockCondition('Condition D', 0.4);
+
+        mockComplexCondition = new AndCondition([
+            mockConditionA,
+            new OrCondition([
+                mockConditionB,
+                new AndCondition([mockConditionC, mockConditionD])
+            ])
+        ]);
+
+        // Evaluate the complex condition multiple times to simulate multiple simulations
+        for (let i = 0; i < 100; i++) {
+            mockComplexCondition.evaluate(mockGameState);
+        }
+
+        // Create mock simulation with the complex condition
+        mockSimulation = createMockSimulation([mockInitialBranch, mockSuccessfulBranch], true, mockComplexCondition);
     });
 
-    it('should initialize correctly', () => {
-        const reports = Report.generateReports(mockSimulations);
+    it('should generate correct number of reports', () => {
+        const reports = Report.generateReports([mockSimulation, mockSimulation]);
         expect(reports.length).toBe(1);
-        const report = reports[0];
-        expect(report.iterations).toBe(1);
-        expect(report.successfulSimulations.length).toBe(1);
+    });
+
+    it('should calculate correct success rate', () => {
+        const report = Report.generateReports([mockSimulation, mockSimulation])[0];
         expect(report.successRate).toBe(1);
         expect(report.successRatePercentage).toBe('100.00%');
     });
 
-    it('should calculate card name statistics correctly', () => {
-        const reports = Report.generateReports(mockSimulations);
-        expect(reports.length).toBe(1);
-        const report = reports[0];
-        const cardNameStats = report.cardNameStats;
-        
-        expect(cardNameStats.size).toBe(3);
-        expect(cardNameStats.get('Card A')?.totalOccurrences).toBe(1);
-        expect(cardNameStats.get('Card B')?.totalOccurrences).toBe(1);
-        expect(cardNameStats.get('Free Card')?.totalOccurrences).toBe(1);
+    it('should record correct card name statistics', () => {
+        const report = Report.generateReports([mockSimulation])[0];
+        expect(report.cardNameStats.size).toBe(4);
+        expect(report.cardNameStats.get('Card A')?.cardSeenCount).toBe(1);
+        expect(report.cardNameStats.get('Drawn Card')?.cardDrawnCount).toBe(1);
     });
 
-    it('should calculate card tag statistics correctly', () => {
-        const reports = Report.generateReports(mockSimulations);
-        expect(reports.length).toBe(1);
-        const report = reports[0];
-        const cardTagStats = report.cardTagStats;
-        
-        expect(cardTagStats.size).toBe(3);
-        expect(cardTagStats.get('Tag1')?.totalOccurrences).toBe(1);
-        expect(cardTagStats.get('Tag2')?.totalOccurrences).toBe(1);
-        expect(cardTagStats.get('Tag3')?.totalOccurrences).toBe(1);
+    it('should record correct card tag statistics', () => {
+        const report = Report.generateReports([mockSimulation])[0];
+        expect(report.cardTagStats.size).toBe(4);
+        expect(report.cardTagStats.get('Tag1')?.cardSeenCount).toBe(1);
+        expect(report.cardTagStats.get('Tag2')?.cardSeenCount).toBe(2);
+        expect(report.cardTagStats.get('Tag3')?.cardDrawnCount).toBe(1);
     });
 
-    it('should identify free cards correctly', () => {
-        const reports = Report.generateReports(mockSimulations);
-        expect(reports.length).toBe(1);
-        const report = reports[0];
-        const freeCardStats = report.freeCardStats;
-        
-        expect(freeCardStats.size).toBe(1);
-        expect(freeCardStats.get('Free Card')?.totalOccurrences).toBe(1);
+    it('should record correct free card statistics', () => {
+        const report = Report.generateReports([mockSimulation])[0];
+        expect(report.freeCardStats.size).toBe(1);
+        const freeCardStats = report.freeCardStats.get('Free Card') as FreeCardStatistics;
+        expect(freeCardStats.cardSeenCount).toBe(1);
+        expect(freeCardStats.activationCount).toBe(1);
+        expect(freeCardStats.activationRate).toBe(1);
     });
 
-    it('should process free cards correctly', () => {
-        const initialHand = [
-            createMockCard('Card A', ['Tag1']),
-            createMockFreeCard('Free Card 1', ['Tag3']),
-            createMockFreeCard('Free Card 2', ['Tag4']),
-        ];
-        const finalHand = [
-            createMockCard('Card A', ['Tag1']),
-            createMockCard('Card B', ['Tag2']),
-            createMockFreeCard('Free Card 2', ['Tag4']),
-        ];
-        const initialGameState = createMockGameState(initialHand, []);
-        // final game state uses the free card 1 but not free card 2
-        const finalGameState = createMockGameState(finalHand, [], [], [], [createMockFreeCard('Free Card 1', ['Tag3'])]);
-        
-        const initialBranch = createMockSimulationBranch(initialGameState, false);
-        const successfulBranch = createMockSimulationBranch(finalGameState, true);
-        const mockSimulation = createMockSimulation([initialBranch, successfulBranch], true);
-
-        const reports = Report.generateReports([mockSimulation]);
-        expect(reports.length).toBe(1);
-        const report = reports[0];
-
-        const freeCardStats = report.freeCardStats;
-        expect(freeCardStats.size).toBe(2);
-        expect(freeCardStats.get('Free Card 1')?.totalOccurrences).toBe(1);
-        expect(freeCardStats.get('Free Card 1')?.activationRate).toBe(1);
-        expect(freeCardStats.get('Free Card 1')?.failedToSuccessRate).toBe(1);
-        expect(freeCardStats.get('Free Card 2')?.totalOccurrences).toBe(1);
-        expect(freeCardStats.get('Free Card 2')?.activationRate).toBe(0);
+    it('should record correct banished card name statistics', () => {
+        const report = Report.generateReports([mockSimulation])[0];
+        expect(report.banishedCardNameStats.size).toBe(2);
+        expect(report.banishedCardNameStats.get('Banished Card')?.cardSeenCount).toBe(1);
+        expect(report.banishedCardNameStats.get('Another Banished Card')?.cardSeenCount).toBe(1);
     });
 
-    it('should process banished cards correctly', () => {
-        const initialHand = [createMockCard('Card A', ['Tag1'])];
-        const finalHand = [createMockCard('Card B', ['Tag2'])];
-        const banishedCards = [createMockCard('Banished Card', ['Tag3'])];
-        
-        const initialGameState = createMockGameState(initialHand, []);
-        const finalGameState = createMockGameState(finalHand, [], banishedCards);
-        
-        const initialBranch = createMockSimulationBranch(initialGameState, false);
-        const successfulBranch = createMockSimulationBranch(finalGameState, true);
-        const mockSimulation = createMockSimulation([initialBranch, successfulBranch], true);
-
-        const reports = Report.generateReports([mockSimulation]);
-        expect(reports.length).toBe(1);
-        const report = reports[0];
-
-        const banishedCardNameStats = report.banishedCardNameStats;
-        const banishedCardTagStats = report.banishedCardTagStats;
-        
-        expect(banishedCardNameStats.size).toBe(1);
-        expect(banishedCardNameStats.get('Banished Card')?.totalOccurrences).toBe(1);
-        expect(banishedCardTagStats.size).toBe(1);
-        expect(banishedCardTagStats.get('Tag3')?.totalOccurrences).toBe(1);
+    it('should record correct banished card tag statistics', () => {
+        const report = Report.generateReports([mockSimulation])[0];
+        expect(report.banishedCardTagStats.size).toBe(2);
+        expect(report.banishedCardTagStats.get('Tag4')?.cardSeenCount).toBe(1);
+        expect(report.banishedCardTagStats.get('Tag5')?.cardSeenCount).toBe(2);
     });
 
-    it('should calculate success rate correctly', () => {
-        const successfulSimulation = createMockSimulation([createMockSimulationBranch(createMockGameState([], []), true)], true);
-        const failedSimulation = createMockSimulation([createMockSimulationBranch(createMockGameState([], []), false)], false);
-        
-        const reports = Report.generateReports([successfulSimulation, failedSimulation]);
-        expect(reports.length).toBe(1);
-        const report = reports[0];
-
-        expect(report.iterations).toBe(2);
-        expect(report.successfulSimulations.length).toBe(1);
-        expect(report.successRate).toBe(0.5);
-        expect(report.successRatePercentage).toBe('50.00%');
+    it('should record correct discarded card name statistics', () => {
+        const report = Report.generateReports([mockSimulation])[0];
+        expect(report.discardedCardNameStats.size).toBe(2);
+        expect(report.discardedCardNameStats.get('Discarded Card')?.cardSeenCount).toBe(1);
+        expect(report.discardedCardNameStats.get('Another Discarded Card')?.cardSeenCount).toBe(1);
     });
 
-    it('should create separate reports for different conditions', () => {
-        const condition1 = new Condition('Card A', 1, '>=');
-        const condition2 = new Condition('Card B', 1, '>=');
-        const simulation1 = createMockSimulation([createMockSimulationBranch(createMockGameState([], []), true)], true);
-        const simulation2 = createMockSimulation([createMockSimulationBranch(createMockGameState([], []), false)], false);
-        Object.defineProperty(simulation1, 'condition', { value: condition1 });
-        Object.defineProperty(simulation2, 'condition', { value: condition2 });
-        
+    it('should record correct discarded card tag statistics', () => {
+        const report = Report.generateReports([mockSimulation])[0];
+        expect(report.discardedCardTagStats.size).toBe(2);
+        expect(report.discardedCardTagStats.get('Tag6')?.cardSeenCount).toBe(2);
+        expect(report.discardedCardTagStats.get('Tag7')?.cardSeenCount).toBe(1);
+    });
+
+    it('should handle simulations with different conditions', () => {
+        const condition1 = createMockCondition('Condition 1');
+        const condition2 = createMockCondition('Condition 2');
+        const simulation1 = createMockSimulation([mockInitialBranch, mockSuccessfulBranch], true, condition1);
+        const simulation2 = createMockSimulation([mockInitialBranch, mockSuccessfulBranch], false, condition2);
+
         const reports = Report.generateReports([simulation1, simulation2]);
-
         expect(reports.length).toBe(2);
-        expect(reports[0].iterations).toBe(1);
-        expect(reports[1].iterations).toBe(1);
-        expect(reports[0].successRate).toBe(1);
-        expect(reports[1].successRate).toBe(0);
+        expect(reports[0].conditionStats.condition).toBe(condition1);
+        expect(reports[1].conditionStats.condition).toBe(condition2);
+    });
+
+    it('should correctly calculate overall success rate', () => {
+        const successfulSimulation = createMockSimulation([mockInitialBranch, mockSuccessfulBranch], true, mockComplexCondition);
+        const failedSimulation = createMockSimulation([mockInitialBranch], false, mockComplexCondition);
+        
+        const report = Report.generateReports([successfulSimulation, failedSimulation, successfulSimulation])[0];
+        expect(report.successRate).toBeCloseTo(2/3, 2);
+        expect(report.successRatePercentage).toBe('66.67%');
+    });
+
+    it('should correctly process free cards', () => {
+        const freeCard = createMockFreeCard('Free Card');
+        const initialBranch = createMockSimulationBranch(createMockGameState([freeCard], []), false);
+        const successfulBranch = createMockSimulationBranch(createMockGameState([], [], [], [], [freeCard]), true);
+        const simulation = createMockSimulation([initialBranch, successfulBranch], true, mockComplexCondition);
+
+        const report = Report.generateReports([simulation])[0];
+        const freeCardStats = report.freeCardStats.get('Free Card');
+        expect(freeCardStats).toBeDefined();
+        expect(freeCardStats?.cardSeenCount).toBe(1);
+        expect(freeCardStats?.activationCount).toBe(1);
+        expect(freeCardStats?.activationRate).toBe(1);
+    });
+
+    it('should correctly process banished cards', () => {
+        const banishedCard = createMockCard('Banished Card', ['BanishedTag']);
+        const successfulBranch = createMockSimulationBranch(createMockGameState([], [], [banishedCard], []), true);
+        const simulation = createMockSimulation([mockInitialBranch, successfulBranch], true, mockComplexCondition);
+
+        const report = Report.generateReports([simulation])[0];
+        expect(report.banishedCardNameStats.get('Banished Card')?.cardSeenCount).toBe(1);
+        expect(report.banishedCardTagStats.get('BanishedTag')?.cardSeenCount).toBe(1);
+    });
+
+    it('should correctly process discarded cards', () => {
+        const discardedCard = createMockCard('Discarded Card', ['DiscardedTag']);
+        const successfulBranch = createMockSimulationBranch(createMockGameState([], [], [], [discardedCard]), true);
+        const simulation = createMockSimulation([mockInitialBranch, successfulBranch], true, mockComplexCondition);
+
+        const report = Report.generateReports([simulation])[0];
+        expect(report.discardedCardNameStats.get('Discarded Card')?.cardSeenCount).toBe(1);
+        expect(report.discardedCardTagStats.get('DiscardedTag')?.cardSeenCount).toBe(1);
+    });
+
+    it('should correctly handle condition statistics', () => {
+        const report = Report.generateReports([mockSimulation])[0];
+        expect(report.conditionStats).toBeDefined();
+        expect(report.conditionStats.condition).toBe(mockComplexCondition);
+        expect(report.conditionStats.totalEvaluations).toBe(1);
+        expect(report.conditionStats.subConditionStats.size).toBeGreaterThan(0);
+    });
+
+    it('should calculate correct success with unused free cards rate', () => {
+        // Simulation with no unused free cards in the successful branch
+        const successfulBranchNoUnused = createMockSimulationBranch(
+            createMockGameState(
+                [createMockCard('Regular Card')],
+                mockDeckCards,
+                mockBanishedCards,
+                mockDiscardedCards,
+                [createMockFreeCard('Used Free Card')] // This free card is in freeCardsPlayedThisTurn
+            ),
+            true
+        );
+        const simulationNoUnused = createMockSimulation([mockInitialBranch, successfulBranchNoUnused], true, mockComplexCondition);
+
+        // Simulation with unused free cards in the successful branch
+        const successfulBranchWithUnused = createMockSimulationBranch(
+            createMockGameState(
+                [createMockCard('Regular Card'), createMockFreeCard('Unused Free Card')],
+                mockDeckCards,
+                mockBanishedCards,
+                mockDiscardedCards,
+                [] // No free cards played this turn
+            ),
+            true
+        );
+        const simulationWithUnused = createMockSimulation([mockInitialBranch, successfulBranchWithUnused], true, mockComplexCondition);
+
+        const report = Report.generateReports([simulationNoUnused, simulationWithUnused])[0];
+        
+        console.log('Unused Free Cards Rate:', report.successWithUnusedFreeCardsRate);
+        console.log('Successful Simulations:', report.successfulSimulations.length);
+        console.log('Total Simulations:', report.iterations);
+        
+        // We expect 1 out of 2 successful simulations to have unused free cards
+        expect(report.successWithUnusedFreeCardsRate).toBeCloseTo(0.5, 2);
+    });
+
+    it('should correctly process drawn cards', () => {
+        const hand = [createMockCard('Initial Card')];
+        const initialBranch = createMockSimulationBranch(createMockGameState(hand.slice(), []), false);
+        hand.push(createMockCard('Drawn Card'));
+        const successfulBranch = createMockSimulationBranch(createMockGameState(hand.slice(), []), true);
+        const simulation = createMockSimulation([initialBranch, successfulBranch], true, mockComplexCondition);
+
+        const report = Report.generateReports([simulation])[0];
+        console.log('Drawn Card Stats:', report.cardNameStats.get('Drawn Card'));
+        console.log('Initial Card Stats:', report.cardNameStats.get('Initial Card'));
+        expect(report.cardNameStats.get('Drawn Card')?.cardDrawnCount).toBe(1);
+        expect(report.cardNameStats.get('Initial Card')?.cardDrawnCount).toBe(0);
+        expect(report.cardNameStats.get('Initial Card')?.cardSeenCount).toBe(1);
+    });
+
+    it('should handle simulations with no successful branches', () => {
+        const failedSimulation = createMockSimulation([mockInitialBranch], false, mockComplexCondition);
+        
+        const report = Report.generateReports([failedSimulation])[0];
+        console.log('Success Rate:', report.successRate);
+        console.log('Success Rate Percentage:', report.successRatePercentage);
+        console.log('Success With Unused Free Cards Rate:', report.successWithUnusedFreeCardsRate);
+        expect(report.successRate).toBe(0);
+        expect(report.successRatePercentage).toBe('0.00%');
+        expect(report.successWithUnusedFreeCardsRate).toBe(0);
     });
 });
 
 describe('CardStatistics', () => {
-    let cardStats: CardStatistics;
+    it('should correctly track card seen and drawn counts', () => {
+        const stats = new CardStatistics('Test Card');
+        stats.cardSeen();
+        stats.cardSeen();
+        stats.cardDrawn();
 
-    beforeEach(() => {
-        cardStats = new CardStatistics('Test Card');
-    });
-
-    it('should initialize with the correct name', () => {
-        expect(cardStats.name).toBe('Test Card');
-    });
-
-    it('should correctly increment count when addCount is called', () => {
-        cardStats.addCount(1);
-        cardStats.addCount(2);
-        cardStats.addCount(1);
-
-        expect(cardStats.totalOccurrences).toBe(3);
-    });
-
-    it('should return the correct total occurrences', () => {
-        cardStats.addCount(1);
-        cardStats.addCount(2);
-        cardStats.addCount(3);
-
-        expect(cardStats.totalOccurrences).toBe(3);
-    });
-
-    it('should calculate the average count correctly', () => {
-        cardStats.addCount(1);
-        cardStats.addCount(2);
-        cardStats.addCount(3);
-
-        expect(cardStats.averageCount).toBe(2);
-    });
-
-    it('should return the correct count distribution', () => {
-        cardStats.addCount(1);
-        cardStats.addCount(2);
-        cardStats.addCount(1);
-
-        const distribution = cardStats.getCountDistribution();
-        expect(distribution).toEqual([
-            { count: 1, occurrences: 2 },
-            { count: 2, occurrences: 1 }
-        ]);
-    });
-
-    it('should handle empty statistics correctly', () => {
-        expect(cardStats.totalOccurrences).toBe(0);
-        expect(cardStats.averageCount).toBe(0);
-        expect(cardStats.getCountDistribution()).toEqual([]);
+        expect(stats.cardSeenCount).toBe(3);
+        expect(stats.cardDrawnCount).toBe(1);
     });
 });
 
 describe('FreeCardStatistics', () => {
-    let freeCardStats: FreeCardStatistics;
+    it('should correctly track activation and unused counts', () => {
+        const stats = new FreeCardStatistics('Free Card');
+        stats.cardSeen();
+        stats.cardSeen();
+        stats.activated();
+        stats.unused();
 
-    beforeEach(() => {
-        freeCardStats = new FreeCardStatistics('Test Free Card');
+        expect(stats.cardSeenCount).toBe(2);
+        expect(stats.activationCount).toBe(1);
+        expect(stats.unusedCount).toBe(1);
+        expect(stats.activationRate).toBe(0.5);
+        expect(stats.unusedRate).toBe(0.5);
+    });
+});
+
+describe('createMockCondition Framework', () => {
+    it('should create a condition that properly tracks evaluations and successes', () => {
+        const condition = createMockCondition('Test Condition', 0.7);
+        const evaluations = 1000;
+
+        for (let i = 0; i < evaluations; i++) {
+            condition.evaluate({} as GameState);
+        }
+
+        expect((condition as any).getEvaluationCount()).toBe(evaluations);
+        expect(condition.successes).toBeGreaterThan(0);
+        expect(condition.successes).toBeLessThanOrEqual(evaluations);
+        expect(condition.successes / evaluations).toBeCloseTo(0.7, 1);
     });
 
-    it('should initialize with the correct name', () => {
-        expect(freeCardStats.name).toBe('Test Free Card');
+    it('should maintain consistent success rate across multiple evaluations', () => {
+        const condition = createMockCondition('Test Condition', 0.5);
+        const evaluations = 10000;
+
+        for (let i = 0; i < evaluations; i++) {
+            condition.evaluate({} as GameState);
+        }
+
+        const actualSuccessRate = condition.successes / evaluations;
+        expect(actualSuccessRate).toBeCloseTo(0.5, 1);
     });
 
-    it('should correctly track successful activations', () => {
-        freeCardStats.addCount(1);
-        freeCardStats.addSuccessfulActivation();
-        freeCardStats.addCount(1);
-        freeCardStats.addSuccessfulActivation();
-
-        expect(freeCardStats.totalOccurrences).toBe(2);
-        expect(freeCardStats.activationRate).toBe(1);
-    });
-
-    it('should correctly track failed to success count', () => {
-        freeCardStats.addCount(1);
-        freeCardStats.addFailedToSuccess();
-        freeCardStats.addCount(1);
-
-        expect(freeCardStats.totalOccurrences).toBe(2);
-        expect(freeCardStats.failedToSuccessRate).toBe(0.5);
-    });
-
-    it('should calculate activation rate correctly', () => {
-        freeCardStats.addCount(1);
-        freeCardStats.addSuccessfulActivation();
-        freeCardStats.addCount(1);
-
-        expect(freeCardStats.activationRate).toBe(0.5);
-    });
-
-    it('should calculate failed to success rate correctly', () => {
-        freeCardStats.addCount(1);
-        freeCardStats.addFailedToSuccess();
-        freeCardStats.addCount(1);
-        freeCardStats.addFailedToSuccess();
-        freeCardStats.addCount(1);
-
-        expect(freeCardStats.failedToSuccessRate).toBe(2/3);
-    });
-
-    it('should handle no activations correctly', () => {
-        freeCardStats.addCount(1);
-        freeCardStats.addCount(1);
-
-        expect(freeCardStats.activationRate).toBe(0);
-        expect(freeCardStats.failedToSuccessRate).toBe(0);
-    });
-
-    it('should inherit CardStatistics behavior', () => {
-        freeCardStats.addCount(1);
-        freeCardStats.addCount(2);
-        freeCardStats.addCount(3);
-
-        expect(freeCardStats.totalOccurrences).toBe(3);
-        expect(freeCardStats.averageCount).toBe(2);
-        expect(freeCardStats.getCountDistribution()).toEqual([
-            { count: 1, occurrences: 1 },
-            { count: 2, occurrences: 1 },
-            { count: 3, occurrences: 1 }
-        ]);
+    it('should return the correct condition string', () => {
+        const condition = createMockCondition('Test Condition');
+        expect(condition.toString()).toBe('Test Condition');
     });
 });
 
 describe('ConditionStatistics', () => {
-    let mockCondition: BaseCondition;
+    const createMockCondition = (conditionString: string, successRate: number = 0.5): BaseCondition => {
+        let evaluationCount = 0;
+        let successCount = 0;
 
-    beforeEach(() => {
-        mockCondition = {
-            evaluate: jest.fn(),
+        const condition = {
+            evaluate: jest.fn().mockImplementation(() => {
+                evaluationCount++;
+                const success = Math.random() < successRate;
+                if (success) {
+                    successCount++;
+                }
+                return success;
+            }),
             requiredCards: jest.fn(),
-            successes: 0
-        };
-    });
+            toString: jest.fn().mockReturnValue(conditionString),
+            get successes() { return successCount; },
+        } as BaseCondition;
 
-    it('should initialize correctly', () => {
-        const stats = new ConditionStatistics(mockCondition);
+        (condition as any).getEvaluationCount = () => evaluationCount;
+
+        return condition;
+    };
+
+    it('should correctly initialize with a simple condition', () => {
+        const mockCondition = createMockCondition('Simple Condition', 0.6);
+        const totalEvaluations = 100;
+        const stats = new ConditionStatistics(mockCondition, totalEvaluations);
+
         expect(stats.condition).toBe(mockCondition);
+        expect(stats.totalEvaluations).toBe(totalEvaluations);
+        expect(stats.subConditionStats.size).toBe(0);
+    });
+
+    it('should correctly calculate success rate for a simple condition', () => {
+        const mockCondition = createMockCondition('Simple Condition', 0.7);
+        const totalEvaluations = 1000;
+
+        for (let i = 0; i < totalEvaluations; i++) {
+            mockCondition.evaluate({} as GameState);
+        }
+
+        const stats = new ConditionStatistics(mockCondition, totalEvaluations);
+        expect(stats.successRate).toBeCloseTo(0.7, 1);
+    });
+
+    it('should handle zero evaluations gracefully', () => {
+        const mockCondition = createMockCondition('Zero Eval Condition');
+        const stats = new ConditionStatistics(mockCondition, 0);
         expect(stats.successRate).toBe(0);
     });
 
-    it('should update evaluations correctly', () => {
-        const stats = new ConditionStatistics(mockCondition);
-        stats.addEvaluation();
-        stats.addEvaluation();
-        expect(stats.successRate).toBe(0);
+    it('should correctly build subcondition hierarchy for AND condition', () => {
+        const conditionA = createMockCondition('Condition A', 0.8);
+        const conditionB = createMockCondition('Condition B', 0.6);
+        const andCondition = new AndCondition([conditionA, conditionB]);
+        const totalEvaluations = 100;
 
-        Object.defineProperty(mockCondition, 'successes', { value: 1 });
-        expect(stats.successRate).toBe(0.5);
+        const stats = new ConditionStatistics(andCondition, totalEvaluations);
+
+        expect(stats.subConditionStats.size).toBe(2);
+        expect(stats.subConditionStats.get('Condition A')).toBeDefined();
+        expect(stats.subConditionStats.get('Condition B')).toBeDefined();
     });
 
-    it('should handle sub-conditions', () => {
-        const stats = new ConditionStatistics(mockCondition);
-        const subCondition1 = new Condition('Card A', 2, '>=');
-        const subCondition2 = new Condition('Card B', 1, '=');
+    it('should correctly build subcondition hierarchy for OR condition', () => {
+        const conditionA = createMockCondition('Condition A', 0.7);
+        const conditionB = createMockCondition('Condition B', 0.5);
+        const orCondition = new OrCondition([conditionA, conditionB]);
+        const totalEvaluations = 100;
 
-        stats.addSubConditionStats(subCondition1);
-        stats.addSubConditionStats(subCondition2);
+        const stats = new ConditionStatistics(orCondition, totalEvaluations);
 
-        const subStats = stats.getSubConditionStats();
-        expect(subStats.size).toBe(2);
-        expect(subStats.get('2>= Card A')).toBeDefined();
-        expect(subStats.get('1= Card B')).toBeDefined();
-    });
-});
-
-describe('ConditionStatistics', () => {
-    let mockCondition: BaseCondition;
-
-    beforeEach(() => {
-        mockCondition = {
-            evaluate: jest.fn(),
-            requiredCards: jest.fn(),
-            successes: 0
-        };
+        expect(stats.subConditionStats.size).toBe(2);
+        expect(stats.subConditionStats.get('Condition A')).toBeDefined();
+        expect(stats.subConditionStats.get('Condition B')).toBeDefined();
     });
 
-    it('should initialize correctly', () => {
-        const stats = new ConditionStatistics(mockCondition);
-        expect(stats.condition).toBe(mockCondition);
-        expect(stats.successRate).toBe(0);
-    });
-
-    it('should update evaluations correctly', () => {
-        const stats = new ConditionStatistics(mockCondition);
-        stats.addEvaluation();
-        stats.addEvaluation();
-        expect(stats.successRate).toBe(0);
-
-        Object.defineProperty(mockCondition, 'successes', { value: 1 });
-        expect(stats.successRate).toBe(0.5);
-    });
-
-    it('should handle sub-conditions', () => {
-        const stats = new ConditionStatistics(mockCondition);
-        const subCondition1 = new Condition('Card A', 2, '>=');
-        const subCondition2 = new Condition('Card B', 1, '=');
-
-        stats.addSubConditionStats(subCondition1);
-        stats.addSubConditionStats(subCondition2);
-
-        const subStats = stats.getSubConditionStats();
-        expect(subStats.size).toBe(2);
-        expect(subStats.get('2>= Card A')).toBeDefined();
-        expect(subStats.get('1= Card B')).toBeDefined();
-    });
-});
-
-describe('Report with Condition Statistics', () => {
-    let mockSimulations: Simulation[];
-    let mockCondition: AndCondition;
-
-    beforeEach(() => {
-        mockCondition = new AndCondition([
-            new Condition('Card A', 2, '>='),
-            new OrCondition([
-                new Condition('Card B', 1, '='),
-                new Condition('Card C', 3, '<=')
-            ])
+    it('should correctly calculate success rates for nested conditions', () => {
+        const conditionA = createMockCondition('Condition A', 0.8);
+        const conditionB = createMockCondition('Condition B', 0.6);
+        const conditionC = createMockCondition('Condition C', 0.7);
+        const nestedCondition = new AndCondition([
+            conditionA,
+            new OrCondition([conditionB, conditionC])
         ]);
+        const totalEvaluations = 1000;
 
-        const mockHand = [
-            createMockCard('Card A', ['Tag1']),
-            createMockCard('Card B', ['Tag2']),
-            createMockFreeCard('Free Card', ['Tag3']),
-        ];
-        const mockDeck = [createMockCard('Card C', ['Tag1'])];
-        const mockGameState = createMockGameState(mockHand, mockDeck);
-        const mockBranch = createMockSimulationBranch(mockGameState, true);
-        mockSimulations = [createMockSimulation([mockBranch], true)];
+        for (let i = 0; i < totalEvaluations; i++) {
+            nestedCondition.evaluate({} as GameState);
+        }
 
-        // Set up mock successes
-        Object.defineProperty(mockCondition, 'successes', { value: 1 });
-        Object.defineProperty(mockCondition.conditions[0], 'successes', { value: 1 });
-        Object.defineProperty(mockCondition.conditions[1], 'successes', { value: 1 });
-        Object.defineProperty((mockCondition.conditions[1] as OrCondition).conditions[0], 'successes', { value: 1 });
-        Object.defineProperty((mockCondition.conditions[1] as OrCondition).conditions[1], 'successes', { value: 0 });
+        const stats = new ConditionStatistics(nestedCondition, totalEvaluations);
 
-        // Assign the mock condition to the simulation
-        Object.defineProperty(mockSimulations[0], 'condition', { value: mockCondition, writable: true });
-    });
-
-    it('should process condition statistics correctly', () => {
-        const reports = Report.generateReports(mockSimulations);
-        expect(reports.length).toBe(1);
-        const report = reports[0];
-        const conditionStats = report.conditionStats;
-
-        expect(conditionStats.size).toBe(5); // AND, OR, and 3 individual conditions
-        expect(conditionStats.get('(2>= Card A IN Hand AND (1= Card B IN Hand OR 3<= Card C IN Hand))')).toBeDefined();
-        expect(conditionStats.get('(1= Card B IN Hand OR 3<= Card C IN Hand)')).toBeDefined();
-        expect(conditionStats.get('2>= Card A IN Hand')).toBeDefined();
-        expect(conditionStats.get('1= Card B IN Hand')).toBeDefined();
-        expect(conditionStats.get('3<= Card C IN Hand')).toBeDefined();
-    });
-
-    it('should calculate success rates correctly', () => {
-        const reports = Report.generateReports(mockSimulations);
-        expect(reports.length).toBe(1);
-        const report = reports[0];
-        const conditionStats = report.conditionStats;
-
-        expect(conditionStats.get('(2>= Card A IN Hand AND (1= Card B IN Hand OR 3<= Card C IN Hand))')?.successRate).toBe(1);
-        expect(conditionStats.get('(1= Card B IN Hand OR 3<= Card C IN Hand)')?.successRate).toBe(1);
-        expect(conditionStats.get('2>= Card A IN Hand')?.successRate).toBe(1);
-        expect(conditionStats.get('1= Card B IN Hand')?.successRate).toBe(1);
-        expect(conditionStats.get('3<= Card C IN Hand')?.successRate).toBe(0);
-    });
-
-    it('should handle nested conditions correctly', () => {
-        const reports = Report.generateReports(mockSimulations);
-        expect(reports.length).toBe(1);
-        const report = reports[0];
-        const conditionStats = report.conditionStats;
-
-        const andStats = conditionStats.get('(2>= Card A IN Hand AND (1= Card B IN Hand OR 3<= Card C IN Hand))');
-        expect(andStats).toBeDefined();
-        expect(andStats?.getSubConditionStats().size).toBe(2);
-
-        const orStats = conditionStats.get('(1= Card B IN Hand OR 3<= Card C IN Hand)');
+        expect(stats.successRate).toBeGreaterThan(0);
+        expect(stats.successRate).toBeLessThanOrEqual(0.8); // Cannot exceed success rate of conditionA
+        expect(stats.subConditionStats.get('Condition A')!.successRate).toBeGreaterThan(0);
+        expect(stats.subConditionStats.get('Condition A')!.successRate).toBeLessThanOrEqual(1);
+        
+        const orStats = stats.subConditionStats.get('(Condition B OR Condition C)');
         expect(orStats).toBeDefined();
-        expect(orStats?.getSubConditionStats().size).toBe(2);
+        expect(orStats!.successRate).toBeGreaterThan(0);
+        expect(orStats!.successRate).toBeLessThanOrEqual(1);
+        
+        expect(orStats!.subConditionStats.get('Condition B')!.successRate).toBeGreaterThan(0);
+        expect(orStats!.subConditionStats.get('Condition B')!.successRate).toBeLessThanOrEqual(1);
+        expect(orStats!.subConditionStats.get('Condition C')!.successRate).toBeGreaterThan(0);
+        expect(orStats!.subConditionStats.get('Condition C')!.successRate).toBeLessThanOrEqual(1);
     });
-});
 
-describe('Report Integration', () => {
-    it('should integrate condition statistics with other report features', () => {
-        const mockCondition = new AndCondition([
-            new Condition('Card A', 2, '>='),
+    it('should handle deeply nested conditions', () => {
+        const conditionA = createMockCondition('Condition A', 0.9);
+        const conditionB = createMockCondition('Condition B', 0.8);
+        const conditionC = createMockCondition('Condition C', 0.7);
+        const conditionD = createMockCondition('Condition D', 0.6);
+        const deeplyNestedCondition = new AndCondition([
+            conditionA,
             new OrCondition([
-                new Condition('Card B', 1, '='),
-                new Condition('Free Card', 1, '>=')
+                conditionB,
+                new AndCondition([conditionC, conditionD])
             ])
         ]);
+        const totalEvaluations = 1000;
 
-        const mockHand = [
-            createMockCard('Card A', ['Tag1']),
-            createMockCard('Card A', ['Tag1']),
-            createMockCard('Card B', ['Tag2']),
-            createMockFreeCard('Free Card', ['Tag3']),
-        ];
-        const mockDeck = [createMockCard('Card C', ['Tag1'])];
-        const mockGameState = createMockGameState(mockHand, mockDeck);
-        const mockBranch = createMockSimulationBranch(mockGameState, true);
-        const mockSimulation = createMockSimulation([mockBranch], true);
-        Object.defineProperty(mockSimulation, 'condition', { value: mockCondition, writable: true });
+        for (let i = 0; i < totalEvaluations; i++) {
+            deeplyNestedCondition.evaluate({} as GameState);
+        }
 
-        // Set up mock successes
-        Object.defineProperty(mockCondition, 'successes', { value: 1 });
-        Object.defineProperty(mockCondition.conditions[0], 'successes', { value: 1 });
-        Object.defineProperty(mockCondition.conditions[1], 'successes', { value: 1 });
-        Object.defineProperty((mockCondition.conditions[1] as OrCondition).conditions[0], 'successes', { value: 1 });
-        Object.defineProperty((mockCondition.conditions[1] as OrCondition).conditions[1], 'successes', { value: 1 });
+        const stats = new ConditionStatistics(deeplyNestedCondition, totalEvaluations);
 
-        const reports = Report.generateReports([mockSimulation]);
-        expect(reports.length).toBe(1);
-        const report = reports[0];
+        expect(stats.subConditionStats.size).toBe(2);
+        expect(stats.subConditionStats.get('Condition A')!.successRate).toBeGreaterThan(0);
+        expect(stats.subConditionStats.get('Condition A')!.successRate).toBeLessThanOrEqual(1);
 
-        // Check condition statistics
-        expect(report.conditionStats.size).toBe(5);
-        expect(report.conditionStats.get('(2>= Card A IN Hand AND (1= Card B IN Hand OR 1>= Free Card IN Hand))')?.successRate).toBe(1);
-        expect(report.conditionStats.get('(1= Card B IN Hand OR 1>= Free Card IN Hand)')?.successRate).toBe(1);
-        expect(report.conditionStats.get('2>= Card A IN Hand')?.successRate).toBe(1);
-        expect(report.conditionStats.get('1= Card B IN Hand')?.successRate).toBe(1);
-        expect(report.conditionStats.get('1>= Free Card IN Hand')?.successRate).toBe(1);
+        const orStats = stats.subConditionStats.get('(Condition B OR (Condition C AND Condition D))');
+        expect(orStats).toBeDefined();
+        expect(orStats!.subConditionStats.size).toBe(2);
+        expect(orStats!.subConditionStats.get('Condition B')!.successRate).toBeGreaterThan(0);
+        expect(orStats!.subConditionStats.get('Condition B')!.successRate).toBeLessThanOrEqual(1);
 
-        // Check other report features
-        expect(report.cardNameStats.get('Card A')?.totalOccurrences).toBe(2);
-        expect(report.cardNameStats.get('Card B')?.totalOccurrences).toBe(1);
-        expect(report.cardNameStats.get('Free Card')?.totalOccurrences).toBe(1);
-        expect(report.freeCardStats.get('Free Card')).toBeDefined();
-        expect(report.successRate).toBe(1);
+        const nestedAndStats = orStats!.subConditionStats.get('(Condition C AND Condition D)');
+        expect(nestedAndStats).toBeDefined();
+        expect(nestedAndStats!.subConditionStats.size).toBe(2);
+        
+        expect(nestedAndStats!.subConditionStats.get('Condition C')!.successRate).toBeGreaterThan(0);
+        expect(nestedAndStats!.subConditionStats.get('Condition C')!.successRate).toBeLessThanOrEqual(1);
+        expect(nestedAndStats!.subConditionStats.get('Condition D')!.successRate).toBeGreaterThan(0);
+        expect(nestedAndStats!.subConditionStats.get('Condition D')!.successRate).toBeLessThanOrEqual(1);
+    });
+
+    it('should calculate success rates for OR conditions', () => {
+        const conditionA = createMockCondition('Condition A', 0.6);
+        const conditionB = createMockCondition('Condition B', 0.7);
+        const orCondition = new OrCondition([conditionA, conditionB]);
+        const totalEvaluations = 1000;
+
+        for (let i = 0; i < totalEvaluations; i++) {
+            orCondition.evaluate({} as GameState);
+        }
+
+        const stats = new ConditionStatistics(orCondition, totalEvaluations);
+
+        expect(stats.successRate).toBeGreaterThan(0);
+        expect(stats.successRate).toBeLessThanOrEqual(1);
+        expect(stats.subConditionStats.get('Condition A')!.successRate).toBeGreaterThan(0);
+        expect(stats.subConditionStats.get('Condition A')!.successRate).toBeLessThanOrEqual(1);
+        expect(stats.subConditionStats.get('Condition B')!.successRate).toBeGreaterThan(0);
+        expect(stats.subConditionStats.get('Condition B')!.successRate).toBeLessThanOrEqual(1);
     });
 });

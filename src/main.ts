@@ -19,7 +19,7 @@ async function simulateDraw(deck: Deck, conditions: (BaseCondition)[], handSize:
 
     for (let i = 0; i < trials; i++) {
         conditions.forEach((condition, index) => {
-            const simulation = new Simulation(new GameState(deck), condition);
+            const simulation = new Simulation(new GameState(deck.deepCopy()), condition);
             simulation.gameState.drawHand(handSize);
             simulations[index].push(simulation);
             simulation.iterate();
@@ -35,7 +35,7 @@ async function simulateDraw(deck: Deck, conditions: (BaseCondition)[], handSize:
         }
     }
 
-    return simulations.map(simulationSet => new Report(simulationSet));
+    return simulations.flatMap(simulationSet => Report.generateReports(simulationSet));
 }
 
 async function runSimulation(input: SimulationInput): Promise<void> {
@@ -60,14 +60,6 @@ async function runSimulation(input: SimulationInput): Promise<void> {
     console.log(`Simulation complete. Maximum success probability: ${(maxProbability * 100).toFixed(2)}%`);
 }
 
-function updateReportVisibility() {
-    const reportContainer = document.getElementById('reportContainer') as HTMLElement;
-    const toggleReportButton = document.getElementById('toggleReport') as HTMLButtonElement;
-    
-    reportContainer.style.display = isReportVisible ? 'block' : 'none';
-    toggleReportButton.textContent = isReportVisible ? 'Hide Report' : 'Show Report';
-}
-
 function displayReportData(reports: Report[]): void {
     const reportContainer = document.getElementById('reportContainer') as HTMLElement;
     reportContainer.innerHTML = ''; // Clear previous content
@@ -75,32 +67,31 @@ function displayReportData(reports: Report[]): void {
     reports.forEach((report, index) => {
         const reportDiv = document.createElement('div');
         reportDiv.innerHTML = `
-            <h3>Condition ${index + 1}</h3>
+            <h3>Condition ${index + 1}: ${report.conditionStats.condition.toString()}</h3>
             <p>Success Rate: ${report.successRatePercentage}</p>
             <h4>Card Statistics:</h4>
             <ul>
                 ${Array.from(report.cardNameStats).map(([name, stats]) => `
-                    <li>${name}: ${stats.averageCount.toFixed(2)} (${(stats.totalOccurrences / report.iterations * 100).toFixed(2)}%)</li>
+                    <li>${name}: Seen ${((stats.cardSeenCount / report.simulations.length) * 100).toFixed(2)}% of the time and drawn ${((stats.cardDrawnCount / stats.cardSeenCount) * 100).toFixed(2)}%</li>
                 `).join('')}
             </ul>
             <h4>Free Card Statistics:</h4>
             <ul>
                 ${Array.from(report.freeCardStats).map(([name, stats]) => `
-                    <li>${name}: Activation Rate: ${(stats.activationRate * 100).toFixed(2)}%, Failed to Success Rate: ${(stats.failedToSuccessRate * 100).toFixed(2)}%</li>
+                    <li>${name}: Seen ${((stats.cardSeenCount / report.simulations.length) * 100).toFixed(2)}% of the time. Used ${(stats.activationRate * 100).toFixed(2)}% of the time and wasted ${(stats.unusedRate * 100).toFixed(2)}% </li>
                 `).join('')}
             </ul>
             <h4>Condition Statistics:</h4>
             <ul>
-                ${Array.from(report.conditionStats).map(([key, stats]) => `
+                <li>${report.conditionStats.condition.toString()}: Success Rate: ${(report.conditionStats.successRate * 100).toFixed(2)}%</li>
+                ${Array.from(report.conditionStats.subConditionStats).map(([key, stats]) => `
                     <li>${key}: Success Rate: ${(stats.successRate * 100).toFixed(2)}%</li>
                 `).join('')}
             </ul>
         `;
+
         reportContainer.appendChild(reportDiv);
     });
-
-    // Ensure visibility is correct after populating data
-    updateReportVisibility();
 }
 
 let isSimulationRunning = false;
@@ -116,13 +107,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const reportContainer = document.getElementById('reportContainer') as HTMLElement;
 
     toggleReportButton.addEventListener('click', () => {
+        console.log(`Toggling report visibility... to ${!isReportVisible}`);
         isReportVisible = !isReportVisible;
-        updateReportVisibility();
+        reportContainer.style.display = isReportVisible ? 'block' : 'none';
+        toggleReportButton.textContent = isReportVisible ? 'Hide Report' : 'Show Report';
     });
 
     // Initially hide the report container and set button text
-    isReportVisible = false;
-    updateReportVisibility();
+    reportContainer.style.display = 'none';
+    toggleReportButton.textContent = 'Show Report';
 
     importYdkButton.addEventListener('click', () => {
         ydkFileInput.click();

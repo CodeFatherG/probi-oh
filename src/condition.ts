@@ -92,7 +92,15 @@ export class Condition implements BaseCondition {
     }
 
     toString(): string {
-        return `${this.quantity}${this.operator} ${this.cardName} IN ${LocationConditionTarget[this.location]}`;
+        function operatorToSign(operator: string): string {
+            switch (operator) {
+                case '>=': return '+';
+                case '=': return '';
+                case '<=': return '-';
+                default: return operator;
+            }
+        }
+        return `${this.quantity}${operatorToSign(this.operator)} ${this.cardName} IN ${LocationConditionTarget[this.location]}`;
     }
 }
 
