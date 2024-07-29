@@ -1,7 +1,7 @@
-import { GameState, excavationCb } from '../src/game-state';
-import { Deck } from '../src/deck';
-import { Card, CreateCard, FreeCard } from '../src/card';
-import { CardDetails, CostType, RestrictionType } from '../src/card-details';
+import { GameState, excavationCb } from '../src/utils/game-state';
+import { Deck } from '../src/utils/deck';
+import { Card, CreateCard, FreeCard } from '../src/utils/card';
+import { CardDetails, CostType, RestrictionType } from '../src/utils/card-details';
 
 describe('GameState', () => {
     let testDeck: Deck;

@@ -1,10 +1,10 @@
-import { Report, CardStatistics, FreeCardStatistics, ConditionStatistics } from '../src/report';
-import { Simulation, SimulationBranch } from '../src/simulation';
-import { GameState } from '../src/game-state';
-import { Card, FreeCard } from '../src/card';
-import { Condition, BaseCondition, AndCondition, OrCondition } from '../src/condition';
-import { Deck } from '../src/deck';
-import { CardDetails } from '../src/card-details';
+import { Report, CardStatistics, FreeCardStatistics, ConditionStatistics } from '../src/utils/report';
+import { Simulation, SimulationBranch } from '../src/utils/simulation';
+import { GameState } from '../src/utils/game-state';
+import { Card, FreeCard } from '../src/utils/card';
+import { Condition, BaseCondition, AndCondition, OrCondition } from '../src/utils/condition';
+import { Deck } from '../src/utils/deck';
+import { CardDetails } from '../src/utils/card-details';
 
 // Mock interfaces and factories
 interface IMockCard {

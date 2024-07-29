@@ -1,11 +1,11 @@
-import { YamlManager, SimulationInput } from '../src/yaml-manager';
-import { Deck } from '../src/deck';
-import { Card, CreateCard } from '../src/card';
-import { Condition, AndCondition, OrCondition, BaseCondition } from '../src/condition';
+import { YamlManager, SimulationInput } from '../src/utils/yaml-manager';
+import { Deck } from '../src/utils/deck';
+import { Card, CreateCard } from '../src/utils/card';
+import { Condition, AndCondition, OrCondition, BaseCondition } from '../src/utils/condition';
 import * as yaml from 'js-yaml';
-import * as cardApi from '../src/card-api';
+import * as cardApi from '../src/utils/card-api';
 
-jest.mock('../src/card-api');
+jest.mock('../src/utils/card-api');
 
 // Mock ProgressEvent
 class MockProgressEvent {

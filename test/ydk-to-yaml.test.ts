@@ -1,7 +1,7 @@
-import { convertYdkToYaml } from '../src/ydk-to-yaml';
-import * as cardApi from '../src/card-api';
+import { convertYdkToYaml } from '../src/utils/ydk-to-yaml';
+import * as cardApi from '../src/utils/card-api';
 
-jest.mock('../src/card-api');
+jest.mock('../src/utils/card-api');
 
 describe('convertYdkToYaml', () => {
     const mockGetCardById = cardApi.getCardById as jest.MockedFunction<typeof cardApi.getCardById>;

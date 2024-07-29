@@ -1,19 +1,19 @@
-import { Simulation, SimulationBranch, runSimulation } from '../src/simulation';
-import { GameState } from '../src/game-state';
-import { BaseCondition } from '../src/condition';
-import { Card, CreateCard, FreeCard } from '../src/card';
-import { freeCardIsUsable, processFreeCard } from '../src/free-card-processor';
-import { Deck } from '../src/deck';
+import { Simulation, SimulationBranch, runSimulation } from '../src/utils/simulation';
+import { GameState } from '../src/utils/game-state';
+import { BaseCondition } from '../src/utils/condition';
+import { Card, CreateCard, FreeCard } from '../src/utils/card';
+import { freeCardIsUsable, processFreeCard } from '../src/utils/free-card-processor';
+import { Deck } from '../src/utils/deck';
 
 // Mock dependencies
-jest.mock('../src/game-state');
-jest.mock('../src/condition');
-jest.mock('../src/card', () => ({
+jest.mock('../src/utils/game-state');
+jest.mock('../src/utils/condition');
+jest.mock('../src/utils/card', () => ({
     CreateCard: jest.fn(),
     FreeCard: jest.fn()
 }));
-jest.mock('../src/free-card-processor');
-jest.mock('../src/deck');
+jest.mock('../src/utils/free-card-processor');
+jest.mock('../src/utils/deck');
 
 describe('Simulation', () => {
     let mockGameState: jest.Mocked<GameState>;
