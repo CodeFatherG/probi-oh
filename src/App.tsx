@@ -20,7 +20,7 @@ const App: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [isReportVisible, setIsReportVisible] = useState<boolean>(false);
 
-    const handleFileUpload = async (file: File) => {
+    const handleYamlUpload = async (file: File) => {
         try {
             const yamlManager = YamlManager.getInstance();
             const input = await yamlManager.loadFromYamlFile(file);
@@ -103,7 +103,7 @@ const App: React.FC = () => {
     return (
         <div className="App">
             <h1>Probi-oh: Yu-Gi-Oh! Probability Simulator</h1>
-            <FileInput onFileUpload={handleFileUpload} />
+            <FileInput onFileUpload={handleYamlUpload} acceptedExtensions={[".yaml", ".yml"]} importPrompt="Import Yaml" />
             {error && <p className="error-message">{error}</p>}
             <SimulationRunner onRun={runSimulation} disabled={!simulationInput || isSimulationRunning} />
             {isSimulationRunning && <ProgressBar progress={progress} />}

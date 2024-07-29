@@ -2,9 +2,11 @@ import React, { useState, useRef } from 'react';
 
 interface FileInputProps {
     onFileUpload: (file: File) => void;
+    acceptedExtensions: string[];
+    importPrompt: string;
 }
 
-const FileInput: React.FC<FileInputProps> = ({ onFileUpload }) => {
+const FileInput: React.FC<FileInputProps> = ({ onFileUpload, acceptedExtensions = [".yml", ".yaml"], importPrompt = "Import YAML" }) => {
     const [fileName, setFileName] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -21,7 +23,7 @@ const FileInput: React.FC<FileInputProps> = ({ onFileUpload }) => {
     };
 
     const isValidFileType = (name: string): boolean => {
-        return name.endsWith('.ydk') || name.endsWith('.yaml') || name.endsWith('.yml');
+        return acceptedExtensions.some(ext => name.endsWith(ext));
     };
 
     return (
@@ -30,11 +32,11 @@ const FileInput: React.FC<FileInputProps> = ({ onFileUpload }) => {
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                accept=".ydk,.yaml,.yml"
+                accept={acceptedExtensions.join(",")}
                 style={{ display: 'none' }}
             />
             <button onClick={handleButtonClick}>
-                {fileName ? 'Change File' : 'Import YDK/YAML'}
+                {fileName ? 'Change File' : importPrompt}
             </button>
             {fileName && (
                 <span className={`file-name ${isValidFileType(fileName) ? 'valid' : 'invalid'}`}>
@@ -42,7 +44,7 @@ const FileInput: React.FC<FileInputProps> = ({ onFileUpload }) => {
                 </span>
             )}
             {fileName && !isValidFileType(fileName) && (
-                <p className="error-message">Invalid file type. Please select a .ydk, .yaml, or .yml file.</p>
+                <p className="error-message">Invalid file type. Please select a {acceptedExtensions.join(', or ')} file type.</p>
             )}
         </div>
     );
