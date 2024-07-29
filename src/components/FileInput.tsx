@@ -1,32 +1,49 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 
 interface FileInputProps {
-    onFileUpload: (content: string) => void;
-    accept: string;
+    onFileUpload: (file: File) => void;
 }
 
-const FileInput: React.FC<FileInputProps> = ({ onFileUpload, accept }) => {
+const FileInput: React.FC<FileInputProps> = ({ onFileUpload }) => {
+    const [fileName, setFileName] = useState<string>('');
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const content = e.target?.result as string;
-                onFileUpload(content);
-            };
-            reader.readAsText(file);
+            setFileName(file.name);
+            onFileUpload(file);
         }
     };
 
+    const handleButtonClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const isValidFileType = (name: string): boolean => {
+        return name.endsWith('.ydk') || name.endsWith('.yaml') || name.endsWith('.yml');
+    };
+
     return (
-        <div>
-            <input 
-                type="file" 
-                onChange={handleFileChange} 
-                accept={accept}
-                id="fileInput"
+        <div className="file-input">
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept=".ydk,.yaml,.yml"
+                style={{ display: 'none' }}
             />
-            <label htmlFor="fileInput">Import YDK/YAML</label>
+            <button onClick={handleButtonClick}>
+                {fileName ? 'Change File' : 'Import YDK/YAML'}
+            </button>
+            {fileName && (
+                <span className={`file-name ${isValidFileType(fileName) ? 'valid' : 'invalid'}`}>
+                    {fileName}
+                </span>
+            )}
+            {fileName && !isValidFileType(fileName) && (
+                <p className="error-message">Invalid file type. Please select a .ydk, .yaml, or .yml file.</p>
+            )}
         </div>
     );
 };

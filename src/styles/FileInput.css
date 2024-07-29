@@ -1,0 +1,35 @@
+.file-input {
+    margin-bottom: 20px;
+}
+
+.file-input button {
+    padding: 10px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.file-input button:hover {
+    background-color: #45a049;
+}
+
+.file-name {
+    margin-left: 10px;
+    font-style: italic;
+}
+
+.file-name.valid {
+    color: #4CAF50;
+}
+
+.file-name.invalid {
+    color: #f44336;
+}
+
+.error-message {
+    color: #f44336;
+    margin-top: 5px;
+}
