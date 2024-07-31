@@ -1,13 +1,14 @@
 import yaml from 'js-yaml';
-import { Deck, buildDeck } from './deck';
+import { Deck } from './deck';
 import { AndCondition, BaseCondition, Condition, OrCondition } from './condition';
 import { parseCondition } from './parser';
 import { convertYdkToYaml } from './ydk-to-yaml';
 import { CardDetails } from './card-details';
+import { Card, CreateCard } from './card';
 
 /** Represents the input for a simulation */
 export interface SimulationInput {
-    deck: Deck;
+    deck: Card[];
     conditions: BaseCondition[];
 }
 
@@ -57,13 +58,28 @@ export class YamlManager {
                 }
             }
 
-            const deck = buildDeck(input.deck);
+            const deck = this.getCardList(input.deck);
             const conditions = input.conditions.map(parseCondition);
 
             return { deck, conditions };
         } catch (error) {
             throw new Error(`Failed to parse YAML: ${(error as Error).message}`);
         }
+    }
+
+    /**
+     * Builds a deck from a record of card details
+     * @param deckList - Record of card names and their details
+     * @returns A new Deck instance
+     */
+    private getCardList(deckList: Record<string, CardDetails>): Card[] {
+        const cards: Card[] = [];
+        for (const [card, details] of Object.entries(deckList)) {
+            const qty = details.qty ?? 1;
+            cards.push(...Array(qty).fill(CreateCard(card, details)));
+        }
+
+        return cards;
     }
 
     /**
@@ -101,9 +117,9 @@ export class YamlManager {
      * Serializes a Deck to YAML format
      * @param deck - The Deck to serialize
      */
-    public serializeDeckToYaml(deck: Deck): string {
+    public serializeDeckToYaml(cards: Card[]): string {
         const deckObject: Record<string, CardDetails> = {};
-        deck.deckList.forEach(card => {
+        cards.forEach(card => {
             if (card.name !== 'Empty Card') {
                 if (deckObject[card.name]) {
                     deckObject[card.name].qty = (deckObject[card.name].qty || 1) + 1;

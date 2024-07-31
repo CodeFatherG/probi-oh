@@ -100,8 +100,7 @@ describe('YamlManager', () => {
             `;
             const result = yamlManager.loadFromYamlString(yamlString);
             
-            expect(result.deck).toBeInstanceOf(Deck);
-            expect(result.deck.deckCount).toBe(40);
+            expect(result.deck.length).toBe(5);
             expect(result.conditions).toHaveLength(2);
             expect(result.conditions[0]).toBeInstanceOf(Condition);
             expect(result.conditions[1]).toBeInstanceOf(OrCondition);
@@ -151,7 +150,6 @@ describe('YamlManager', () => {
             const mockFile = new MockFile([mockFileContent], 'test.yaml', { type: 'application/x-yaml' });
             
             const result = await yamlManager.loadFromYamlFile(mockFile as unknown as File);
-            expect(result.deck).toBeInstanceOf(Deck);
             expect(result.conditions).toHaveLength(1);
         });
 
@@ -214,8 +212,7 @@ describe('YamlManager', () => {
                 CreateCard('Card1', { tags: ['Tag1', 'Tag2'] }),
                 CreateCard('Card2', { tags: ['Tag3'] })
             ];
-            const deck = new Deck(cards);
-            const result = yamlManager.serializeDeckToYaml(deck);
+            const result = yamlManager.serializeDeckToYaml(cards);
             const parsed = yaml.load(result) as { deck: any };
             expect(parsed.deck.Card1.qty).toBe(2);
             expect(parsed.deck.Card2.qty).toBe(1);
@@ -227,8 +224,7 @@ describe('YamlManager', () => {
                 CreateCard('Card1', { tags: ['Tag1'] }),
                 CreateCard('Card2', { tags: ['Tag2'] }),
             ];
-            const deck = new Deck(cards);
-            const result = yamlManager.serializeDeckToYaml(deck);
+            const result = yamlManager.serializeDeckToYaml(cards);
             const parsed = yaml.load(result) as { deck: any };
             expect(parsed.deck.Card1.qty).toBe(2);
             expect(parsed.deck.Card2.qty).toBe(1);
@@ -271,7 +267,6 @@ describe('YamlManager', () => {
                 CreateCard('Card1', { tags: ['Tag1'] }),
                 CreateCard('Card2', { tags: ['Tag2'] })
             ];
-            const deck = new Deck(cards);
             const conditions = [
                 new Condition('Card1', 1, '>='),
                 new AndCondition([
@@ -279,7 +274,7 @@ describe('YamlManager', () => {
                     new Condition('Card2', 1, '=')
                 ])
             ];
-            const input: SimulationInput = { deck, conditions };
+            const input: SimulationInput = { deck: cards, conditions };
             const result = yamlManager.serializeSimulationInputToYaml(input);
             const parsed = yaml.load(result) as { deck: any, conditions: string[] };
             expect(parsed.deck.Card1.qty).toBe(1);
@@ -398,8 +393,7 @@ describe('Edge Cases', () => {
         const yamlManager = YamlManager.getInstance();
         const result = yamlManager.loadFromYamlString(yamlString);
         
-        expect(result.deck).toBeInstanceOf(Deck);
-        expect(result.deck.deckCount).toBe(40);
+        expect(result.deck.length).toBe(5);
         expect(result.conditions).toHaveLength(2);
         expect(result.conditions[0]).toBeInstanceOf(Condition);
         expect(result.conditions[1]).toBeInstanceOf(OrCondition);
@@ -429,8 +423,7 @@ describe('Edge Cases', () => {
             const yamlManager = YamlManager.getInstance();
             const result = yamlManager.loadFromYamlString(yamlString);
             
-            expect(result.deck).toBeInstanceOf(Deck);
-            expect(result.deck.deckCount).toBe(40);
+            expect(result.deck.length).toBe(3);
             expect(result.conditions).toHaveLength(1);
             expect(result.conditions[0]).toBeInstanceOf(Condition);
             expect((result.conditions[0] as Condition).cardName).toBe('"Card A"');
