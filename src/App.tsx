@@ -72,7 +72,7 @@ const App: React.FC = () => {
         setError(null);
 
         try {
-            const deck = simulationInput.deck;
+            const deck = new Deck(simulationInput.deck);
             const conditions = simulationInput.conditions;
             console.log('Starting simulation...');
             console.log(`Deck size: ${deck.deckCount}`);
