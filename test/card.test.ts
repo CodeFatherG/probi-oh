@@ -1,5 +1,5 @@
-import { Card, CreateCard, FreeCard } from '../src/card';
-import { CardDetails, CostType, ConditionType, RestrictionType } from '../src/card-details';
+import { Card, CreateCard, FreeCard } from '../src/utils/card';
+import { CardDetails, CostType, ConditionType, RestrictionType } from '../src/utils/card-details';
 
 describe('Card', () => {
     const cardName = 'Blue-Eyes White Dragon';

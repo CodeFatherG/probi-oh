@@ -1,10 +1,10 @@
-import { excavate, processFreeCard } from '../src/free-card-processor';
-import { Simulation, SimulationBranch } from '../src/simulation';
-import { GameState } from '../src/game-state';
-import { Deck } from '../src/deck';
-import { Card, CreateCard, FreeCard } from '../src/card';
-import { CardDetails, ConditionType, CostType, RestrictionType } from '../src/card-details';
-import { AndCondition, BaseCondition, Condition, OrCondition } from '../src/condition';
+import { excavate, processFreeCard } from '../src/utils/free-card-processor';
+import { Simulation, SimulationBranch } from '../src/utils/simulation';
+import { GameState } from '../src/utils/game-state';
+import { Deck } from '../src/utils/deck';
+import { Card, CreateCard, FreeCard } from '../src/utils/card';
+import { CardDetails, ConditionType, CostType, RestrictionType } from '../src/utils/card-details';
+import { AndCondition, BaseCondition, Condition, OrCondition } from '../src/utils/condition';
 
 describe('free-card-processor', () => {
     let testDeck: Deck;

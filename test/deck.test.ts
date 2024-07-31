@@ -1,6 +1,6 @@
-import { Deck, buildDeck } from '../src/deck';
-import { Card, CreateCard } from '../src/card';
-import { CardDetails } from '../src/card-details';
+import { Deck, buildDeck } from '../src/utils/deck';
+import { Card, CreateCard } from '../src/utils/card';
+import { CardDetails } from '../src/utils/card-details';
 
 describe('Deck', () => {
     describe('constructor', () => {

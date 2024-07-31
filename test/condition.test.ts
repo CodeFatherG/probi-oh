@@ -1,7 +1,7 @@
-import { Card, CreateCard } from '../src/card';
-import { Condition, AndCondition, OrCondition, LocationConditionTarget as LocationTarget } from '../src/condition';
-import { Deck } from '../src/deck';
-import { GameState } from '../src/game-state';
+import { Card, CreateCard } from '../src/utils/card';
+import { Condition, AndCondition, OrCondition, LocationConditionTarget as LocationTarget } from '../src/utils/condition';
+import { Deck } from '../src/utils/deck';
+import { GameState } from '../src/utils/game-state';
 
 describe('Condition', () => {
     let testCards: Card[];
