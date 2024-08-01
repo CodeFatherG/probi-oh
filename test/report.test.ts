@@ -377,11 +377,11 @@ describe('Report', () => {
 describe('CardStatistics', () => {
     it('should correctly track card seen and drawn counts', () => {
         const stats = new CardStatistics('Test Card');
-        stats.cardSeen();
-        stats.cardSeen();
+        stats.cardSeen(1);
+        stats.cardSeen(1);
         stats.cardDrawn();
 
-        expect(stats.cardSeenCount).toBe(3);
+        expect(stats.cardSeenCount).toBe(2);
         expect(stats.cardDrawnCount).toBe(1);
     });
 });
@@ -389,8 +389,8 @@ describe('CardStatistics', () => {
 describe('FreeCardStatistics', () => {
     it('should correctly track activation and unused counts', () => {
         const stats = new FreeCardStatistics('Free Card');
-        stats.cardSeen();
-        stats.cardSeen();
+        stats.cardSeen(1);
+        stats.cardSeen(1);
         stats.activated();
         stats.unused();
 

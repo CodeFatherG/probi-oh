@@ -3,22 +3,24 @@ import { Card } from "./card";
 import { AndCondition, BaseCondition, OrCondition } from "./condition";
 
 class CardStatistics {
-    private _cardSeenCount: number = 0;
+    private _cardSeenCount: Map<number, number> = new Map<number, number>();
     private _cardDrawnCount: number = 0;
 
     constructor(public readonly id: string) {}
 
-    cardSeen(): void {
-        this._cardSeenCount++;
+    cardSeen(count: number): void {
+        if (!this._cardSeenCount.has(count)) {
+            this._cardSeenCount.set(count, 0);
+        }
+        this._cardSeenCount.set(count, this._cardSeenCount.get(count)! + 1);
     }
 
     cardDrawn(): void {
-        this.cardSeen();
         this._cardDrawnCount++;
     }
 
     get cardSeenCount(): number {
-        return this._cardSeenCount;
+        return Array.from(this._cardSeenCount.values()).reduce((sum, value) => sum + value, 0);
     }
 
     get cardDrawnCount(): number {
@@ -155,11 +157,23 @@ class Report {
     }
 
     private processInitialHand(branch: SimulationBranch): void {
+        const cardCounts = new Map<string, number>();
+    
+        // Count occurrences of each card
         for (const card of branch.gameState.hand) {
-            this.getCardStatistic(this._cardNameStats, card.name, card.isFree)!.cardSeen();
-
-            for (const tag of card.tags || []) {
-                this.getCardStatistic(this._cardTagStats, tag)!.cardSeen();
+            const count = cardCounts.get(card.name) || 0;
+            cardCounts.set(card.name, count + 1);
+        }
+    
+        // Process card counts
+        for (const [cardName, count] of cardCounts) {
+            const card = branch.gameState.hand.find(c => c.name === cardName);
+            if (card) {
+                this.getCardStatistic(this._cardNameStats, cardName, card.isFree)!.cardSeen(count);
+    
+                for (const tag of card.tags || []) {
+                    this.getCardStatistic(this._cardTagStats, tag)!.cardSeen(count);
+                }
             }
         }
     }
@@ -197,21 +211,53 @@ class Report {
     }
 
     private processBanishedCards(simulation: Simulation): void {
-        const banishedCards = simulation.successfulBranch?.gameState.banishPile || [];
-        for (const card of banishedCards) {
-            this.getCardStatistic(this._banishedCardNameStats, card.name)!.cardSeen();
-            for (const tag of card.tags || []) {
-                this.getCardStatistic(this._banishedCardTagStats, tag)!.cardSeen();
+        if (!simulation.successfulBranch) {
+            return; // Skip processing if there's no successful branch
+        }
+
+        const cardCounts = new Map<string, number>();
+    
+        // Count occurrences of each card
+        for (const card of simulation.successfulBranch.gameState.banishPile) {
+            const count = cardCounts.get(card.name) || 0;
+            cardCounts.set(card.name, count + 1);
+        }
+    
+        // Process card counts
+        for (const [cardName, count] of cardCounts) {
+            const card = simulation.successfulBranch.gameState.banishPile.find(c => c.name === cardName);
+            if (card) {
+                this.getCardStatistic(this._banishedCardNameStats, cardName, card.isFree)!.cardSeen(count);
+    
+                for (const tag of card.tags || []) {
+                    this.getCardStatistic(this._banishedCardTagStats, tag)!.cardSeen(count);
+                }
             }
         }
     }
 
     private processDiscardedCards(simulation: Simulation): void {
-        const discardedCards = simulation.successfulBranch?.gameState.graveyard || [];
-        for (const card of discardedCards) {
-            this.getCardStatistic(this._discardedCardNameStats, card.name)!.cardSeen();
-            for (const tag of card.tags || []) {
-                this.getCardStatistic(this._discardedCardTagStats, tag)!.cardSeen();
+        if (!simulation.successfulBranch) {
+            return; // Skip processing if there's no successful branch
+        }
+
+        const cardCounts = new Map<string, number>();
+    
+        // Count occurrences of each card
+        for (const card of simulation.successfulBranch.gameState.graveyard) {
+            const count = cardCounts.get(card.name) || 0;
+            cardCounts.set(card.name, count + 1);
+        }
+    
+        // Process card counts
+        for (const [cardName, count] of cardCounts) {
+            const card = simulation.successfulBranch.gameState.graveyard.find(c => c.name === cardName);
+            if (card) {
+                this.getCardStatistic(this._discardedCardNameStats, cardName, card.isFree)!.cardSeen(count);
+    
+                for (const tag of card.tags || []) {
+                    this.getCardStatistic(this._discardedCardTagStats, tag)!.cardSeen(count);
+                }
             }
         }
     }
