@@ -29,8 +29,12 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@emotion/react": "^11.13.0",
+    "@emotion/styled": "^11.13.0",
+    "@mui/material": "^5.16.6",
     "idb": "^8.0.0",
     "js-yaml": "^4.1.0",
+    "mui": "^0.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
