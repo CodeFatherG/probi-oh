@@ -1,16 +1,18 @@
-import React, { useState, KeyboardEvent, FocusEvent } from 'react';
+import React, { useState, KeyboardEvent } from 'react';
 import '../styles/FlexibleTextBox.css';
 
 interface FlexibleTextBoxProps {
     onChange?: (value: string) => void;
     onComplete?: (value: string) => void;
-    placeholder: string;
+    placeholder?: string;
+    style?: React.CSSProperties;
 }
 
 const FlexibleTextBox: React.FC<FlexibleTextBoxProps> = ({ 
     onChange, 
     onComplete,
-    placeholder = "Enter text here..." 
+    placeholder = "Enter text here...",
+    style = {}
 }) => {
     const [value, setValue] = useState<string>('');
 
@@ -23,16 +25,19 @@ const FlexibleTextBox: React.FC<FlexibleTextBoxProps> = ({
     };
 
     const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === 'Enter' && onComplete) {
-            onComplete(value);
+        if (event.key === 'Enter') {
+            if (onComplete) {
+                onComplete(value);
+            }
+            setValue('');
         }
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
+    const handleBlur = () => {
         if (onComplete) {
             onComplete(value);
         }
+        setValue('');
     };
 
     return (
@@ -44,6 +49,7 @@ const FlexibleTextBox: React.FC<FlexibleTextBoxProps> = ({
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
+            style={{ ...style, boxSizing: 'border-box' }}
         />
     );
 };
