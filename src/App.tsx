@@ -11,6 +11,7 @@ import { Report } from './utils/report';
 import { YamlManager } from './utils/yaml-manager';
 import ReportDisplay from './components/ReportDisplay';
 import { useSimulationInputLocalStorage } from './components/InputStorage';
+import InputDisplay from './components/InputDisplay';
 
 const App: React.FC = () => {
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
