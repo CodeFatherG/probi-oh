@@ -1,0 +1,29 @@
+.container {
+    display: flex;
+    width: 100%;
+}
+
+.left-content {
+    flex-shrink: 0;
+    width: 25%;
+    padding: 16px;
+    background-color: #f0f0f0;
+}
+
+.right-content {
+    flex-grow: 1;
+    padding: 16px;
+}
+
+.text-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.text-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,.25);
+}
