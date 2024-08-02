@@ -8,15 +8,16 @@ import { BaseCondition } from './utils/condition';
 import { Simulation } from './utils/simulation';
 import { GameState } from './utils/game-state';
 import { Report } from './utils/report';
-import { SimulationInput, YamlManager } from './utils/yaml-manager';
+import { YamlManager } from './utils/yaml-manager';
 import ReportDisplay from './components/ReportDisplay';
+import { useSimulationInputLocalStorage } from './components/InputStorage';
 
 const App: React.FC = () => {
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
     const [progress, setProgress] = useState(0);
     const [result, setResult] = useState<string | null>(null);
     const [reportData, setReportData] = useState<Report[]>([]);
-    const [simulationInput, setSimulationInput] = useState<SimulationInput | null>(null);
+    const [simulationInput, setSimulationInput] = useSimulationInputLocalStorage(null);
     const [error, setError] = useState<string | null>(null);
     const [isReportVisible, setIsReportVisible] = useState<boolean>(false);
 
@@ -105,6 +106,7 @@ const App: React.FC = () => {
             <h1>Probi-oh: Yu-Gi-Oh! Probability Simulator</h1>
             <FileInput onFileUpload={handleYamlUpload} acceptedExtensions={[".yaml", ".yml"]} importPrompt="Import Yaml" />
             {error && <p className="error-message">{error}</p>}
+            <InputDisplay input={simulationInput} />
             <SimulationRunner onRun={runSimulation} disabled={!simulationInput || isSimulationRunning} />
             {isSimulationRunning && <ProgressBar progress={progress} />}
             {result && <ResultDisplay result={result} />}
