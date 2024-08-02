@@ -104,10 +104,16 @@ const App: React.FC = () => {
 
     return (
         <div className="App">
-            <h1>Probi-oh: Yu-Gi-Oh! Probability Simulator</h1>
-            <FileInput onFileUpload={handleYamlUpload} acceptedExtensions={[".yaml", ".yml"]} importPrompt="Import Yaml" />
-            {error && <p className="error-message">{error}</p>}
+            <h1 style={{
+                display: 'flex',
+                justifyContent: 'center',
+            }}>
+                Probi-oh: Yu-Gi-Oh! Probability Simulator
+            </h1>
+            
             <InputDisplay input={simulationInput} />
+            <FileInput onFileUpload={handleYamlUpload} acceptedExtensions={[".yaml", ".yml"]} importPrompt="Import Yaml" />
+            
             <SimulationRunner onRun={runSimulation} disabled={!simulationInput || isSimulationRunning} />
             {isSimulationRunning && <ProgressBar progress={progress} />}
             {result && <ResultDisplay result={result} />}
