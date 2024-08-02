@@ -1,5 +1,4 @@
 import yaml from 'js-yaml';
-import { Deck } from './deck';
 import { AndCondition, BaseCondition, Condition, OrCondition } from './condition';
 import { parseCondition } from './parser';
 import { convertYdkToYaml } from './ydk-to-yaml';
