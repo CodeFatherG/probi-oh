@@ -12,14 +12,15 @@ import { YamlManager } from './utils/yaml-manager';
 import ReportDisplay from './components/ReportDisplay';
 import { useSimulationInputLocalStorage } from './components/InputStorage';
 import InputDisplay from './components/InputDisplay';
+import FlexibleTextBox from './components/FlexibleTextBox';
+import CardComponent from './components/CardComponent';
 
-const App: React.FC = () => {
+const App = () => {
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
     const [progress, setProgress] = useState(0);
     const [result, setResult] = useState<string | null>(null);
     const [reportData, setReportData] = useState<Report[]>([]);
     const [simulationInput, setSimulationInput] = useSimulationInputLocalStorage(null);
-    const [error, setError] = useState<string | null>(null);
     const [isReportVisible, setIsReportVisible] = useState<boolean>(false);
 
     const handleYamlUpload = async (file: File) => {
@@ -27,10 +28,8 @@ const App: React.FC = () => {
             const yamlManager = YamlManager.getInstance();
             const input = await yamlManager.loadFromYamlFile(file);
             setSimulationInput(input);
-            setError(null);
             console.log('File loaded successfully:', input);
         } catch (err) {
-            setError(`Error loading file: ${(err as Error).message}`);
             console.error('Error loading file:', err);
         }
     };
@@ -64,14 +63,12 @@ const App: React.FC = () => {
     const runSimulation = async () => {
         if (!simulationInput) {
             console.error('Simulation input not set');
-            setError('Simulation input not set');
             return;
         }
 
         setProgress(0);
         setResult(null);
         setIsSimulationRunning(true);
-        setError(null);
 
         try {
             const deck = new Deck(simulationInput.deck);
@@ -91,7 +88,6 @@ const App: React.FC = () => {
             
             console.log(`Simulation complete. Maximum success probability: ${(maxProbability * 100).toFixed(2)}%`);
         } catch (err) {
-            setError(`Error running simulation: ${(err as Error).message}`);
             console.error('Error running simulation:', err);
         } finally {
             setIsSimulationRunning(false);
@@ -110,10 +106,11 @@ const App: React.FC = () => {
             }}>
                 Probi-oh: Yu-Gi-Oh! Probability Simulator
             </h1>
-            
+
             <InputDisplay input={simulationInput} />
             <FileInput onFileUpload={handleYamlUpload} acceptedExtensions={[".yaml", ".yml"]} importPrompt="Import Yaml" />
-            
+            <CardComponent />
+            <FlexibleTextBox />
             <SimulationRunner onRun={runSimulation} disabled={!simulationInput || isSimulationRunning} />
             {isSimulationRunning && <ProgressBar progress={progress} />}
             {result && <ResultDisplay result={result} />}

@@ -35,7 +35,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
     }
 }
 
-const InputDisplay: React.FC<InputDisplayProps> = ({ input }) => {
+const InputDisplay = ({ input }: InputDisplayProps) => {
     if (!input) {
         return <div>No input loaded</div>;
     }

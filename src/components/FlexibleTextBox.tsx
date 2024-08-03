@@ -8,12 +8,12 @@ interface FlexibleTextBoxProps {
     style?: React.CSSProperties;
 }
 
-const FlexibleTextBox: React.FC<FlexibleTextBoxProps> = ({ 
+const FlexibleTextBox = ({ 
     onChange, 
     onComplete,
     placeholder = "Enter text here...",
     style = {}
-}) => {
+}: FlexibleTextBoxProps) => {
     const [value, setValue] = useState<string>('');
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {

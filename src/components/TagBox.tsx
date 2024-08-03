@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Box, Chip, Stack } from '@mui/material';
 import FlexibleTextBox from './FlexibleTextBox';
 
-const TagBox: React.FC = () => {
+const TagBox = () => {
     const [tags, setTags] = useState<string[]>([]);
 
     const handleFlexibleInputComplete = (value: string) => {

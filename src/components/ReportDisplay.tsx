@@ -5,7 +5,7 @@ interface ReportDisplayProps {
     reports: Report[];
 }
 
-const ReportDisplay: React.FC<ReportDisplayProps> = ({ reports }) => {
+const ReportDisplay = ({ reports }: ReportDisplayProps) => {
     return (
         <div className="report-container">
             {reports.map((report, index) => (

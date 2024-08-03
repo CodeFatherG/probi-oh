@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import TagBox from './TagBox';
 
-const CardComponent: React.FC = () => {
+const CardComponent = () => {
     const [name] = useState<string>('Test aedggrfgdrfgdrtfgdtrh');
     const [quantity, setQuantity] = useState<number>(1);
 

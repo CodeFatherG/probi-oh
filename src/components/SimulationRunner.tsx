@@ -1,15 +1,16 @@
 import React from 'react';
+import Button from '@mui/material/Button';
 
 interface SimulationRunnerProps {
     onRun: () => void;
     disabled: boolean;
 }
 
-const SimulationRunner: React.FC<SimulationRunnerProps> = ({ onRun, disabled }) => {
+const SimulationRunner = ({ onRun, disabled }: SimulationRunnerProps) => {
     return (
-        <button onClick={onRun} disabled={disabled}>
+        <Button onClick={onRun} disabled={disabled}>
             Run Simulation
-        </button>
+        </Button>
     );
 };
 

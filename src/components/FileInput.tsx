@@ -6,7 +6,7 @@ interface FileInputProps {
     importPrompt: string;
 }
 
-const FileInput: React.FC<FileInputProps> = ({ onFileUpload, acceptedExtensions = [".yml", ".yaml"], importPrompt = "Import YAML" }) => {
+const FileInput = ({ onFileUpload, acceptedExtensions = [".yml", ".yaml"], importPrompt = "Import YAML" }: FileInputProps) => {
     const [fileName, setFileName] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
