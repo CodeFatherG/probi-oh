@@ -70,8 +70,8 @@ const InputDisplay = ({ input }: InputDisplayProps) => {
                 <div className="conditions-display">
                     <h3>Conditions:</h3>
                     <ul>
-                        {input.conditions.map((condition: BaseCondition, index: number) => (
-                            <li key={index}>{condition.toString()}</li>
+                        {input.conditions.map((condition: string, index: number) => (
+                            <li key={index}>{condition}</li>
                         ))}
                     </ul>
                 </div>

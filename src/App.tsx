@@ -3,31 +3,34 @@ import FileInput from './components/FileInput';
 import SimulationRunner from './components/SimulationRunner';
 import ProgressBar from './components/ProgressBar';
 import ResultDisplay from './components/ResultDisplay';
-import { Deck } from './utils/deck';
+import { buildDeck, Deck } from './utils/deck';
 import { BaseCondition } from './utils/condition';
 import { Simulation } from './utils/simulation';
 import { GameState } from './utils/game-state';
 import { Report } from './utils/report';
-import { YamlManager } from './utils/yaml-manager';
+import { loadFromYamlFile } from './utils/yaml-manager';
 import ReportDisplay from './components/ReportDisplay';
-import { useSimulationInputLocalStorage } from './components/InputStorage';
+import { CardDetails } from './utils/card-details';
+import useLocalStorage from './components/LocalStorage';
+import { parseCondition } from './utils/parser';
 import InputDisplay from './components/InputDisplay';
-import FlexibleTextBox from './components/FlexibleTextBox';
 import CardComponent from './components/CardComponent';
+import FlexibleTextBox from './components/FlexibleTextBox';
 
 const App = () => {
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
     const [progress, setProgress] = useState(0);
     const [result, setResult] = useState<string | null>(null);
     const [reportData, setReportData] = useState<Report[]>([]);
-    const [simulationInput, setSimulationInput] = useSimulationInputLocalStorage(null);
     const [isReportVisible, setIsReportVisible] = useState<boolean>(false);
+    const [cardData, setCardData] = useLocalStorage<Map<string, CardDetails>>("cardDataStore", new Map<string, CardDetails>());
+    const [conditionData, setConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
 
     const handleYamlUpload = async (file: File) => {
         try {
-            const yamlManager = YamlManager.getInstance();
-            const input = await yamlManager.loadFromYamlFile(file);
-            setSimulationInput(input);
+            const input = await loadFromYamlFile(file);
+            setCardData(input.deck);
+            setConditionData(input.conditions);
             console.log('File loaded successfully:', input);
         } catch (err) {
             console.error('Error loading file:', err);
@@ -61,18 +64,14 @@ const App = () => {
     }
 
     const runSimulation = async () => {
-        if (!simulationInput) {
-            console.error('Simulation input not set');
-            return;
-        }
-
         setProgress(0);
         setResult(null);
         setIsSimulationRunning(true);
 
         try {
-            const deck = new Deck(simulationInput.deck);
-            const conditions = simulationInput.conditions;
+            console.log(`Cards: ${Array.from(cardData, ([card, details]) => `${card}: ${details.qty || 1}`).join(', ')}`);
+            const deck = buildDeck(cardData);
+            const conditions = conditionData.map(condition => parseCondition(condition));
             console.log('Starting simulation...');
             console.log(`Deck size: ${deck.deckCount}`);
             console.log(`Cards in deck: ${deck.deckList.map(card => card.name).join(', ')}`);
@@ -107,11 +106,11 @@ const App = () => {
                 Probi-oh: Yu-Gi-Oh! Probability Simulator
             </h1>
 
-            <InputDisplay input={simulationInput} />
+            <InputDisplay input={{deck: cardData, conditions: conditionData}} />
             <FileInput onFileUpload={handleYamlUpload} acceptedExtensions={[".yaml", ".yml"]} importPrompt="Import Yaml" />
             <CardComponent />
             <FlexibleTextBox />
-            <SimulationRunner onRun={runSimulation} disabled={!simulationInput || isSimulationRunning} />
+            <SimulationRunner onRun={runSimulation} disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0 || isSimulationRunning} />
             {isSimulationRunning && <ProgressBar progress={progress} />}
             {result && <ResultDisplay result={result} />}
             {reportData.length > 0 && (

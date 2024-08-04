@@ -120,7 +120,7 @@ deck:
     qty: 3
     tags: [Monster, Dragon, Normal]
   
-  "Pot of Desires":
+  Pot of Desires:
     qty: 2
     tags: [Spell, Draw]
     free:
@@ -166,7 +166,7 @@ Conditions are tokenized into the following types:
 
 2. **Name**:
    - Format: Any string of letters, numbers, spaces, and certain special characters (-, ', &, :, !, ?, ")
-   - Examples: `"Blue-Eyes White Dragon"`, `"Pot of Greed"`, `"Level Up!"`
+   - Examples: `Blue-Eyes White Dragon`, `Pot of Greed`, `Level Up!`
    - Usage: Represents a card name or tag.
    - Restrictions:
      - Can be used alone or following a quantity.
@@ -216,7 +216,7 @@ Complex conditions:
 ```yaml
 conditions:
   - "(2+ Monster AND 1 Spell) OR (3+ Spell IN Deck AND 1- Trap IN Hand)"
-  - "('Blue-Eyes White Dragon' OR 'Dark Magician') AND 2+ Spell"
+  - "(Blue-Eyes White Dragon OR Dark Magician) AND 2+ Spell"
 ```
 
 ### Default Behavior

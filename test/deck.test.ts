@@ -1,4 +1,4 @@
-import { Deck } from '../src/utils/deck';
+import { buildDeck, Deck } from '../src/utils/deck';
 import { Card, CreateCard } from '../src/utils/card';
 import { CardDetails } from '../src/utils/card-details';
 
@@ -109,5 +109,31 @@ describe('Deck', () => {
             const deck = new Deck(cards);
             expect(deck.deckCount).toBe(40);
         });
+    });
+});
+
+describe('buildDeck', () => {
+    it('should build a deck from a record of card details', () => {
+        const deckList: Map<string, CardDetails> = new Map([
+            ['Card A', { qty: 3, tags: ['Tag1'] }],
+            ['Card B', { qty: 2, tags: ['Tag2'] }],
+            ['Card C', { tags: ['Tag3'] }],
+        ]);
+        const deck = buildDeck(deckList);
+
+        expect(deck).toBeInstanceOf(Deck);
+        expect(deck.deckCount).toBe(40);
+        expect(deck.deckList.filter((card: Card) => card.name === 'Card A')).toHaveLength(3);
+        expect(deck.deckList.filter((card: Card) => card.name === 'Card B')).toHaveLength(2);
+        expect(deck.deckList.filter((card: Card) => card.name === 'Card C')).toHaveLength(1);
+    });
+
+    it('should handle empty deck list', () => {
+        const deckList: Map<string, CardDetails> = new Map();
+        const deck = buildDeck(deckList);
+
+        expect(deck).toBeInstanceOf(Deck);
+        expect(deck.deckCount).toBe(40);
+        expect(deck.deckList.every((card: Card) => card.name === 'Empty Card')).toBe(true);
     });
 });
