@@ -7,8 +7,8 @@ import { CardDetails } from './card-details';
 
 /** Represents the input for a simulation */
 export interface SimulationInput {
-    deck: Deck;
-    conditions: BaseCondition[];
+    deck: Map<string, CardDetails>;
+    conditions: string[];
 }
 
 /** Manages YAML operations for the application */
@@ -64,6 +64,33 @@ export class YamlManager {
         } catch (error) {
             throw new Error(`Failed to parse YAML: ${(error as Error).message}`);
         }
+    }
+
+    /**
+     * Builds a deck from a record of card details
+     * @param deckList - Record of card names and their details
+     * @returns A new Deck instance
+     */
+    private getCardList(deckList: Record<string, CardDetails>): Map<string, CardDetails> {
+        const cards: Map<string, CardDetails> = new Map<string, CardDetails>();
+        for (const [card, details] of Object.entries(deckList)) {
+            const qty = details.qty ?? 1;
+
+            details.qty = (details.qty ?? 0) + qty;
+
+            // Add the card
+            if (!cards.has(card)) {
+                cards.set(card, details);
+            } else {
+                const cardDetails = cards.get(card);
+                if (cardDetails) {
+                    cardDetails.qty = (cardDetails.qty ?? 0) + qty;
+                    cardDetails.tags = [...new Set([...(cardDetails.tags ?? []), ...(details.tags ?? [])])];
+                }
+            }
+        }
+
+        return cards;
     }
 
     /**

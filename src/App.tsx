@@ -19,6 +19,8 @@ const App: React.FC = () => {
     const [simulationInput, setSimulationInput] = useState<SimulationInput | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isReportVisible, setIsReportVisible] = useState<boolean>(false);
+    const [cardData, setCardData] = useLocalStorage<Map<string, CardDetails>>("cardDataStore", new Map<string, CardDetails>());
+    const [conditionData, setConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
 
     const handleYamlUpload = async (file: File) => {
         try {
