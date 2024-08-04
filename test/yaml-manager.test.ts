@@ -99,6 +99,19 @@ describe('YAML Manager', () => {
             expect(result.conditions[1]).toBe('(1 Card2 OR 2 Card1)');
         });
 
+        it('should handle no quantity specified', () => {
+            const yamlString = `
+                deck:
+                    Card1:
+                        qty: 1
+            `;
+            const result = yamlManager.loadFromYamlString(yamlString);
+            
+            expect(result.deck).toBeInstanceOf(Map);
+            expect(result.deck.size).toBe(1);
+            expect(result.deck.get('Card1')?.qty).toBe(1);
+        });
+
         it('should throw an error for invalid YAML', () => {
             const invalidYaml = `
                 deck:

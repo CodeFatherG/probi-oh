@@ -17,18 +17,6 @@ export function loadFromYamlString(yamlString: string): SimulationInput {
     try {
         const input = yaml.load(yamlString) as { deck: Map<string, CardDetails>, conditions: string[] };
 
-        if (!input || typeof input !== 'object') {
-            throw new Error('Invalid YAML structure: not an object');
-        }
-
-        if (!input.deck || typeof input.deck !== 'object') {
-            throw new Error('Invalid YAML structure: deck must be an object');
-        }
-
-        if (!Array.isArray(input.conditions)) {
-            throw new Error('Invalid YAML structure: conditions must be an array');
-        }
-
         // Validate deck structure
         for (const [cardName, cardDetails] of Object.entries(input.deck)) {
             if (typeof cardDetails !== 'object' || Array.isArray(cardDetails)) {
@@ -60,15 +48,7 @@ function getCardList(deckList: Map<string, CardDetails> | Record<string, CardDet
         details.qty = qty;
 
         // Add the card
-        if (!cards.has(card)) {
-            cards.set(card, details);
-        } else {
-            const cardDetails = cards.get(card);
-            if (cardDetails) {
-                cardDetails.qty = (cardDetails.qty ?? 0) + qty;
-                cardDetails.tags = [...new Set([...(cardDetails.tags ?? []), ...(details.tags ?? [])])];
-            }
-        }
+        cards.set(card, details);
     }
 
     return cards;
