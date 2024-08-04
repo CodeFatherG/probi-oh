@@ -114,11 +114,11 @@ describe('Deck', () => {
 
 describe('buildDeck', () => {
     it('should build a deck from a record of card details', () => {
-        const deckList: Record<string, CardDetails> = {
-            'Card A': { qty: 3, tags: ['Tag1'] },
-            'Card B': { qty: 2, tags: ['Tag2'] },
-            'Card C': { tags: ['Tag3'] } // Testing default quantity
-        };
+        const deckList: Map<string, CardDetails> = new Map([
+            ['Card A', { qty: 3, tags: ['Tag1'] }],
+            ['Card B', { qty: 2, tags: ['Tag2'] }],
+            ['Card C', { tags: ['Tag3'] }],
+        ]);
         const deck = buildDeck(deckList);
 
         expect(deck).toBeInstanceOf(Deck);
@@ -129,7 +129,7 @@ describe('buildDeck', () => {
     });
 
     it('should handle empty deck list', () => {
-        const deckList: Record<string, CardDetails> = {};
+        const deckList: Map<string, CardDetails> = new Map();
         const deck = buildDeck(deckList);
 
         expect(deck).toBeInstanceOf(Deck);

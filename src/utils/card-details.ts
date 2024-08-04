@@ -103,7 +103,7 @@ export interface CardDetails {
     /**
      * The tags associated with the card.
      */
-    tags?: readonly string[];
+    tags?: string[];
     /**
      * The details of a free card.
      */

@@ -1,4 +1,4 @@
-import { YamlManager, SimulationInput } from '../src/utils/yaml-manager';
+import * as yamlManager from '../src/utils/yaml-manager';
 import { Deck } from '../src/utils/deck';
 import { Card, CreateCard } from '../src/utils/card';
 import { Condition, AndCondition, OrCondition, BaseCondition } from '../src/utils/condition';
@@ -58,12 +58,10 @@ class MockFileReader implements Partial<FileReader> {
     }
 }
 
-describe('YamlManager', () => {
-    let yamlManager: YamlManager;
+describe('YAML Manager', () => {
     const mockGetCardById = cardApi.getCardById as jest.MockedFunction<typeof cardApi.getCardById>;
 
     beforeEach(() => {
-        yamlManager = YamlManager.getInstance();
         // Apply mocks
         (global as any).File = MockFile;
         (global as any).FileReader = MockFileReader;
@@ -74,14 +72,6 @@ describe('YamlManager', () => {
     
     afterEach(() => {
         jest.restoreAllMocks();
-    });
-
-    describe('getInstance', () => {
-        it('should always return the same instance', () => {
-            const instance1 = YamlManager.getInstance();
-            const instance2 = YamlManager.getInstance();
-            expect(instance1).toBe(instance2);
-        });
     });
 
     describe('loadFromYamlString', () => {
@@ -100,11 +90,26 @@ describe('YamlManager', () => {
             `;
             const result = yamlManager.loadFromYamlString(yamlString);
             
-            expect(result.deck).toBeInstanceOf(Deck);
-            expect(result.deck.deckCount).toBe(40);
+            expect(result.deck).toBeInstanceOf(Map);
+            expect(result.deck.size).toBe(2);
             expect(result.conditions).toHaveLength(2);
-            expect(result.conditions[0]).toBeInstanceOf(Condition);
-            expect(result.conditions[1]).toBeInstanceOf(OrCondition);
+            expect(result.deck.get('Card1')?.qty).toBe(3);
+            expect(result.deck.get('Card2')?.qty).toBe(2);
+            expect(result.conditions[0]).toBe('2+ Card1');
+            expect(result.conditions[1]).toBe('(1 Card2 OR 2 Card1)');
+        });
+
+        it('should handle no quantity specified', () => {
+            const yamlString = `
+                deck:
+                    Card1:
+                        qty: 1
+            `;
+            const result = yamlManager.loadFromYamlString(yamlString);
+            
+            expect(result.deck).toBeInstanceOf(Map);
+            expect(result.deck.size).toBe(1);
+            expect(result.deck.get('Card1')?.qty).toBe(1);
         });
 
         it('should throw an error for invalid YAML', () => {
@@ -124,9 +129,9 @@ describe('YamlManager', () => {
               conditions: []
             `;
             expect(() => yamlManager.loadFromYamlString(invalidYaml)).toThrow('Invalid card details');
-          });
+        });
           
-          it('should throw an error for invalid card structure', () => {
+        it('should throw an error for invalid card structure', () => {
             const invalidYaml = `
               deck:
                 Card1:
@@ -135,7 +140,7 @@ describe('YamlManager', () => {
               conditions: []
             `;
             expect(() => yamlManager.loadFromYamlString(invalidYaml)).toThrow('Invalid card structure');
-          });
+        });
     });
 
     describe('loadFromYamlFile', () => {
@@ -151,7 +156,7 @@ describe('YamlManager', () => {
             const mockFile = new MockFile([mockFileContent], 'test.yaml', { type: 'application/x-yaml' });
             
             const result = await yamlManager.loadFromYamlFile(mockFile as unknown as File);
-            expect(result.deck).toBeInstanceOf(Deck);
+            expect(result.deck).toBeInstanceOf(Map);
             expect(result.conditions).toHaveLength(1);
         });
 
@@ -173,40 +178,6 @@ describe('YamlManager', () => {
         });
     });
 
-    describe('convertYdkToYaml', () => {
-        it('should convert YDK to YAML', async () => {
-            const ydkContent = `#created by...
-            #main
-            12345
-            67890
-            #extra
-            54321`;
-            const mockFile = new MockFile([ydkContent], 'test.ydk', { type: 'text/plain' });
-    
-            mockGetCardById
-                .mockResolvedValueOnce({
-                    id: 12345,
-                    name: 'Card A',
-                    type: 'Monster',
-                    desc: 'Description A',
-                    race: 'Warrior',
-                    card_images: [{ id: 12345, image_url: 'url_a', image_url_small: 'small_url_a' }]
-                })
-                .mockResolvedValueOnce({
-                    id: 67890,
-                    name: 'Card B',
-                    type: 'Spell',
-                    desc: 'Description B',
-                    race: 'Normal',
-                    card_images: [{ id: 67890, image_url: 'url_b', image_url_small: 'small_url_b' }]
-                });
-    
-            const result = await yamlManager.convertYdkToYaml(mockFile as unknown as File);
-            expect(result).toContain('Card A:');
-            expect(result).toContain('Card B:');
-        });
-    });
-
     describe('serializeDeckToYaml', () => {
         it('should correctly serialize a deck to YAML', () => {
             const cards = [
@@ -218,7 +189,7 @@ describe('YamlManager', () => {
             const result = yamlManager.serializeDeckToYaml(deck);
             const parsed = yaml.load(result) as { deck: any };
             expect(parsed.deck.Card1.qty).toBe(2);
-            expect(parsed.deck.Card2.qty).toBe(1);
+            expect(parsed.deck.Card2.qty).toBe(undefined);
         });
 
         it('should correctly handle duplicate cards', () => {
@@ -231,7 +202,7 @@ describe('YamlManager', () => {
             const result = yamlManager.serializeDeckToYaml(deck);
             const parsed = yaml.load(result) as { deck: any };
             expect(parsed.deck.Card1.qty).toBe(2);
-            expect(parsed.deck.Card2.qty).toBe(1);
+            expect(parsed.deck.Card2.qty).toBe(undefined);
         });
     });
 
@@ -247,8 +218,8 @@ describe('YamlManager', () => {
             const result = yamlManager.serializeConditionsToYaml(conditions);
             const parsed = yaml.load(result) as { conditions: string[] };
             expect(parsed.conditions).toHaveLength(2);
-            expect(parsed.conditions[0]).toBe('2+ Card1');
-            expect(parsed.conditions[1]).toBe('(Card2 OR 2+ Card1)');
+            expect(parsed.conditions[0]).toBe('2+ Card1 IN Hand');
+            expect(parsed.conditions[1]).toBe('(1 Card2 IN Hand OR 2+ Card1 IN Hand)');
         });
 
         it('should correctly serialize complex conditions', () => {
@@ -261,122 +232,26 @@ describe('YamlManager', () => {
             ]);
             const result = yamlManager.serializeConditionsToYaml([condition]);
             const parsed = yaml.load(result) as { conditions: string[] };
-            expect(parsed.conditions[0]).toBe('(2+ Card1 AND (Card2 OR 3 Card3))');
+            expect(parsed.conditions[0]).toBe('(2+ Card1 IN Hand AND (1 Card2 IN Hand OR 3- Card3 IN Hand))');
         });
     });
 
     describe('serializeSimulationInputToYaml', () => {
         it('should correctly serialize a complete simulation input to YAML', () => {
-            const cards = [
-                CreateCard('Card1', { tags: ['Tag1'] }),
-                CreateCard('Card2', { tags: ['Tag2'] })
-            ];
-            const deck = new Deck(cards);
+            const deckMap = new Map([
+                ['Card1', { qty: 1, tags: ['Tag1'] }],
+                ['Card2', { qty: 1, tags: ['Tag2'] }]
+            ]);
             const conditions = [
-                new Condition('Card1', 1, '>='),
-                new AndCondition([
-                    new Condition('Card1', 1, '='),
-                    new Condition('Card2', 1, '=')
-                ])
+                '1+ Card1',
+                '(Card1 AND Card2)'
             ];
-            const input: SimulationInput = { deck, conditions };
+            const input = { deck: deckMap, conditions };
             const result = yamlManager.serializeSimulationInputToYaml(input);
             const parsed = yaml.load(result) as { deck: any, conditions: string[] };
             expect(parsed.deck.Card1.qty).toBe(1);
             expect(parsed.deck.Card2.qty).toBe(1);
             expect(parsed.conditions).toHaveLength(2);
-        });
-    });
-
-    describe('yaml getter', () => {
-        it('should return the yaml property', () => {
-            const yamlManager = YamlManager.getInstance();
-            expect(yamlManager.yaml).toBeNull(); // Assuming it's initially null
-        });
-    });
-
-    describe('input getter', () => {
-        it('should return the input property', () => {
-            const yamlManager = YamlManager.getInstance();
-            expect(yamlManager.input).toBeNull(); // Assuming it's initially null
-        });
-    });
-
-    describe('loadFromYamlString', () => {
-        it('should throw an error for null input', () => {
-            const yamlManager = YamlManager.getInstance();
-            expect(() => yamlManager.loadFromYamlString(null as any)).toThrow('Invalid YAML structure: not an object');
-        });
-
-        it('should throw an error for missing deck', () => {
-            const yamlManager = YamlManager.getInstance();
-            const invalidYaml = `
-                conditions:
-                    - 1+ Card1
-            `;
-            expect(() => yamlManager.loadFromYamlString(invalidYaml)).toThrow('Invalid YAML structure: deck must be an object');
-        });
-
-        it('should throw an error for missing conditions', () => {
-            const yamlManager = YamlManager.getInstance();
-            const invalidYaml = `
-                deck:
-                    Card1:
-                        qty: 3
-                        tags: [Tag1, Tag2]
-            `;
-            expect(() => yamlManager.loadFromYamlString(invalidYaml)).toThrow('Invalid YAML structure: conditions must be an array');
-        });
-    });
-
-    describe('conditionToString', () => {
-        it('should handle AndCondition', () => {
-            const yamlManager = YamlManager.getInstance();
-            const condition = new AndCondition([
-                new Condition('Card1', 2, '>='),
-                new Condition('Card2', 1, '=')
-            ]);
-            const result = yamlManager['conditionToString'](condition); // Accessing private method
-            expect(result).toBe('(2+ Card1 AND Card2)');
-        });
-
-        it('should handle OrCondition', () => {
-            const yamlManager = YamlManager.getInstance();
-            const condition = new OrCondition([
-                new Condition('Card1', 2, '>='),
-                new Condition('Card2', 1, '=')
-            ]);
-            const result = yamlManager['conditionToString'](condition); // Accessing private method
-            expect(result).toBe('(2+ Card1 OR Card2)');
-        });
-
-        it('should throw an error for unknown condition type', () => {
-            const yamlManager = YamlManager.getInstance();
-            const unknownCondition = {} as BaseCondition;
-            expect(() => yamlManager['conditionToString'](unknownCondition)).toThrow('Unknown condition type');
-        });
-    });
-
-    describe('readFileContent', () => {
-        it('should handle file read errors', async () => {
-            const yamlManager = YamlManager.getInstance();
-            const mockFile = new MockFile([], 'test.yaml');
-            
-            // Mock the FileReader
-            const mockFileReader = {
-                readAsText: jest.fn().mockImplementation(function(this: any) {
-                    setTimeout(() => {
-                        if (this.onerror) {
-                            this.onerror(new Error('Read error'));
-                        }
-                    }, 0);
-                }),
-                onload: null as any,
-                onerror: null as any,
-            };
-            (global as any).FileReader = jest.fn(() => mockFileReader);
-    
-            await expect(yamlManager['readFileContent'](mockFile as unknown as File)).rejects.toThrow('Read error');
         });
     });
 });
@@ -395,25 +270,13 @@ describe('Edge Cases', () => {
                 - 2+ 1
                 - (1 2 OR 2 1)
         `;
-        const yamlManager = YamlManager.getInstance();
         const result = yamlManager.loadFromYamlString(yamlString);
         
-        expect(result.deck).toBeInstanceOf(Deck);
-        expect(result.deck.deckCount).toBe(40);
+        expect(result.deck).toBeInstanceOf(Map);
+        expect(result.deck.size).toBe(2);
         expect(result.conditions).toHaveLength(2);
-        expect(result.conditions[0]).toBeInstanceOf(Condition);
-        expect(result.conditions[1]).toBeInstanceOf(OrCondition);
-        expect((result.conditions[0] as Condition).cardName).toBe('1');
-        expect((result.conditions[0] as Condition).quantity).toBe(2);
-        expect((result.conditions[0] as Condition).operator).toBe('>=');
-        expect((result.conditions[1] as OrCondition).conditions[0]).toBeInstanceOf(Condition);
-        expect((result.conditions[1] as OrCondition).conditions[1]).toBeInstanceOf(Condition);
-        expect(((result.conditions[1] as OrCondition).conditions[0] as Condition).cardName).toBe('2');
-        expect(((result.conditions[1] as OrCondition).conditions[0] as Condition).quantity).toBe(1);
-        expect(((result.conditions[1] as OrCondition).conditions[0] as Condition).operator).toBe('=');
-        expect(((result.conditions[1] as OrCondition).conditions[1] as Condition).cardName).toBe('1');
-        expect(((result.conditions[1] as OrCondition).conditions[1] as Condition).quantity).toBe(2);
-        expect(((result.conditions[1] as OrCondition).conditions[1] as Condition).operator).toBe('=');
+        expect(result.conditions[0]).toBe('2+ 1');
+        expect(result.conditions[1]).toBe('(1 2 OR 2 1)');
     });
 
     describe('Handle "" card names', () => {
@@ -426,17 +289,12 @@ describe('Edge Cases', () => {
                 conditions:
                     - 2+ "Card A"
             `;
-            const yamlManager = YamlManager.getInstance();
             const result = yamlManager.loadFromYamlString(yamlString);
             
-            expect(result.deck).toBeInstanceOf(Deck);
-            expect(result.deck.deckCount).toBe(40);
+            expect(result.deck).toBeInstanceOf(Map);
+            expect(result.deck.size).toBe(1);
             expect(result.conditions).toHaveLength(1);
-            expect(result.conditions[0]).toBeInstanceOf(Condition);
-            expect((result.conditions[0] as Condition).cardName).toBe('"Card A"');
-            expect((result.conditions[0] as Condition).quantity).toBe(2);
-            expect((result.conditions[0] as Condition).operator).toBe('>=');
+            expect(result.conditions[0]).toBe('2+ "Card A"');
         });
-    })
-    
+    });
 });

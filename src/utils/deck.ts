@@ -63,9 +63,9 @@ export class Deck {
  * @param deckList - Record of card names and their details
  * @returns A new Deck instance
  */
-export function buildDeck(deckList: Record<string, CardDetails>): Deck {
+export function buildDeck(deckList: Map<string, CardDetails>): Deck {
     const cards: Card[] = [];
-    for (const [card, details] of Object.entries(deckList)) {
+    for (const [card, details] of deckList) {
         const qty = details.qty ?? 1;
         cards.push(...Array(qty).fill(CreateCard(card, details)));
     }
