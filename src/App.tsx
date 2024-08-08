@@ -14,8 +14,8 @@ import { CardDetails } from './utils/card-details';
 import useLocalStorage from './components/LocalStorage';
 import { parseCondition } from './utils/parser';
 import InputDisplay from './components/InputDisplay';
-import CardComponent from './components/CardComponent';
-import FlexibleTextBox from './components/FlexibleTextBox';
+import DeckTable from './components/DeckTable';
+import useLocalStorageMap from './components/MapStorage';
 
 const App = () => {
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
@@ -23,7 +23,7 @@ const App = () => {
     const [result, setResult] = useState<string | null>(null);
     const [reportData, setReportData] = useState<Report[]>([]);
     const [isReportVisible, setIsReportVisible] = useState<boolean>(false);
-    const [cardData, setCardData] = useLocalStorage<Map<string, CardDetails>>("cardDataStore", new Map<string, CardDetails>());
+    const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
     const [conditionData, setConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
 
     const handleYamlUpload = async (file: File) => {
@@ -97,6 +97,19 @@ const App = () => {
         setIsReportVisible(!isReportVisible);
     };
 
+    function onAddCard(cardName: string) {
+        if (!cardData.has(cardName)) {
+            setCardData(new Map(cardData.set(cardName, {})));
+        }
+
+        const details = cardData.get(cardName) ?? {};
+        details.qty = (details.qty ?? 0) + 1;
+    }
+
+    function onCardDetailsUpdated(cardName: string, details: CardDetails) {
+        cardData.set(cardName, details);
+    }
+
     return (
         <div className="App">
             <h1 style={{
@@ -108,8 +121,7 @@ const App = () => {
 
             <InputDisplay input={{deck: cardData, conditions: conditionData}} />
             <FileInput onFileUpload={handleYamlUpload} acceptedExtensions={[".yaml", ".yml"]} importPrompt="Import Yaml" />
-            <CardComponent />
-            <FlexibleTextBox />
+            <DeckTable map={cardData} onAddCard={onAddCard} onUpdateCard={onCardDetailsUpdated} />
             <SimulationRunner onRun={runSimulation} disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0 || isSimulationRunning} />
             {isSimulationRunning && <ProgressBar progress={progress} />}
             {result && <ResultDisplay result={result} />}
