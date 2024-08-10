@@ -41,6 +41,28 @@ export async function loadFromYdkString(ydkString: string): Promise<Map<string, 
     return cards;
 }
 
+/**
+ * Loads a SimulationInput from a YAML file
+ * @param file - The File object containing YAML content
+ */
+export async function loadFromYdkFile(file: File): Promise<Map<string, CardDetails>> {
+    const yamlContent = await readFileContent(file);
+    return loadFromYdkString(yamlContent);
+}
+
+/**
+ * Reads the content of a file
+ * @param file - The File object to read
+ */
+function readFileContent(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event: ProgressEvent<FileReader>) => resolve(event.target?.result as string);
+        reader.onerror = (error: ProgressEvent<FileReader>) => reject(error);
+        reader.readAsText(file);
+    });
+}
+
 export async function serialiseCardsToYdk(cards: Map<string, CardDetails>): Promise<string> {
     let ydkString = "#Created by Probi-Oh\n#tags=\n#main\n";
 
