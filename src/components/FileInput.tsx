@@ -1,3 +1,4 @@
+import { Button, Tooltip } from '@mui/material';
 import React, { useState, useRef } from 'react';
 
 interface FileInputProps {
@@ -27,7 +28,7 @@ const FileInput = ({ onFileUpload, acceptedExtensions = [".yml", ".yaml"], impor
     };
 
     return (
-        <div className="file-input">
+        <div>
             <input
                 type="file"
                 ref={fileInputRef}
@@ -35,9 +36,11 @@ const FileInput = ({ onFileUpload, acceptedExtensions = [".yml", ".yaml"], impor
                 accept={acceptedExtensions.join(",")}
                 style={{ display: 'none' }}
             />
-            <button onClick={handleButtonClick}>
-                {fileName ? 'Change File' : importPrompt}
-            </button>
+            <Tooltip disableFocusListener title="Import YAML or YDK config">
+                <Button onClick={handleButtonClick}>
+                    {fileName ? 'Change File' : importPrompt}
+                </Button>
+            </Tooltip>
             {fileName && (
                 <span className={`file-name ${isValidFileType(fileName) ? 'valid' : 'invalid'}`}>
                     {fileName}
