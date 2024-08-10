@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import FileInput from './components/FileInput';
 import SimulationRunner from './components/SimulationRunner';
 import ProgressBar from './components/ProgressBar';
@@ -14,8 +14,12 @@ import { CardDetails } from './utils/card-details';
 import useLocalStorage from './components/LocalStorage';
 import { parseCondition } from './utils/parser';
 import InputDisplay from './components/InputDisplay';
-import DeckTable from './components/DeckTable';
 import useLocalStorageMap from './components/MapStorage';
+import CardTable from './components/CardTable';
+import { fuzzySearchCard, getCardByName } from './utils/card-api';
+import ErrorSnackbar from './components/ErrorSnackbar';
+import { CardInformation } from './utils/card-information';
+import { getCardDetails } from './utils/details-provider';
 
 const App = () => {
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
@@ -25,6 +29,7 @@ const App = () => {
     const [isReportVisible, setIsReportVisible] = useState<boolean>(false);
     const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
     const [conditionData, setConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
+    const [errorMessage, setErrorMessage] = useState('');
 
     const handleYamlUpload = async (file: File) => {
         try {
@@ -97,18 +102,68 @@ const App = () => {
         setIsReportVisible(!isReportVisible);
     };
 
-    function onAddCard(cardName: string) {
-        if (!cardData.has(cardName)) {
-            setCardData(new Map(cardData.set(cardName, {})));
+    // CardTable callback hooks
+    const handleUpdateCard = useCallback((name: string, details: CardDetails) => {
+        setCardData(prevData => {
+            const newData = new Map(prevData);
+            newData.set(name, details);
+            return newData;
+        });
+    }, [setCardData]);
+
+    const handleCreateCard = useCallback(async (name: string) => {
+        if (cardData.has(name)) {
+            console.warn(`Card "${name}" already exists`);
+            return;
         }
 
-        const details = cardData.get(cardName) ?? {};
-        details.qty = (details.qty ?? 0) + 1;
-    }
+        let cardInfo = null;
+        let cardDetails: CardDetails = {qty: 1};
+        try {
+            cardInfo = await getCardByName(name);
 
-    function onCardDetailsUpdated(cardName: string, details: CardDetails) {
-        cardData.set(cardName, details);
-    }
+            if (cardInfo === null) {
+                setErrorMessage(`Failed to fetch card information for "${name}"`);
+            }
+            else {
+                // We have Card Info, lets make some populated data
+                cardDetails = await getCardDetails(cardInfo);
+                cardDetails.qty = 1;
+            }
+        } catch {
+            setErrorMessage(`Failed to fetch card information for "${name}"`);
+        }
+
+        setCardData(prevData => {
+            const newData = new Map(prevData);
+            newData.set(name, cardDetails);
+            return newData;
+        });
+    }, [cardData, setCardData]);
+
+    const handleDeleteCards = useCallback((names: string[]) => {
+        setCardData(prevData => {
+            const newData = new Map(prevData);
+            names.forEach(name => newData.delete(name));
+            return newData;
+        });
+    }, [setCardData]);
+
+    const handleMoveCard = useCallback((name: string, direction: 'up' | 'down') => {
+        setCardData(prevData => {
+            const entries: [string, CardDetails][] = Array.from(prevData.entries());
+            const index = entries.findIndex(([key]) => key === name);
+            if (index === -1) return prevData; // Card not found
+    
+            const newIndex = direction === 'up' ? Math.max(0, index - 1) : Math.min(entries.length - 1, index + 1);
+            if (newIndex === index) return prevData; // No change needed
+    
+            const [movedEntry] = entries.splice(index, 1);
+            entries.splice(newIndex, 0, movedEntry);
+    
+            return new Map(entries);
+        });
+    }, [setCardData]);
 
     return (
         <div className="App">
@@ -121,7 +176,13 @@ const App = () => {
 
             <InputDisplay input={{deck: cardData, conditions: conditionData}} />
             <FileInput onFileUpload={handleYamlUpload} acceptedExtensions={[".yaml", ".yml"]} importPrompt="Import Yaml" />
-            <DeckTable map={cardData} onAddCard={onAddCard} onUpdateCard={onCardDetailsUpdated} />
+            <CardTable
+                cards={cardData}
+                onUpdateCard={handleUpdateCard}
+                onCreateCard={handleCreateCard}
+                onDeleteCards={handleDeleteCards}
+                onMoveCard={handleMoveCard}
+            />
             <SimulationRunner onRun={runSimulation} disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0 || isSimulationRunning} />
             {isSimulationRunning && <ProgressBar progress={progress} />}
             {result && <ResultDisplay result={result} />}
@@ -133,6 +194,10 @@ const App = () => {
                 {isReportVisible && <ReportDisplay reports={reportData} />}
             </div>
             )}
+            <ErrorSnackbar 
+                message={errorMessage} 
+                onClose={() => setErrorMessage('')}
+            />
         </div>
     );
 };

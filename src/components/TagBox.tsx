@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Box, Chip, Stack } from '@mui/material';
 import FlexibleTextBox from './FlexibleTextBox';
 
-const TagBox = () => {
-    const [tags, setTags] = useState<string[]>([]);
+export interface TagBoxProps {
+    tags: string[];
+    onTagsChange: (newTags: string[]) => void;
+}
 
+export default function TagBox({tags, onTagsChange}: TagBoxProps) {
     const handleFlexibleInputComplete = (value: string) => {
         if (value.trim() !== '' && !tags.includes(value.trim())) {
-            setTags([...tags, value.trim()]);
+            onTagsChange([...tags, value.trim()]);
         }
     };
 
     const handleDeleteTag = (tagToDelete: string) => () => {
-        setTags((prevTags) => prevTags.filter((tag) => tag !== tagToDelete));
+        onTagsChange(tags.filter((tag) => tag !== tagToDelete));
     };
 
     return (
@@ -38,6 +41,4 @@ const TagBox = () => {
             />
         </Box>
     );
-};
-
-export default TagBox;
+}
