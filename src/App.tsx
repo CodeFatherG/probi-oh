@@ -13,13 +13,12 @@ import ReportDisplay from './components/ReportDisplay';
 import { CardDetails } from './utils/card-details';
 import useLocalStorage from './components/LocalStorage';
 import { parseCondition } from './utils/parser';
-import InputDisplay from './components/InputDisplay';
 import useLocalStorageMap from './components/MapStorage';
 import CardTable from './components/CardTable';
-import { fuzzySearchCard, getCardByName } from './utils/card-api';
+import { getCardByName } from './utils/card-api';
 import ErrorSnackbar from './components/ErrorSnackbar';
-import { CardInformation } from './utils/card-information';
 import { getCardDetails } from './utils/details-provider';
+import { loadFromYdkFile } from './utils/ydk-manager';
 
 const App = () => {
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
@@ -31,12 +30,18 @@ const App = () => {
     const [conditionData, setConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
     const [errorMessage, setErrorMessage] = useState('');
 
-    const handleYamlUpload = async (file: File) => {
+    const handleFileUpload = async (file: File) => {
         try {
-            const input = await loadFromYamlFile(file);
-            setCardData(input.deck);
-            setConditionData(input.conditions);
-            console.log('File loaded successfully:', input);
+            if (file.name.endsWith('.yaml') || file.name.endsWith('.yml')) {
+                const input = await loadFromYamlFile(file);
+                setCardData(input.deck);
+                setConditionData(input.conditions);
+            }
+            else if (file.name.endsWith('.ydk')) {
+                setCardData(await loadFromYdkFile(file));
+            }
+            
+            console.log('File loaded successfully:', file.name);
         } catch (err) {
             console.error('Error loading file:', err);
         }
@@ -174,7 +179,8 @@ const App = () => {
                 Probi-oh: Yu-Gi-Oh! Probability Simulator
             </h1>
 
-            <FileInput onFileUpload={handleYamlUpload} acceptedExtensions={[".yaml", ".yml"]} importPrompt="Import Yaml" />
+            
+            <FileInput onFileUpload={handleFileUpload} acceptedExtensions={[".yaml", ".yml", ".ydk"]} importPrompt="Import File" />
             <CardTable
                 cards={cardData}
                 onUpdateCard={handleUpdateCard}
