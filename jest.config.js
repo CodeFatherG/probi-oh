@@ -1,8 +1,8 @@
 module.exports = {
     preset: 'ts-jest',
     testEnvironment: 'node',
-    roots: ['<rootDir>/test'],
-    testMatch: ['**/*.test.ts'],
+    roots: ['<rootDir>/src/utils', '<rootDir>/test'],
+    testMatch: ['**/src/utils/**/*.test.ts', '**/test/**/*.test.ts'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     moduleNameMapper: {
         '^(\\.{1,2}/.*)\\.js$': '$1',
@@ -25,6 +25,7 @@ module.exports = {
     // Ignore coverage for certain files or directories
     coveragePathIgnorePatterns: [
         '/node_modules/',
-        '/test/'
+        '/test/',
+        '/src/(?!utils)/'  // Ignore everything in src except the utils folder
     ]
 };
