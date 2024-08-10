@@ -174,7 +174,6 @@ const App = () => {
                 Probi-oh: Yu-Gi-Oh! Probability Simulator
             </h1>
 
-            <InputDisplay input={{deck: cardData, conditions: conditionData}} />
             <FileInput onFileUpload={handleYamlUpload} acceptedExtensions={[".yaml", ".yml"]} importPrompt="Import Yaml" />
             <CardTable
                 cards={cardData}

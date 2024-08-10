@@ -127,7 +127,7 @@ export default function CardTable({
         <Paper>
             <Toolbar>
                 <Typography variant="h6" component="div" sx={{ flex: '1 1 100%' }}>
-                    Cards
+                    Deck
                 </Typography>
                 {selected.length > 0 && (
                 <>
@@ -185,7 +185,7 @@ export default function CardTable({
                                         type="number"
                                         value={details.qty || 0}
                                         onChange={(e) => handleQuantityChange(name, parseInt(e.target.value, 10))}
-                                        inputProps={{ min: 0 }}
+                                        inputProps={{ min: 0, style: { width: '50px' } }}
                                     />
                                 </TableCell>
                                 <TableCell>
@@ -220,7 +220,7 @@ export default function CardTable({
                                             fullWidth
                                         />
                                     )}
-                            />
+                                />
                             </TableCell>
                         </TableRow>
                     </TableBody>
