@@ -1,5 +1,5 @@
 import { Button, Tooltip } from '@mui/material';
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 
 interface FileInputProps {
     onFileUpload: (file: File) => void;
