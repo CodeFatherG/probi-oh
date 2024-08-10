@@ -38,17 +38,9 @@ const FileInput = ({ onFileUpload, acceptedExtensions = [".yml", ".yaml"], impor
             />
             <Tooltip disableFocusListener title="Import YAML or YDK config">
                 <Button onClick={handleButtonClick}>
-                    {fileName ? 'Change File' : importPrompt}
+                    {importPrompt}
                 </Button>
             </Tooltip>
-            {fileName && (
-                <span className={`file-name ${isValidFileType(fileName) ? 'valid' : 'invalid'}`}>
-                    {fileName}
-                </span>
-            )}
-            {fileName && !isValidFileType(fileName) && (
-                <p className="error-message">Invalid file type. Please select a {acceptedExtensions.join(', or ')} file type.</p>
-            )}
         </div>
     );
 };
