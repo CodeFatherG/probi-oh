@@ -8,23 +8,17 @@ interface FileInputProps {
 }
 
 const FileInput = ({ onFileUpload, acceptedExtensions = [".yml", ".yaml"], importPrompt = "Import YAML" }: FileInputProps) => {
-    const [fileName, setFileName] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            setFileName(file.name);
             onFileUpload(file);
         }
     };
 
     const handleButtonClick = () => {
         fileInputRef.current?.click();
-    };
-
-    const isValidFileType = (name: string): boolean => {
-        return acceptedExtensions.some(ext => name.endsWith(ext));
     };
 
     return (
@@ -37,7 +31,11 @@ const FileInput = ({ onFileUpload, acceptedExtensions = [".yml", ".yaml"], impor
                 style={{ display: 'none' }}
             />
             <Tooltip disableFocusListener title="Import YAML or YDK config">
-                <Button onClick={handleButtonClick}>
+                <Button 
+                    onClick={handleButtonClick}
+                    variant="contained" 
+                    color="primary"
+                >
                     {importPrompt}
                 </Button>
             </Tooltip>

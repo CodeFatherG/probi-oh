@@ -19,6 +19,8 @@ import { getCardByName } from './utils/card-api';
 import ErrorSnackbar from './components/ErrorSnackbar';
 import { getCardDetails } from './utils/details-provider';
 import { loadFromYdkFile } from './utils/ydk-manager';
+import SaveFileComponent from './components/SaveFile';
+import { Box } from '@mui/material';
 
 const App = () => {
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
@@ -179,8 +181,17 @@ const App = () => {
                 Probi-oh: Yu-Gi-Oh! Probability Simulator
             </h1>
 
-            
-            <FileInput onFileUpload={handleFileUpload} acceptedExtensions={[".yaml", ".yml", ".ydk"]} importPrompt="Import File" />
+            <Box display="flex" flexDirection="row" gap={2}>
+                <FileInput 
+                    onFileUpload={handleFileUpload} 
+                    acceptedExtensions={[".yaml", ".yml", ".ydk"]} 
+                    importPrompt="Import File" 
+                />
+                <SaveFileComponent 
+                    cardData={cardData} 
+                    conditionData={conditionData} 
+                />
+            </Box>
             <CardTable
                 cards={cardData}
                 onUpdateCard={handleUpdateCard}
