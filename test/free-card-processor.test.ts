@@ -1,4 +1,4 @@
-import { excavate, processFreeCard } from '../src/utils/free-card-processor';
+import { excavate, freeCardIsUsable, processFreeCard } from '../src/utils/free-card-processor';
 import { Simulation, SimulationBranch } from '../src/utils/simulation';
 import { GameState } from '../src/utils/game-state';
 import { Deck } from '../src/utils/deck';
@@ -411,5 +411,289 @@ describe('Free Card Tests', () => {
         // Test once per turn
         processFreeCard(simulation, spellbookOfKnowledge);
         expect(simulation.gameState.cardsPlayedThisTurn).toHaveLength(1);
+    });
+});
+
+describe('freeCardIsUsable', () => {
+    let gameState: GameState;
+    let mockCondition: BaseCondition;
+
+    beforeEach(() => {
+        const testDeck = new Deck(Array(40).fill(null).map((_, i) => CreateCard(`Card ${i}`, {})));
+        gameState = new GameState(testDeck);
+        gameState.drawHand(5);
+        mockCondition = {
+            evaluate: jest.fn().mockReturnValue(true),
+            requiredCards: jest.fn().mockReturnValue([]),
+            successes: 0,
+            toString: jest.fn()
+        };
+    });
+
+    it('should return true for a usable free card', () => {
+        const freeCard = CreateCard('Usable Free Card', {
+            free: {
+                count: 1,
+                oncePerTurn: false
+            }
+        }) as FreeCard;
+        gameState.hand.push(freeCard);
+
+        expect(freeCardIsUsable(gameState, freeCard)).toBe(true);
+    });
+
+    it('should return false for a once per turn card that has been used', () => {
+        const freeCard = CreateCard('Once Per Turn Card', {
+            free: {
+                count: 1,
+                oncePerTurn: true
+            }
+        }) as FreeCard;
+        gameState.hand.push(freeCard);
+        gameState.playCard(freeCard);
+
+        expect(freeCardIsUsable(gameState, freeCard)).toBe(false);
+    });
+
+    it('should return false when there are not enough cards in the deck', () => {
+        const freeCard = CreateCard('Draw Too Many', {
+            free: {
+                count: 41,
+                oncePerTurn: false
+            }
+        }) as FreeCard;
+        gameState.hand.push(freeCard);
+
+        expect(freeCardIsUsable(gameState, freeCard)).toBe(false);
+    });
+
+    it('should return false when NoMoreDraws restriction is active', () => {
+        const restrictiveCard = CreateCard('No More Draws', { 
+            free: { 
+                count: 0,
+                oncePerTurn: false,
+                restriction: [RestrictionType.NoMoreDraws]
+            }
+        }) as FreeCard;
+        const freeCard = CreateCard('Free Card', {
+            free: {
+                count: 1,
+                oncePerTurn: false
+            }
+        }) as FreeCard;
+        
+        gameState.hand.push(restrictiveCard, freeCard);
+        gameState.playCard(restrictiveCard);
+
+        expect(freeCardIsUsable(gameState, freeCard)).toBe(false);
+    });
+});
+
+describe('processFreeCard', () => {
+    let gameState: GameState;
+    let mockCondition: BaseCondition;
+    let simulation: SimulationBranch;
+
+    beforeEach(() => {
+        const testDeck = new Deck(Array(40).fill(null).map((_, i) => CreateCard(`Card ${i}`, {})));
+        gameState = new GameState(testDeck);
+        gameState.drawHand(5);
+        mockCondition = {
+            evaluate: jest.fn().mockReturnValue(true),
+            requiredCards: jest.fn().mockReturnValue([]),
+            successes: 0,
+            toString: jest.fn()
+        };
+        simulation = { gameState, condition: mockCondition } as SimulationBranch;
+    });
+
+    it('should process a valid free card', () => {
+        const freeCard = CreateCard('Valid Free Card', {
+            free: {
+                count: 2,
+                oncePerTurn: false
+            }
+        }) as FreeCard;
+        gameState.hand.push(freeCard);
+
+        const initialHandSize = gameState.hand.length;
+        processFreeCard(simulation, freeCard);
+
+        expect(gameState.cardsPlayedThisTurn).toContain(freeCard);
+        expect(gameState.hand).not.toContain(freeCard);
+        expect(gameState.hand.length).toBe(initialHandSize + 1); // -1 for playing, +2 for drawing
+    });
+
+    it('should not process a card that is not in hand', () => {
+        const freeCard = CreateCard('Not In Hand', { free: { count: 1, oncePerTurn: false } }) as FreeCard;
+        
+        console.error = jest.fn();
+        processFreeCard(simulation, freeCard);
+
+        expect(console.error).toHaveBeenCalledWith("Card is not in the player's hand");
+        expect(gameState.cardsPlayedThisTurn).not.toContain(freeCard);
+    });
+});
+
+describe('excavate', () => {
+    let gameState: GameState;
+    let mockCondition: BaseCondition;
+
+    beforeEach(() => {
+        const testDeck = new Deck(Array(40).fill(null).map((_, i) => CreateCard(`Card ${i}`, {})));
+        gameState = new GameState(testDeck);
+        gameState.drawHand(5);
+        mockCondition = new Condition('Test Card', 1);
+    });
+
+    it('should excavate and add cards to hand', () => {
+        const freeCard = CreateCard('Excavate Card', {
+            free: {
+                count: 0,
+                oncePerTurn: false,
+                excavate: { count: 3, pick: 2 }
+            }
+        }) as FreeCard;
+
+        const initialHandSize = gameState.hand.length;
+        const initialDeckSize = gameState.deck.deckCount;
+
+        excavate(gameState, freeCard, mockCondition);
+
+        expect(gameState.hand.length).toBe(initialHandSize + 2);
+        expect(gameState.deck.deckCount).toBe(initialDeckSize - 2);
+    });
+});
+
+describe('cardCanPayCost (via freeCardIsUsable)', () => {
+    let gameState: GameState;
+    let mockCondition: BaseCondition;
+
+    beforeEach(() => {
+        const testDeck = new Deck(Array(40).fill(null).map((_, i) => CreateCard(`Card ${i}`, {})));
+        gameState = new GameState(testDeck);
+        gameState.drawHand(5);
+        mockCondition = {
+            evaluate: jest.fn().mockReturnValue(true),
+            requiredCards: jest.fn().mockReturnValue([]),
+            successes: 0,
+            toString: jest.fn()
+        };
+    });
+
+    it('should return true when card has no cost', () => {
+        const freeCard = CreateCard('No Cost Card', {
+            free: {
+                count: 1,
+                oncePerTurn: false
+            }
+        }) as FreeCard;
+        gameState.hand.push(freeCard);
+
+        expect(freeCardIsUsable(gameState, freeCard)).toBe(true);
+    });
+
+    it('should return true when BanishFromDeck cost can be paid', () => {
+        const freeCard = CreateCard('BanishFromDeck Card', {
+            free: {
+                count: 1,
+                oncePerTurn: false,
+                cost: { type: CostType.BanishFromDeck, value: 5 }
+            }
+        }) as FreeCard;
+        gameState.hand.push(freeCard);
+
+        expect(freeCardIsUsable(gameState, freeCard)).toBe(true);
+    });
+
+    it('should return false when not enough cards in deck for BanishFromDeck cost', () => {
+        const freeCard = CreateCard('BanishFromDeck Card', {
+            free: {
+                count: 1,
+                oncePerTurn: false,
+                cost: { type: CostType.BanishFromDeck, value: 36 }
+            }
+        }) as FreeCard;
+        gameState.hand.push(freeCard);
+
+        expect(freeCardIsUsable(gameState, freeCard)).toBe(false);
+    });
+
+    it('should return true when BanishFromHand cost can be paid', () => {
+        const freeCard = CreateCard('BanishFromHand Card', {
+            free: {
+                count: 1,
+                oncePerTurn: false,
+                cost: { type: CostType.BanishFromHand, value: 2 }
+            }
+        }) as FreeCard;
+        gameState.hand.push(freeCard);
+
+        expect(freeCardIsUsable(gameState, freeCard)).toBe(true);
+    });
+
+    it('should return false when not enough cards in hand for BanishFromHand cost', () => {
+        const freeCard = CreateCard('BanishFromHand Card', {
+            free: {
+                count: 1,
+                oncePerTurn: false,
+                cost: { type: CostType.BanishFromHand, value: 6 }
+            }
+        }) as FreeCard;
+        gameState.hand.push(freeCard);
+
+        expect(freeCardIsUsable(gameState, freeCard)).toBe(false);
+    });
+
+    it('should return true when Discard cost can be paid', () => {
+        const freeCard = CreateCard('Discard Card', {
+            free: {
+                count: 1,
+                oncePerTurn: false,
+                cost: { type: CostType.Discard, value: 2 }
+            }
+        }) as FreeCard;
+        gameState.hand.push(freeCard);
+
+        expect(freeCardIsUsable(gameState, freeCard)).toBe(true);
+    });
+
+    it('should return false when not enough cards in hand for Discard cost', () => {
+        const freeCard = CreateCard('Discard Card', {
+            free: {
+                count: 1,
+                oncePerTurn: false,
+                cost: { type: CostType.Discard, value: 6 }
+            }
+        }) as FreeCard;
+        gameState.hand.push(freeCard);
+
+        expect(freeCardIsUsable(gameState, freeCard)).toBe(false);
+    });
+
+    it('should always return true for PayLife cost', () => {
+        const freeCard = CreateCard('PayLife Card', {
+            free: {
+                count: 1,
+                oncePerTurn: false,
+                cost: { type: CostType.PayLife, value: 1000 }
+            }
+        }) as FreeCard;
+        gameState.hand.push(freeCard);
+
+        expect(freeCardIsUsable(gameState, freeCard)).toBe(true);
+    });
+
+    it('should return true for PayLife cost with extreme value', () => {
+        const freeCard = CreateCard('Extreme PayLife Card', {
+            free: {
+                count: 1,
+                oncePerTurn: false,
+                cost: { type: CostType.PayLife, value: 1000000 }
+            }
+        }) as FreeCard;
+        gameState.hand.push(freeCard);
+
+        expect(freeCardIsUsable(gameState, freeCard)).toBe(true);
     });
 });

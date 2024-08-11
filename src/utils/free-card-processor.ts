@@ -14,10 +14,14 @@ function cardCanPayCost(gameState: GameState, card: FreeCard): boolean {
     switch (card.cost.type)
     {
         case CostType.BanishFromDeck:
-            if (gameState.deck.deckCount < (card.cost.value as number))
-            {
+            if (typeof(card.cost.value) === "number") {
+                if (gameState.deck.deckCount < (card.cost.value as number)) {
+                    return false;
+                }
+            } else if (typeof(card.cost.value) === "string") {
                 return false;
             }
+            
             break;
 
         case CostType.BanishFromHand:
@@ -28,9 +32,10 @@ function cardCanPayCost(gameState: GameState, card: FreeCard): boolean {
             break;
 
         case CostType.Discard:
-            if (handLessCard.length < (card.cost.value as number))
-            {
-                return false;
+            if (typeof(card.cost.value) === "number") {
+                if (handLessCard.length < (card.cost.value as number)) {
+                    return false;
+                }
             }
             break;
 
