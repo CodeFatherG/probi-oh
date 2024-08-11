@@ -19,17 +19,6 @@ interface SimpleDialogProps {
 export default function SaveFileComponent({ cardData, conditionData }: SaveFileComponentProps) {
     const [open, setOpen] = React.useState(false);
 
-    // const handleSave = (value: string) => {
-    //     const data = {
-    //     deck: Object.fromEntries(cardData),
-    //     conditions: conditionData,
-    //     };
-
-    //     const yamlString = yaml.dump(data);
-    //     const blob = new Blob([yamlString], { type: 'text/yaml;charset=utf-8' });
-    //     saveAs(blob, 'yugioh_deck_config.yaml');
-    // };
-
     const handleDialogClose = async (value?: string) => {
         setOpen(false);
 
@@ -83,7 +72,7 @@ function SaveDialog({ onClose, open }: SimpleDialogProps) {
 
     return (
         <Dialog onClose={handleClose} open={open}>
-            <DialogTitle>Set backup account</DialogTitle>
+            <DialogTitle>Export to:</DialogTitle>
             <List sx={{ pt: 0 }}>
                 <ListItem disableGutters key="yaml">
                     <ListItemButton onClick={() => handleListItemClick("yaml")}>
