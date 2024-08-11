@@ -29,6 +29,15 @@ export default function CardTable({
     const [selected, setSelected] = useState<string[]>([]);
     const [newCardName, setNewCardName] = useState('');
     const [autocompleteOptions, setAutocompleteOptions] = useState<string[]>([]);
+    const [tagOptions, setTagOptions] = useState<string[]>([...new Set(Array.from(cards.values()).flatMap(card => card.tags || []))]);
+
+    const updateTagOptions = (updatedCards: Map<string, CardDetails>) => {
+        const allTags = new Set<string>();
+        updatedCards.forEach(card => {
+            card.tags?.forEach(tag => allTags.add(tag));
+        });
+        setTagOptions(Array.from(allTags));
+    };
 
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
@@ -79,7 +88,10 @@ export default function CardTable({
     const handleTagsChange = (name: string, tags: string[]) => {
         const cardDetails = cards.get(name);
         if (cardDetails) {
+            const updatedCards = new Map(cards);
+            updatedCards.set(name, { ...cardDetails, tags });
             onUpdateCard(name, { ...cardDetails, tags });
+            updateTagOptions(updatedCards);
         }
     };
 
@@ -194,6 +206,7 @@ export default function CardTable({
                                         onTagsChange={(tags) => {
                                             handleTagsChange(name, tags)
                                         }}
+                                        tagOptions={tagOptions}
                                     />
                                 </TableCell>
                             </TableRow>
