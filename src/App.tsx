@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import FileInput from './components/FileInput';
 import SimulationRunner from './components/SimulationRunner';
 import ProgressBar from './components/ProgressBar';
@@ -13,26 +13,38 @@ import ReportDisplay from './components/ReportDisplay';
 import { CardDetails } from './utils/card-details';
 import useLocalStorage from './components/LocalStorage';
 import { parseCondition } from './utils/parser';
+import useLocalStorageMap from './components/MapStorage';
+import CardTable from './components/CardTable';
+import { getCardByName } from './utils/card-api';
+import ErrorSnackbar from './components/ErrorSnackbar';
+import { getCardDetails } from './utils/details-provider';
+import { loadFromYdkFile } from './utils/ydk-manager';
+import SaveFileComponent from './components/SaveFile';
+import { Box } from '@mui/material';
 
-const App: React.FC = () => {
+const App = () => {
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
     const [progress, setProgress] = useState(0);
     const [result, setResult] = useState<string | null>(null);
     const [reportData, setReportData] = useState<Report[]>([]);
-    const [error, setError] = useState<string | null>(null);
     const [isReportVisible, setIsReportVisible] = useState<boolean>(false);
-    const [cardData, setCardData] = useLocalStorage<Map<string, CardDetails>>("cardDataStore", new Map<string, CardDetails>());
+    const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
     const [conditionData, setConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
+    const [errorMessage, setErrorMessage] = useState('');
 
-    const handleYamlUpload = async (file: File) => {
+    const handleFileUpload = async (file: File) => {
         try {
-            const input = await loadFromYamlFile(file);
-            setCardData(input.deck);
-            setConditionData(input.conditions);
-            setError(null);
-            console.log('File loaded successfully:', input);
+            if (file.name.endsWith('.yaml') || file.name.endsWith('.yml')) {
+                const input = await loadFromYamlFile(file);
+                setCardData(input.deck);
+                setConditionData(input.conditions);
+            }
+            else if (file.name.endsWith('.ydk')) {
+                setCardData(await loadFromYdkFile(file));
+            }
+            
+            console.log('File loaded successfully:', file.name);
         } catch (err) {
-            setError(`Error loading file: ${(err as Error).message}`);
             console.error('Error loading file:', err);
         }
     };
@@ -67,7 +79,6 @@ const App: React.FC = () => {
         setProgress(0);
         setResult(null);
         setIsSimulationRunning(true);
-        setError(null);
 
         try {
             console.log(`Cards: ${Array.from(cardData, ([card, details]) => `${card}: ${details.qty || 1}`).join(', ')}`);
@@ -88,7 +99,6 @@ const App: React.FC = () => {
             
             console.log(`Simulation complete. Maximum success probability: ${(maxProbability * 100).toFixed(2)}%`);
         } catch (err) {
-            setError(`Error running simulation: ${(err as Error).message}`);
             console.error('Error running simulation:', err);
         } finally {
             setIsSimulationRunning(false);
@@ -99,11 +109,96 @@ const App: React.FC = () => {
         setIsReportVisible(!isReportVisible);
     };
 
+    // CardTable callback hooks
+    const handleUpdateCard = useCallback((name: string, details: CardDetails) => {
+        setCardData(prevData => {
+            const newData = new Map(prevData);
+            newData.set(name, details);
+            return newData;
+        });
+    }, [setCardData]);
+
+    const handleCreateCard = useCallback(async (name: string) => {
+        if (cardData.has(name)) {
+            console.warn(`Card "${name}" already exists`);
+            return;
+        }
+
+        let cardInfo = null;
+        let cardDetails: CardDetails = {qty: 1};
+        try {
+            cardInfo = await getCardByName(name);
+
+            if (cardInfo === null) {
+                setErrorMessage(`Failed to fetch card information for "${name}"`);
+            }
+            else {
+                // We have Card Info, lets make some populated data
+                cardDetails = await getCardDetails(cardInfo);
+                cardDetails.qty = 1;
+            }
+        } catch {
+            setErrorMessage(`Failed to fetch card information for "${name}"`);
+        }
+
+        setCardData(prevData => {
+            const newData = new Map(prevData);
+            newData.set(name, cardDetails);
+            return newData;
+        });
+    }, [cardData, setCardData]);
+
+    const handleDeleteCards = useCallback((names: string[]) => {
+        setCardData(prevData => {
+            const newData = new Map(prevData);
+            names.forEach(name => newData.delete(name));
+            return newData;
+        });
+    }, [setCardData]);
+
+    const handleMoveCard = useCallback((name: string, direction: 'up' | 'down') => {
+        setCardData(prevData => {
+            const entries: [string, CardDetails][] = Array.from(prevData.entries());
+            const index = entries.findIndex(([key]) => key === name);
+            if (index === -1) return prevData; // Card not found
+    
+            const newIndex = direction === 'up' ? Math.max(0, index - 1) : Math.min(entries.length - 1, index + 1);
+            if (newIndex === index) return prevData; // No change needed
+    
+            const [movedEntry] = entries.splice(index, 1);
+            entries.splice(newIndex, 0, movedEntry);
+    
+            return new Map(entries);
+        });
+    }, [setCardData]);
+
     return (
         <div className="App">
-            <h1>Probi-oh: Yu-Gi-Oh! Probability Simulator</h1>
-            <FileInput onFileUpload={handleYamlUpload} acceptedExtensions={[".yaml", ".yml"]} importPrompt="Import Yaml" />
-            {error && <p className="error-message">{error}</p>}
+            <h1 style={{
+                display: 'flex',
+                justifyContent: 'center',
+            }}>
+                Probi-oh: Yu-Gi-Oh! Probability Simulator
+            </h1>
+
+            <Box display="flex" flexDirection="row" gap={2}>
+                <FileInput 
+                    onFileUpload={handleFileUpload} 
+                    acceptedExtensions={[".yaml", ".yml", ".ydk"]} 
+                    importPrompt="Import File" 
+                />
+                <SaveFileComponent 
+                    cardData={cardData} 
+                    conditionData={conditionData} 
+                />
+            </Box>
+            <CardTable
+                cards={cardData}
+                onUpdateCard={handleUpdateCard}
+                onCreateCard={handleCreateCard}
+                onDeleteCards={handleDeleteCards}
+                onMoveCard={handleMoveCard}
+            />
             <SimulationRunner onRun={runSimulation} disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0 || isSimulationRunning} />
             {isSimulationRunning && <ProgressBar progress={progress} />}
             {result && <ResultDisplay result={result} />}
@@ -115,6 +210,10 @@ const App: React.FC = () => {
                 {isReportVisible && <ReportDisplay reports={reportData} />}
             </div>
             )}
+            <ErrorSnackbar 
+                message={errorMessage} 
+                onClose={() => setErrorMessage('')}
+            />
         </div>
     );
 };

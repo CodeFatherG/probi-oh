@@ -1,13 +1,7 @@
 import yaml from 'js-yaml';
-import { Deck } from './deck';
 import { BaseCondition } from './condition';
 import { CardDetails } from './card-details';
-
-/** Represents the input for a simulation */
-export interface SimulationInput {
-    deck: Map<string, CardDetails>;
-    conditions: string[];
-}
+import { SimulationInput } from './simulation-input';
 
 /**
  * Loads a SimulationInput from a YAML string
@@ -76,17 +70,17 @@ function readFileContent(file: File): Promise<string> {
     });
 }
 
-export function serializeDeckToYaml(deck: Deck): string {
+export function serialiseCardsToYaml(cards: Map<string, CardDetails>): string {
     const deckObject: Record<string, CardDetails> = {};
-    deck.deckList.forEach(card => {
-        if (card.name !== 'Empty Card') {
-            if (deckObject[card.name]) {
-                const cardDetails = deckObject[card.name];
+    Array.from(cards.entries()).forEach(([card, details]) => {
+        if (card !== 'Empty Card') {
+            if (deckObject[card]) {
+                const cardDetails = deckObject[card];
                 if (cardDetails) {
                     cardDetails.qty = (cardDetails.qty || 1) + 1;
                 }
             } else {
-                deckObject[card.name] = card.details;
+                deckObject[card] = details;
             }
         }
     });
@@ -94,26 +88,26 @@ export function serializeDeckToYaml(deck: Deck): string {
 }
 
 /**
- * Serializes conditions to YAML format
- * @param conditions - The conditions to serialize
+ * serialises conditions to YAML format
+ * @param conditions - The conditions to serialise
  */
-export function serializeConditionsToYaml(conditions: BaseCondition[]): string {
+export function serialiseConditionsToYaml(conditions: BaseCondition[]): string {
     const conditionStrings = conditions.map(condition => condition.toString());
     return yaml.dump({ conditions: conditionStrings });
 }
 
 /**
- * Serializes a SimulationInput to YAML format
- * @param input - The SimulationInput to serialize
+ * serialises a SimulationInput to YAML format
+ * @param input - The SimulationInput to serialise
  */
-export function serializeSimulationInputToYaml(input: SimulationInput): string {
+export function serialiseSimulationInputToYaml(input: SimulationInput): string {
     const deck: Record<string, CardDetails> = {};
 
     for (const [card, details] of input.deck) {
         deck[card] = details;
     }
 
-    const deckYaml = yaml.dump({ deck: deck });
+    const deckYaml = serialiseCardsToYaml(input.deck);
     const conditionsYaml = yaml.dump({ conditions: input.conditions });
     return deckYaml + '\n' + conditionsYaml;
 }

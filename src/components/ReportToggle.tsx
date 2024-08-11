@@ -5,7 +5,7 @@ interface ReportToggleProps {
     isVisible: boolean;
 }
 
-const ReportToggle: React.FC<ReportToggleProps> = ({ onToggle, isVisible }) => {
+const ReportToggle = ({ onToggle, isVisible }: ReportToggleProps) => {
     return (
         <button onClick={onToggle}>
             {isVisible ? 'Hide Report' : 'Show Report'}

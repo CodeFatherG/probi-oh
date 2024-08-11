@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import { Button, Tooltip } from '@mui/material';
+import React, { useRef } from 'react';
 
 interface FileInputProps {
     onFileUpload: (file: File) => void;
@@ -6,14 +7,12 @@ interface FileInputProps {
     importPrompt: string;
 }
 
-const FileInput: React.FC<FileInputProps> = ({ onFileUpload, acceptedExtensions = [".yml", ".yaml"], importPrompt = "Import YAML" }) => {
-    const [fileName, setFileName] = useState<string>('');
+const FileInput = ({ onFileUpload, acceptedExtensions = [".yml", ".yaml"], importPrompt = "Import YAML" }: FileInputProps) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            setFileName(file.name);
             onFileUpload(file);
         }
     };
@@ -22,12 +21,8 @@ const FileInput: React.FC<FileInputProps> = ({ onFileUpload, acceptedExtensions 
         fileInputRef.current?.click();
     };
 
-    const isValidFileType = (name: string): boolean => {
-        return acceptedExtensions.some(ext => name.endsWith(ext));
-    };
-
     return (
-        <div className="file-input">
+        <div>
             <input
                 type="file"
                 ref={fileInputRef}
@@ -35,17 +30,15 @@ const FileInput: React.FC<FileInputProps> = ({ onFileUpload, acceptedExtensions 
                 accept={acceptedExtensions.join(",")}
                 style={{ display: 'none' }}
             />
-            <button onClick={handleButtonClick}>
-                {fileName ? 'Change File' : importPrompt}
-            </button>
-            {fileName && (
-                <span className={`file-name ${isValidFileType(fileName) ? 'valid' : 'invalid'}`}>
-                    {fileName}
-                </span>
-            )}
-            {fileName && !isValidFileType(fileName) && (
-                <p className="error-message">Invalid file type. Please select a {acceptedExtensions.join(', or ')} file type.</p>
-            )}
+            <Tooltip disableFocusListener title="Import YAML or YDK config">
+                <Button 
+                    onClick={handleButtonClick}
+                    variant="contained" 
+                    color="primary"
+                >
+                    {importPrompt}
+                </Button>
+            </Tooltip>
         </div>
     );
 };

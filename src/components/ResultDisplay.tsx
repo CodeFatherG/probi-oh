@@ -4,7 +4,7 @@ interface ResultDisplayProps {
     result: string;
 }
 
-const ResultDisplay: React.FC<ResultDisplayProps> = ({ result }) => {
+const ResultDisplay = ({ result }: ResultDisplayProps) => {
     return (
         <div id="result">
             {result}

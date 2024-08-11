@@ -1,4 +1,4 @@
-import { Deck, buildDeck } from '../src/utils/deck';
+import { buildDeck, Deck } from '../src/utils/deck';
 import { Card, CreateCard } from '../src/utils/card';
 import { CardDetails } from '../src/utils/card-details';
 
