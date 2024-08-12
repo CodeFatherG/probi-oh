@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import FileInput from './components/FileInput';
 import SimulationRunner from './components/SimulationRunner';
-import ProgressBar from './components/ProgressBar';
 import ResultDisplay from './components/ResultDisplay';
 import { buildDeck, Deck } from './utils/deck';
 import { BaseCondition } from './utils/condition';

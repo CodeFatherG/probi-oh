@@ -4,7 +4,7 @@ import {
     Button, TextField, Select, MenuItem, IconButton, Grid,
     Autocomplete
 } from '@mui/material';
-import { Add, Remove } from '@mui/icons-material';
+import { Remove } from '@mui/icons-material';
 
 interface ConditionBuilderDialogProps {
     open: boolean;
