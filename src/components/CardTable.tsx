@@ -142,17 +142,17 @@ export default function CardTable({
                     Deck
                 </Typography>
                 {selected.length > 0 && (
-                <>
-                    <IconButton onClick={() => handleMoveCard('up')} disabled={selected.length !== 1}>
-                    <ArrowUpward />
-                    </IconButton>
-                    <IconButton onClick={() => handleMoveCard('down')} disabled={selected.length !== 1}>
-                    <ArrowDownward />
-                    </IconButton>
-                    <IconButton onClick={handleDeleteSelected}>
-                    <Delete />
-                    </IconButton>
-                </>
+                    <>
+                        <IconButton onClick={() => handleMoveCard('up')} disabled={selected.length !== 1}>
+                            <ArrowUpward />
+                        </IconButton>
+                        <IconButton onClick={() => handleMoveCard('down')} disabled={selected.length !== 1}>
+                            <ArrowDownward />
+                        </IconButton>
+                        <IconButton onClick={handleDeleteSelected}>
+                            <Delete />
+                        </IconButton>
+                    </>
                 )}
             </Toolbar>
             <TableContainer>
