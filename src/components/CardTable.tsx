@@ -25,7 +25,7 @@ export default function CardTable({
     onMoveCard
 }: CardTableProps) {
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
     const [selected, setSelected] = useState<string[]>([]);
     const [newCardName, setNewCardName] = useState('');
     const [autocompleteOptions, setAutocompleteOptions] = useState<string[]>([]);

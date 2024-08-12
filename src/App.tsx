@@ -185,6 +185,27 @@ const App = () => {
         });
     }, [setCardData]);
 
+    const handleConditionsChange = useCallback((newConditions: string[]) => {
+        const conditions: string[] = [];
+        for (const condition of newConditions) {
+            if (condition.trim() !== '') {
+                try {
+                    // Will throw if fatal error
+                    parseCondition(condition);
+
+                    // If we made it here then valid condition
+                    conditions.push(condition);
+                }
+                catch (e) {
+                    console.error(`Invalid condition: ${condition}\n${e}`);
+                    setErrorMessage(`Invalid condition: ${condition}\t${e}`);
+                }
+            }
+        }
+
+        setConditionData(conditions);
+    }, [setConditionData]);
+
     return (
         <div className="App">
             <LoadingOverlay isLoading={isLoading} />
@@ -220,7 +241,7 @@ const App = () => {
                 <Grid item xs={12}>
                     <ConditionList 
                         conditions={conditionData} 
-                        onConditionsChange={(conditions: string[]) => { setConditionData(conditions) }}
+                        onConditionsChange={handleConditionsChange}
                         autocompleteOptions={autocompleteOptions}
                     />
                 </Grid>

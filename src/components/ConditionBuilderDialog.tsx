@@ -5,6 +5,8 @@ import {
     Autocomplete
 } from '@mui/material';
 import { Remove } from '@mui/icons-material';
+import { parseCondition } from '../utils/parser';
+import { AndCondition, BaseCondition, Condition, LocationConditionTarget, OrCondition } from '../utils/condition';
 
 interface ConditionBuilderDialogProps {
     open: boolean;
@@ -27,16 +29,34 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
 
     useEffect(() => {
         if (initialCondition) {
-            const parsedElements = initialCondition.split(' ').map(el => {
-                if (el === 'AND' || el === 'OR') {
-                return { type: el.toLowerCase() };
+            const elements: Element[] = [];
+            
+            // parse the condition string to objects
+            const condition = parseCondition(initialCondition);
+
+            // function to parse the next condition object
+            const parseElement = (condition: BaseCondition) => {
+                if (condition instanceof AndCondition) {
+                    elements.push({ type: 'and' });
+                    condition.conditions.forEach(parseElement);
+                } else if (condition instanceof OrCondition) {
+                    elements.push({ type: 'or' });
+                    condition.conditions.forEach(parseElement);
+                } else if (condition instanceof Condition) {
+                    elements.push({
+                        type: 'single',
+                        quantity: condition.quantity,
+                        operator: condition.operator,
+                        cardName: condition.cardName,
+                        location: condition.location === LocationConditionTarget.Deck ? 'Deck' : 'Hand'
+                    });
                 }
-                const [quantityOp, cardName, , location] = el.split(' ');
-                const quantity = parseInt(quantityOp);
-                const operator = quantityOp.includes('+') ? '>=' : quantityOp.includes('-') ? '<=' : '=';
-                return { type: 'single', quantity, operator, cardName, location };
-            });
-            setElements(parsedElements);
+            }
+
+            // Now parse the element
+            parseElement(condition);
+
+            setElements(elements);
         } else {
             setElements([{ type: 'single', quantity: 1, operator: '>=', cardName: '', location: 'Hand' }]);
         }
