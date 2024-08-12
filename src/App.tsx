@@ -1,7 +1,6 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import FileInput from './components/FileInput';
 import SimulationRunner from './components/SimulationRunner';
-import ProgressBar from './components/ProgressBar';
 import ResultDisplay from './components/ResultDisplay';
 import { buildDeck, Deck } from './utils/deck';
 import { BaseCondition } from './utils/condition';
@@ -20,7 +19,9 @@ import ErrorSnackbar from './components/ErrorSnackbar';
 import { getCardDetails } from './utils/details-provider';
 import { loadFromYdkFile } from './utils/ydk-manager';
 import SaveFileComponent from './components/SaveFile';
-import { Box } from '@mui/material';
+import { Box, Grid, LinearProgress } from '@mui/material';
+import ConditionList from './components/ConditionList';
+import LoadingOverlay from './components/LoadingOverlay';
 
 const App = () => {
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
@@ -31,8 +32,19 @@ const App = () => {
     const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
     const [conditionData, setConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
     const [errorMessage, setErrorMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const autocompleteOptions = useMemo(() => {
+        const options = new Set<string>();
+        cardData.forEach((details, name) => {
+            options.add(name);
+            details.tags?.forEach(tag => options.add(tag));
+        });
+        return Array.from(options);
+    }, [cardData]);
 
     const handleFileUpload = async (file: File) => {
+        setIsLoading(true);
         try {
             if (file.name.endsWith('.yaml') || file.name.endsWith('.yml')) {
                 const input = await loadFromYamlFile(file);
@@ -47,6 +59,7 @@ const App = () => {
         } catch (err) {
             console.error('Error loading file:', err);
         }
+        setIsLoading(false);
     };
 
     const simulateDraw = async (deck: Deck, 
@@ -64,7 +77,7 @@ const App = () => {
             });
             
             if (i % 100 === 0 || i === trials - 1) {
-                const progress = ((i + 1) / trials) * 100;
+                const progress = Math.round(((i + 1) / trials) * 100);
                 setProgress(progress);
 
                 // Yield to the event loop to keep UI responsive
@@ -174,33 +187,49 @@ const App = () => {
 
     return (
         <div className="App">
+            <LoadingOverlay isLoading={isLoading} />
             <h1 style={{
                 display: 'flex',
                 justifyContent: 'center',
             }}>
                 Probi-oh: Yu-Gi-Oh! Probability Simulator
             </h1>
-
-            <Box display="flex" flexDirection="row" gap={2}>
-                <FileInput 
-                    onFileUpload={handleFileUpload} 
-                    acceptedExtensions={[".yaml", ".yml", ".ydk"]} 
-                    importPrompt="Import File" 
-                />
-                <SaveFileComponent 
-                    cardData={cardData} 
-                    conditionData={conditionData} 
-                />
-            </Box>
-            <CardTable
-                cards={cardData}
-                onUpdateCard={handleUpdateCard}
-                onCreateCard={handleCreateCard}
-                onDeleteCards={handleDeleteCards}
-                onMoveCard={handleMoveCard}
-            />
-            <SimulationRunner onRun={runSimulation} disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0 || isSimulationRunning} />
-            {isSimulationRunning && <ProgressBar progress={progress} />}
+            <Grid container spacing={2}>
+                <Grid item xs={12}>
+                    <Box display="flex" flexDirection="row" gap={2}>
+                        <FileInput 
+                            onFileUpload={handleFileUpload} 
+                            acceptedExtensions={[".yaml", ".yml", ".ydk"]} 
+                            importPrompt="Import File" 
+                        />
+                        <SaveFileComponent 
+                            cardData={cardData} 
+                            conditionData={conditionData} 
+                        />
+                    </Box>
+                </Grid>
+                <Grid item xs={12}>
+                    <CardTable
+                        cards={cardData}
+                        onUpdateCard={handleUpdateCard}
+                        onCreateCard={handleCreateCard}
+                        onDeleteCards={handleDeleteCards}
+                        onMoveCard={handleMoveCard}
+                    />
+                </Grid>
+                <Grid item xs={12}>
+                    <ConditionList 
+                        conditions={conditionData} 
+                        onConditionsChange={(conditions: string[]) => { setConditionData(conditions) }}
+                        autocompleteOptions={autocompleteOptions}
+                    />
+                </Grid>
+                <Grid item xs={12}>
+                    <SimulationRunner onRun={runSimulation} disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0 || isSimulationRunning} />
+                </Grid>
+            </Grid>
+            
+            {isSimulationRunning && <LinearProgress variant="determinate" value={progress} />}
             {result && <ResultDisplay result={result} />}
             {reportData.length > 0 && (
                 <div>
