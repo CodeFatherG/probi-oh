@@ -95,29 +95,35 @@ export default function CardTable({
         }
     };
 
-    const handleNewCardNameChange = async (event: React.ChangeEvent<object>, value: string) => {
-        setNewCardName(value);
-        if (value.length > 2) {
-            const results = await fuzzySearchCard(value);
-            setAutocompleteOptions(results.map(card => card.name));
-        } else {
+    const handleNewCardNameChange = async (event: React.ChangeEvent<object>, value: string, reason: string) => {
+        if (reason === 'input') {
+            setNewCardName(value);
+            if (value.length > 2) {
+                const results = await fuzzySearchCard(value);
+                setAutocompleteOptions(results.map(card => card.name));
+            } else {
+                setAutocompleteOptions([]);
+            }
+        } else if (reason === 'clear') {
+            setNewCardName('');
             setAutocompleteOptions([]);
         }
     };
 
-    const handleCreateCard = () => {
-        if (!newCardName) {
+    const handleCreateCard = (cardName: string) => {
+        if (!cardName) {
             return;
         }
-        if (cards.has(newCardName)) {
+        if (cards.has(cardName)) {
             // Highlight existing card
-            const index = Array.from(cards.keys()).indexOf(newCardName);
+            const index = Array.from(cards.keys()).indexOf(cardName);
             setPage(Math.floor(index / rowsPerPage));
             // You might want to add some visual feedback here
         } else {
-            onCreateCard(newCardName);
+            onCreateCard(cardName);
         }
         setNewCardName('');
+        setAutocompleteOptions([]);
     };
 
     const handleDeleteSelected = () => {
@@ -219,14 +225,18 @@ export default function CardTable({
                                     options={autocompleteOptions}
                                     inputValue={newCardName}
                                     onInputChange={handleNewCardNameChange}
-                                    onChange={(event, value) => setNewCardName(value || '')}
+                                    onChange={(event, value, reason) => {
+                                        if (reason === 'selectOption' && value) {
+                                            handleCreateCard(value);
+                                        }
+                                    }}
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
-                                            onKeyPress={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    handleCreateCard();
-                                                }
+                                                onKeyPress={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        handleCreateCard(newCardName);
+                                                    }
                                             }}
                                             placeholder="Add new card..."
                                             fullWidth
