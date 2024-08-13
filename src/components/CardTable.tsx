@@ -223,7 +223,6 @@ export default function CardTable({
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
-                                            onBlur={handleCreateCard}
                                             onKeyPress={(e) => {
                                                 if (e.key === 'Enter') {
                                                     handleCreateCard();
