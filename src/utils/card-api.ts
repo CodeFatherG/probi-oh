@@ -130,7 +130,7 @@ export async function getCardByName(name: string, fetcher = fetch, dbFactory = i
     if (cachedCard) return cachedCard;
 
     const url = new URL('https://db.ygoprodeck.com/api/v7/cardinfo.php');
-    url.searchParams.append('name', encodeURIComponent(name));
+    url.searchParams.append('name', name);
 
     return await getCardInformation(url, db, fetcher);
 }
@@ -146,7 +146,7 @@ export async function fuzzySearchCard(query: string, fetcher = fetch, dbFactory 
     const db = await dbFactory();
 
     const url = new URL('https://db.ygoprodeck.com/api/v7/cardinfo.php');
-    url.searchParams.append('fname', encodeURIComponent(query));
+    url.searchParams.append('fname', query);
 
     try {
         const response = await fetcher(url);
