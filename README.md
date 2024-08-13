@@ -1,5 +1,7 @@
 # probi-oh - The Simply Complex Yu-Gi-Oh! Probability Simulator
 
+Served by Github Pages at https://codefatherg.github.io/probi-oh/.
+
 ## Overview
 
 This project is an advanced Yu-Gi-Oh! probability calculator designed to provide more sophisticated simulation capabilities compared to traditional deck simulators. Our goal is to offer a more flexible and powerful tool for Yu-Gi-Oh! players and deck builders to analyze their strategies.
