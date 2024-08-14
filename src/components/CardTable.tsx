@@ -48,8 +48,7 @@ export default function CardTable({
         }
     };
 
-    const handleCheckboxClick = (event: React.MouseEvent<unknown>, name: string) => {
-        event.stopPropagation();
+    const selectCard = (name: string) => {
         const selectedIndex = selected.indexOf(name);
         let newSelected: string[] = [];
 
@@ -67,6 +66,11 @@ export default function CardTable({
         }
 
         setSelected(newSelected);
+    }
+
+    const handleCheckboxClick = (event: React.MouseEvent<unknown>, name: string) => {
+        event.stopPropagation();
+        selectCard(name);
     };
 
     const handleChangePage = (event: unknown, newPage: number) => {
@@ -123,7 +127,8 @@ export default function CardTable({
             // Highlight existing card
             const index = Array.from(cards.keys()).indexOf(cardName);
             setPage(Math.floor(index / rowsPerPage));
-            // You might want to add some visual feedback here
+            // Select the card
+            selectCard(cardName);
         } else {
             onCreateCard(cardName);
         }
