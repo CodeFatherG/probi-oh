@@ -43,7 +43,7 @@ export default function TagBox({tags, tagOptions, onTagsChange}: TagBoxProps) {
                 renderInput={(params) => (
                     <TextField
                         {...params}
-                        onBlur={handleNewTag}
+                        // onBlur={handleNewTag}
                         onKeyPress={(e) => {
                             if (e.key === 'Enter') {
                                 handleNewTag();

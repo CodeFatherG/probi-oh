@@ -27,7 +27,8 @@ export default function CardTable({
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [selected, setSelected] = useState<string[]>([]);
-    const [newCardName, setNewCardName] = useState('');
+    const [newCardName, setNewCardName] = useState<string>('');
+    const [selectedCardName, setSelectedCardName] = useState<string>('');
     const [autocompleteOptions, setAutocompleteOptions] = useState<string[]>([]);
     const [tagOptions, setTagOptions] = useState<string[]>([...new Set(Array.from(cards.values()).flatMap(card => card.tags || []))]);
 
@@ -47,8 +48,7 @@ export default function CardTable({
         }
     };
 
-    const handleCheckboxClick = (event: React.MouseEvent<unknown>, name: string) => {
-        event.stopPropagation();
+    const selectCard = (name: string) => {
         const selectedIndex = selected.indexOf(name);
         let newSelected: string[] = [];
 
@@ -66,6 +66,11 @@ export default function CardTable({
         }
 
         setSelected(newSelected);
+    }
+
+    const handleCheckboxClick = (event: React.MouseEvent<unknown>, name: string) => {
+        event.stopPropagation();
+        selectCard(name);
     };
 
     const handleChangePage = (event: unknown, newPage: number) => {
@@ -95,29 +100,41 @@ export default function CardTable({
         }
     };
 
-    const handleNewCardNameChange = async (event: React.ChangeEvent<object>, value: string) => {
-        setNewCardName(value);
-        if (value.length > 2) {
-            const results = await fuzzySearchCard(value);
-            setAutocompleteOptions(results.map(card => card.name));
-        } else {
+    const handleNewCardNameChange = async (event: React.ChangeEvent<object>, value: string, reason: string) => {
+        if (reason === 'input') {
+            setNewCardName(value);
+            if (value.length > 2) {
+                const results = await fuzzySearchCard(value);
+                setAutocompleteOptions(results.map(card => card.name));
+            } else {
+                setAutocompleteOptions([]);
+            }
+        } else if (reason === 'clear') {
+            setNewCardName('');
+            setSelectedCardName('');
             setAutocompleteOptions([]);
         }
     };
 
-    const handleCreateCard = () => {
-        if (!newCardName) {
+    const handleCreateCard = (cardName: string) => {
+        if (!cardName) {
+            setNewCardName('');
+            setSelectedCardName('');
+            setAutocompleteOptions([]);
             return;
         }
-        if (cards.has(newCardName)) {
+        if (cards.has(cardName)) {
             // Highlight existing card
-            const index = Array.from(cards.keys()).indexOf(newCardName);
+            const index = Array.from(cards.keys()).indexOf(cardName);
             setPage(Math.floor(index / rowsPerPage));
-            // You might want to add some visual feedback here
+            // Select the card
+            selectCard(cardName);
         } else {
-            onCreateCard(newCardName);
+            onCreateCard(cardName);
         }
         setNewCardName('');
+        setSelectedCardName('');
+        setAutocompleteOptions([]);
     };
 
     const handleDeleteSelected = () => {
@@ -218,16 +235,20 @@ export default function CardTable({
                                     freeSolo
                                     options={autocompleteOptions}
                                     inputValue={newCardName}
+                                    value={selectedCardName}
                                     onInputChange={handleNewCardNameChange}
-                                    onChange={(event, value) => setNewCardName(value || '')}
+                                    onChange={(event, value) => {
+                                        if (value) {
+                                            handleCreateCard(value);
+                                        }
+                                    }}
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
-                                            onBlur={handleCreateCard}
-                                            onKeyPress={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    handleCreateCard();
-                                                }
+                                                onKeyPress={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        handleCreateCard(newCardName);
+                                                    }
                                             }}
                                             placeholder="Add new card..."
                                             fullWidth
