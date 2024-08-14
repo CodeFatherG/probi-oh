@@ -176,14 +176,26 @@ export default function CardTable({
     const isSelected = (name: string) => selected.indexOf(name) !== -1;
 
     return (
-        <Paper>
-            <Toolbar>
+        <Paper sx={{ position: 'relative' }}>
+            <Toolbar
+                sx = {{
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1,
+                    backgroundColor: 'background.paper',
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    padding: 1,
+                    borderBottom: 1,
+                    borderColor: 'divider'
+                }}
+            >
                 <Box sx={{ display: 'flex', alignItems: 'baseline', flex: '1 1 100%' }}>
                     <Typography variant="h6" component="div" sx={{ mr: 2 }}>
                         Deck
                     </Typography>
                     <Typography variant="subtitle1" component="div">
-                    {calculateCardSummary().totalCount} Total
+                        {calculateCardSummary().totalCount} Total
                     </Typography>
                     <Typography variant="subtitle2" component="div" sx={{paddingLeft: 2}}>
                         M: {calculateCardSummary().monsterCount} • S: {calculateCardSummary().spellCount} • T: {calculateCardSummary().trapCount}
@@ -197,7 +209,7 @@ export default function CardTable({
                         <IconButton onClick={() => handleMoveCard('down')} disabled={selected.length !== 1}>
                             <ArrowDownward />
                         </IconButton>
-                        <IconButton onClick={handleDeleteSelected}>
+                        <IconButton onClick={handleDeleteSelected} disabled={selected.length === 0}>
                             <Delete />
                         </IconButton>
                     </>
