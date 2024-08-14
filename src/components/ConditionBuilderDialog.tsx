@@ -37,11 +37,13 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
             // function to parse the next condition object
             const parseElement = (condition: BaseCondition) => {
                 if (condition instanceof AndCondition) {
+                    parseElement(condition.conditions[0]);
                     elements.push({ type: 'and' });
-                    condition.conditions.forEach(parseElement);
+                    parseElement(condition.conditions[1]);
                 } else if (condition instanceof OrCondition) {
+                    parseElement(condition.conditions[0]);
                     elements.push({ type: 'or' });
-                    condition.conditions.forEach(parseElement);
+                    parseElement(condition.conditions[1]);
                 } else if (condition instanceof Condition) {
                     elements.push({
                         type: 'condition',
