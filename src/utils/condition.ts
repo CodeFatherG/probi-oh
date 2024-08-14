@@ -125,7 +125,14 @@ export class AndCondition implements BaseCondition {
 
     /** Evaluates the AND condition against a game state */
     evaluate(gameState: GameState): boolean {
-        const result = this.conditions.every(condition => condition.evaluate(gameState));
+        // init as a pass
+        let result = true;
+        this.conditions.forEach(condition => {
+            if (!condition.evaluate(gameState)) {
+                // then if any result fails consider the overall failure (.every)
+                result = false;
+            }
+        });
         this._successes += result ? 1 : 0;
         return result;
     }
@@ -166,7 +173,14 @@ export class OrCondition implements BaseCondition {
 
     /** Evaluates the OR condition against a a game state */
     evaluate(gameState: GameState): boolean {
-        const result = this.conditions.some(condition => condition.evaluate(gameState));
+        // init as a fail
+        let result = false;
+        this.conditions.forEach(condition => {
+            if (condition.evaluate(gameState)) {
+                // then if any result passes consider the overall failure (.some)
+                result = true;
+            }
+        });
         this._successes += result ? 1 : 0;
         return result;
     }
