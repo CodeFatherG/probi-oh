@@ -62,11 +62,21 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
         }
     }, [initialCondition, open]);
     const addElement = (type: 'condition' | 'and' | 'or') => {
+        const newElements: Element[] = [];
+        const lastElement = elements[elements.length - 1];
 
         if (type === 'condition') {
+            newElements.push({ type, quantity: 1, operator: '>=', cardName: '', location: 'Hand' });
         } else {
-            setElements([...elements, { type }]);
+            if (!lastElement || lastElement.type !== 'condition') {
+                newElements.push({ type: 'condition', quantity: 1, operator: '>=', cardName: '', location: 'Hand' });
+            }
+            
+            newElements.push({ type });
+            newElements.push({ type: 'condition', quantity: 1, operator: '>=', cardName: '', location: 'Hand' });
         }
+
+        setElements([...elements, ...newElements]);
     };
 
     const removeElement = (index) => {
