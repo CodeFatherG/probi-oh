@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Autocomplete, Box, Chip, Stack, TextField } from '@mui/material';
 
 export interface TagBoxProps {
@@ -8,13 +8,15 @@ export interface TagBoxProps {
 }
 
 export default function TagBox({tags, tagOptions, onTagsChange}: TagBoxProps) {
-    const [newTag, setNewTag] = React.useState('');
+    const [newTag, setNewTag] = useState('');
+    const [selectedValue, setSelectedValue] = useState('');
     const handleNewTag = () => {
         if (newTag.trim() !== '' && !tags.includes(newTag.trim())) {
             onTagsChange([...tags, newTag.trim()]);
         }
 
         setNewTag('');
+        setSelectedValue('');
     };
 
     const handleDeleteTag = (tagToDelete: string) => () => {
@@ -38,6 +40,7 @@ export default function TagBox({tags, tagOptions, onTagsChange}: TagBoxProps) {
                 freeSolo
                 options={tagOptions || []}
                 inputValue={newTag}
+                value={selectedValue}
                 onInputChange={(event, value) => setNewTag(value)}
                 onChange={(event, value) => setNewTag(value || '')}
                 renderInput={(params) => (
