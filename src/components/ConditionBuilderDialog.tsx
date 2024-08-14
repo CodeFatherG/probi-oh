@@ -99,6 +99,18 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
                 <Grid container spacing={1} alignItems="center" key={index} sx={{ mb: 1 }}>
                     {element.type === 'single' ? (
                     <>
+                        <Grid item xs={2}>
+                            <Select
+                                size="small"
+                                value={element.operator}
+                                onChange={(e) => updateElement(index, 'operator', e.target.value)}
+                                fullWidth
+                            >
+                                <MenuItem value=">=">at least</MenuItem>
+                                <MenuItem value="=">exactly</MenuItem>
+                                <MenuItem value="<=">no more than</MenuItem>
+                            </Select>
+                        </Grid>
                         <Grid item xs={1}>
                             <TextField
                                 size="small"
@@ -107,18 +119,6 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
                                 onChange={(e) => updateElement(index, 'quantity', e.target.value)}
                                 InputProps={{ inputProps: { min: 1 } }}
                             />
-                        </Grid>
-                        <Grid item xs={2}>
-                            <Select
-                                size="small"
-                                value={element.operator}
-                                onChange={(e) => updateElement(index, 'operator', e.target.value)}
-                                fullWidth
-                            >
-                                <MenuItem value=">=">≥</MenuItem>
-                                <MenuItem value="=">=</MenuItem>
-                                <MenuItem value="<=">≤</MenuItem>
-                            </Select>
                         </Grid>
                         <Grid item xs={5}>
                         <Autocomplete
