@@ -69,9 +69,15 @@ const App = () => {
         const simulations: Simulation[][] = Array(conditions.length).fill([]).map(() => []);
     
         for (let i = 0; i < trials; i++) {
+            // Create the game state for this trial
+            const gamestate = new GameState(deck.deepCopy());
+
+            // draw the hand for this trial so it is common to all conditions   
+            gamestate.drawHand(handSize);
+
             conditions.forEach((condition, index) => {
-                const simulation = new Simulation(new GameState(deck.deepCopy()), condition);
-                simulation.gameState.drawHand(handSize);
+                // Create the simulation for this condition
+                const simulation = new Simulation(gamestate.deepCopy(), condition);
                 simulations[index].push(simulation);
                 simulation.iterate();
             });
