@@ -17,7 +17,7 @@ interface ConditionBuilderDialogProps {
 }
 
 interface Element {
-    type: 'single' | 'and' | 'or';
+    type: 'condition' | 'and' | 'or';
     quantity?: number;
     operator?: string;
     cardName?: string;
@@ -44,7 +44,7 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
                     condition.conditions.forEach(parseElement);
                 } else if (condition instanceof Condition) {
                     elements.push({
-                        type: 'single',
+                        type: 'condition',
                         quantity: condition.quantity,
                         operator: condition.operator,
                         cardName: condition.cardName,
@@ -58,13 +58,12 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
 
             setElements(elements);
         } else {
-            setElements([{ type: 'single', quantity: 1, operator: '>=', cardName: '', location: 'Hand' }]);
+            setElements([{ type: 'condition', quantity: 1, operator: '>=', cardName: '', location: 'Hand' }]);
         }
     }, [initialCondition, open]);
+    const addElement = (type: 'condition' | 'and' | 'or') => {
 
-    const addElement = (type: string) => {
-        if (type === 'single') {
-            setElements([...elements, { type, quantity: 1, operator: '>=', cardName: '', location: 'Hand' }]);
+        if (type === 'condition') {
         } else {
             setElements([...elements, { type }]);
         }
@@ -82,7 +81,7 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
 
     const handleSave = () => {
         const conditionString = elements.map(el => {
-            if (el.type === 'single') {
+            if (el.type === 'condition') {
                 const op = el.operator === '>=' ? '+' : el.operator === '<=' ? '-' : '';
                 return `${el.quantity}${op} ${el.cardName} IN ${el.location}`;
             }
@@ -97,7 +96,7 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
         <DialogContent>
             {elements.map((element, index) => (
                 <Grid container spacing={1} alignItems="center" key={index} sx={{ mb: 1 }}>
-                    {element.type === 'single' ? (
+                    {element.type === 'condition' ? (
                     <>
                         <Grid item xs={2}>
                             <Select
@@ -172,18 +171,18 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
             ))}
             <Grid container spacing={1} sx={{ mt: 2 }}>
                 <Grid item>
-                    <Button variant="outlined" onClick={() => addElement('single')}>
-                    Add Condition
+                    <Button variant="outlined" onClick={() => addElement('condition')}>
+                        Add Condition
                     </Button>
                 </Grid>
                 <Grid item>
                     <Button variant="outlined" onClick={() => addElement('and')}>
-                    Add AND
+                        Add AND
                     </Button>
                 </Grid>
                 <Grid item>
                     <Button variant="outlined" onClick={() => addElement('or')}>
-                    Add OR
+                        Add OR
                     </Button>
                 </Grid>
             </Grid>
