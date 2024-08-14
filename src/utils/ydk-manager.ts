@@ -32,7 +32,14 @@ export async function loadFromYdkString(ydkString: string): Promise<Map<string, 
                 continue;
             }
 
-            cards.set(cardInfo.name, await getCardDetails(cardInfo));
+            if (!cards.has(cardInfo.name)) {
+                cards.set(cardInfo.name, await getCardDetails(cardInfo));
+            }
+
+            const details = cards.get(cardInfo.name);
+            if (details) {
+                details.qty = (details.qty || 0) + 1;
+            }
         } catch (error) {
             console.error(`Error fetching card with ID ${id}:`, error);
         }
