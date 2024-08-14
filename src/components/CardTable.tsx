@@ -304,7 +304,7 @@ export default function CardTable({
                 </Table>
             </TableContainer>
             <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
+                rowsPerPageOptions={[5, 10, 25, 50]}
                 component="div"
                 count={cards.size}
                 rowsPerPage={rowsPerPage}
