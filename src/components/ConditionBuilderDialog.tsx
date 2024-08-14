@@ -61,6 +61,7 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
             setElements([{ type: 'condition', quantity: 1, operator: '>=', cardName: '', location: 'Hand' }]);
         }
     }, [initialCondition, open]);
+    
     const addElement = (type: 'condition' | 'and' | 'or') => {
         const newElements: Element[] = [];
         const lastElement = elements[elements.length - 1];

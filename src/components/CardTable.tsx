@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
     Checkbox, TextField, IconButton, TablePagination, Toolbar, Typography,
-    Autocomplete
+    Autocomplete,
+    Box
 } from '@mui/material';
 import TagBox from './TagBox';
 import { fuzzySearchCard } from './../utils/card-api';
@@ -31,6 +32,28 @@ export default function CardTable({
     const [selectedCardName, setSelectedCardName] = useState<string>('');
     const [autocompleteOptions, setAutocompleteOptions] = useState<string[]>([]);
     const [tagOptions, setTagOptions] = useState<string[]>([...new Set(Array.from(cards.values()).flatMap(card => card.tags || []))]);
+
+    const calculateCardSummary = useCallback(() => {
+        let totalCount = 0;
+        let monsterCount = 0;
+        let spellCount = 0;
+        let trapCount = 0;
+
+        const monsterRegex = /monster/i;
+        const spellRegex = /spell/i;
+        const trapRegex = /trap/i;
+
+        cards.forEach((card) => {
+            totalCount += card.qty || 0;
+            if (card.tags) {
+                if (card.tags.some(tag => monsterRegex.test(tag))) monsterCount += card.qty || 0;
+                if (card.tags.some(tag => spellRegex.test(tag))) spellCount += card.qty || 0;
+                if (card.tags.some(tag => trapRegex.test(tag))) trapCount += card.qty || 0;
+            }
+        });
+
+        return { totalCount, monsterCount, spellCount, trapCount };
+    }, [cards]);
 
     const updateTagOptions = (updatedCards: Map<string, CardDetails>) => {
         const allTags = new Set<string>();
@@ -155,9 +178,17 @@ export default function CardTable({
     return (
         <Paper>
             <Toolbar>
-                <Typography variant="h6" component="div" sx={{ flex: '1 1 100%' }}>
-                    Deck
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'baseline', flex: '1 1 100%' }}>
+                    <Typography variant="h6" component="div" sx={{ mr: 2 }}>
+                        Deck
+                    </Typography>
+                    <Typography variant="subtitle1" component="div">
+                    {calculateCardSummary().totalCount} Total
+                    </Typography>
+                    <Typography variant="subtitle2" component="div" sx={{paddingLeft: 2}}>
+                        M: {calculateCardSummary().monsterCount} • S: {calculateCardSummary().spellCount} • T: {calculateCardSummary().trapCount}
+                    </Typography>
+                </Box>
                 {selected.length > 0 && (
                     <>
                         <IconButton onClick={() => handleMoveCard('up')} disabled={selected.length !== 1}>

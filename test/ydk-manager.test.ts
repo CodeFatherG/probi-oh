@@ -106,8 +106,8 @@ describe('YDK Manager', () => {
             const result = await loadFromYdkString(validYdkString);
 
             expect(result.size).toBe(2);
-            expect(result.get('Card 1')).toEqual(mockCardDetails1);
-            expect(result.get('Card 2')).toEqual(mockCardDetails2);
+            expect(result.get('Card 1')).toEqual({qty: 1, tags: ['Monster']});
+            expect(result.get('Card 2')).toEqual({qty: 1, tags: ['Spell']});
             expect(mockGetCardById).toHaveBeenCalledTimes(2);
             expect(mockGetCardDetails).toHaveBeenCalledTimes(2);
         });
@@ -178,7 +178,7 @@ describe('YDK Manager', () => {
             const result = await loadFromYdkString(validYdkString);
 
             expect(result.size).toBe(1);
-            expect(result.get('Card 2')).toEqual({ tags: ['Spell'] });
+            expect(result.get('Card 2')).toEqual({ qty: 1, tags: ['Spell'] });
             expect(consoleSpy).toHaveBeenCalledWith('Error fetching card with ID 12345:', expect.any(Error));
             
             consoleSpy.mockRestore();
