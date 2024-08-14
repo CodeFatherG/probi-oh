@@ -27,7 +27,8 @@ export default function CardTable({
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [selected, setSelected] = useState<string[]>([]);
-    const [newCardName, setNewCardName] = useState('');
+    const [newCardName, setNewCardName] = useState<string>('');
+    const [selectedCardName, setSelectedCardName] = useState<string>('');
     const [autocompleteOptions, setAutocompleteOptions] = useState<string[]>([]);
     const [tagOptions, setTagOptions] = useState<string[]>([...new Set(Array.from(cards.values()).flatMap(card => card.tags || []))]);
 
@@ -106,12 +107,16 @@ export default function CardTable({
             }
         } else if (reason === 'clear') {
             setNewCardName('');
+            setSelectedCardName('');
             setAutocompleteOptions([]);
         }
     };
 
     const handleCreateCard = (cardName: string) => {
         if (!cardName) {
+            setNewCardName('');
+            setSelectedCardName('');
+            setAutocompleteOptions([]);
             return;
         }
         if (cards.has(cardName)) {
@@ -123,6 +128,7 @@ export default function CardTable({
             onCreateCard(cardName);
         }
         setNewCardName('');
+        setSelectedCardName('');
         setAutocompleteOptions([]);
     };
 
@@ -224,9 +230,10 @@ export default function CardTable({
                                     freeSolo
                                     options={autocompleteOptions}
                                     inputValue={newCardName}
+                                    value={selectedCardName}
                                     onInputChange={handleNewCardNameChange}
-                                    onChange={(event, value, reason) => {
-                                        if (reason === 'selectOption' && value) {
+                                    onChange={(event, value) => {
+                                        if (value) {
                                             handleCreateCard(value);
                                         }
                                     }}
