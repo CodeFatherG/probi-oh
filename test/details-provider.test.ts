@@ -11,7 +11,7 @@ describe('getCardDetails', () => {
             type: 'Spell Card',
             desc: 'Banish 10 cards from the top of your Deck, face-down; draw 2 cards. You can only activate 1 "Pot of Desires" per turn.',
             race: 'Normal',
-            card_images: [{ id: 1, image_url: '...', image_url_small: '...' }]
+            card_images: [{ id: 1, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
         };
 
         const expectedDetails: CardDetails = {
@@ -42,7 +42,7 @@ describe('getCardDetails', () => {
             level: 8,
             race: 'Dragon',
             attribute: 'LIGHT',
-            card_images: [{ id: 2, image_url: '...', image_url_small: '...' }]
+            card_images: [{ id: 2, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
         };
 
         const expectedDetails: CardDetails = {
@@ -61,7 +61,7 @@ describe('getCardDetails', () => {
             type: 'Spell Card',
             desc: 'Draw 2 cards, then banish 1 DARK monster from your hand, or, if you do not have any in your hand, send your entire hand to the GY.',
             race: 'Normal',
-            card_images: [{ id: 3, image_url: '...', image_url_small: '...' }]
+            card_images: [{ id: 3, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
         };
 
         const expectedDetails: CardDetails = {
@@ -88,7 +88,7 @@ describe('getCardDetails', () => {
             type: 'Spell Card',
             desc: 'At the start of your Main Phase 1: Banish 3 or 6 random face-down cards from your Extra Deck, face-down; draw 1 card for every 3 cards banished. For the rest of this turn after this card resolves, you cannot draw any cards by card effects.',
             race: 'Normal',
-            card_images: [{ id: 4, image_url: '...', image_url_small: '...' }]
+            card_images: [{ id: 4, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
         };
 
         const expectedDetails: CardDetails = {
@@ -116,7 +116,7 @@ describe('getCardDetails', () => {
             level: 8,
             race: 'Dragon',
             attribute: 'WIND',
-            card_images: [{ id: 5, image_url: '...', image_url_small: '...' }]
+            card_images: [{ id: 5, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
         };
 
         const expectedDetails: CardDetails = {
@@ -135,7 +135,7 @@ describe('getCardDetails', () => {
             type: 'Spell Card',
             desc: 'This spell card does something mysterious.',
             race: 'Normal',
-            card_images: [{ id: 6, image_url: '...', image_url_small: '...' }]
+            card_images: [{ id: 6, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
         };
 
         const expectedDetails: CardDetails = {
@@ -166,7 +166,7 @@ describe('getCardDetails', () => {
             type: 'Spell Card',
             desc: 'Test description',
             race: 'Normal',
-            card_images: [{ id: 7, image_url: '...', image_url_small: '...' }]
+            card_images: [{ id: 7, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
         };
 
         const result = await getCardDetails(cardInfo);

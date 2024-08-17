@@ -25,7 +25,8 @@ describe('card-api', () => {
         card_images: [{
             id: 63176202,
             image_url: "https://images.ygoprodeck.com/images/cards/63176202.jpg",
-            image_url_small: "https://images.ygoprodeck.com/images/cards_small/63176202.jpg"
+            image_url_small: "https://images.ygoprodeck.com/images/cards_small/63176202.jpg",
+            image_url_cropped: "https://images.ygoprodeck.com/images/cards_cropped/63176202.jpg"
         }]
     };
 

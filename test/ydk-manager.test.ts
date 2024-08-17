@@ -83,7 +83,7 @@ describe('YDK Manager', () => {
                 type: 'Monster',
                 desc: 'Description 1',
                 race: 'Warrior',
-                card_images: [{ id: 12345, image_url: 'url1', image_url_small: 'url1_small' }]
+                card_images: [{ id: 12345, image_url: 'url1', image_url_small: 'url1_small', image_url_cropped: 'url1_cropped' }]
             };
             const mockCardInfo2: CardInformation = {
                 id: 67890,
@@ -91,7 +91,7 @@ describe('YDK Manager', () => {
                 type: 'Spell',
                 desc: 'Description 2',
                 race: 'Normal',
-                card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small' }]
+                card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small', image_url_cropped: 'url2_cropped' }]
             };
             const mockCardDetails1: CardDetails = { tags: ['Monster'] };
             const mockCardDetails2: CardDetails = { tags: ['Spell'] };
@@ -136,7 +136,7 @@ describe('YDK Manager', () => {
                 type: 'Monster',
                 desc: 'Description 1',
                 race: 'Warrior',
-                card_images: [{ id: 12345, image_url: 'url1', image_url_small: 'url1_small' }]
+                card_images: [{ id: 12345, image_url: 'url1', image_url_small: 'url1_small', image_url_cropped: 'url1_cropped' }]
             };
             const mockCardInfo2: CardInformation = {
                 id: 67890,
@@ -144,7 +144,7 @@ describe('YDK Manager', () => {
                 type: 'Spell',
                 desc: 'Description 2',
                 race: 'Normal',
-                card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small' }]
+                card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small', image_url_cropped: 'url2_cropped' }]
             };
             const mockCardDetails: CardDetails = { tags: ['Monster'] };
 
@@ -169,7 +169,7 @@ describe('YDK Manager', () => {
                 type: 'Spell',
                 desc: 'Description 2',
                 race: 'Normal',
-                card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small' }]
+                card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small', image_url_cropped: 'url2_cropped'  }]
             });
             mockGetCardDetails.mockResolvedValue({ tags: ['Spell'] });
 
@@ -199,7 +199,7 @@ describe('YDK Manager', () => {
                     type: 'Monster',
                     desc: 'Description 1',
                     race: 'Warrior',
-                    card_images: [{ id: 12345, image_url: 'url1', image_url_small: 'url1_small' }]
+                    card_images: [{ id: 12345, image_url: 'url1', image_url_small: 'url1_small', image_url_cropped: 'url1_cropped' }]
                 })
                 .mockResolvedValueOnce({
                     id: 67890,
@@ -207,7 +207,7 @@ describe('YDK Manager', () => {
                     type: 'Spell',
                     desc: 'Description 2',
                     race: 'Normal',
-                    card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small' }]
+                    card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small', image_url_cropped: 'url2_cropped' }]
                 });
 
             const result = await serialiseCardsToYdk(mockCards);
@@ -229,7 +229,7 @@ describe('YDK Manager', () => {
                     type: 'Monster',
                     desc: 'Description 1',
                     race: 'Warrior',
-                    card_images: [{ id: 12345, image_url: 'url1', image_url_small: 'url1_small' }]
+                    card_images: [{ id: 12345, image_url: 'url1', image_url_small: 'url1_small', image_url_cropped: 'url1_cropped' }]
                 })
                 .mockResolvedValueOnce(null);
 
@@ -264,7 +264,7 @@ describe('YDK Manager', () => {
                 type: 'Monster',
                 desc: 'Description 1',
                 race: 'Warrior',
-                card_images: [{ id: 12345, image_url: 'url1', image_url_small: 'url1_small' }]
+                card_images: [{ id: 12345, image_url: 'url1', image_url_small: 'url1_small', image_url_cropped: 'url1_cropped' }]
             };
             const mockCardInfo2: CardInformation = {
                 id: 67890,
@@ -272,7 +272,7 @@ describe('YDK Manager', () => {
                 type: 'Spell',
                 desc: 'Description 2',
                 race: 'Normal',
-                card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small' }]
+                card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small', image_url_cropped: 'url2_cropped' }]
             };
             const mockCardDetails1: CardDetails = { tags: ['Monster'] };
             const mockCardDetails2: CardDetails = { tags: ['Spell'] };
@@ -339,7 +339,7 @@ describe('YDK Manager', () => {
                 type: 'Monster',
                 desc: 'Description 1',
                 race: 'Warrior',
-                card_images: [{ id: 12345, image_url: 'url1', image_url_small: 'url1_small' }]
+                card_images: [{ id: 12345, image_url: 'url1', image_url_small: 'url1_small', image_url_cropped: 'url1_cropped' }]
             };
             const mockCardInfo2: CardInformation = {
                 id: 67890,
@@ -347,7 +347,7 @@ describe('YDK Manager', () => {
                 type: 'Spell',
                 desc: 'Description 2',
                 race: 'Normal',
-                card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small' }]
+                card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small', image_url_cropped: 'url2_cropped' }]
             };
             const mockCardDetails: CardDetails = { tags: ['Monster'] };
 

@@ -9,9 +9,11 @@ export interface CardInformation {
     readonly level?: number;
     readonly race: string;
     readonly attribute?: string;
+    readonly archetype?: string;
     readonly card_images: {
         readonly id: number;
         readonly image_url: string;
         readonly image_url_small: string;
+        readonly image_url_cropped: string;
     }[];
 }
