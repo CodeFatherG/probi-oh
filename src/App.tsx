@@ -19,9 +19,11 @@ import ErrorSnackbar from './components/ErrorSnackbar';
 import { getCardDetails } from './utils/details-provider';
 import { loadFromYdkFile } from './utils/ydk-manager';
 import SaveFileComponent from './components/SaveFile';
-import { Box, Grid, LinearProgress } from '@mui/material';
+import { Box, Grid, IconButton, LinearProgress } from '@mui/material';
 import ConditionList from './components/ConditionList';
 import LoadingOverlay from './components/LoadingOverlay';
+import SettingsDialog, { Settings } from './components/SettingsDialog';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 const App = () => {
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
@@ -33,6 +35,8 @@ const App = () => {
     const [conditionData, setConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
     const [errorMessage, setErrorMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [settings, setSettings] = useLocalStorage<Settings>("settings", { simulationIterations: 10000 });
+    const [settingsOpen, setSettingsOpen] = useState(false);
 
     const autocompleteOptions = useMemo(() => {
         const options = new Set<string>();
@@ -107,7 +111,7 @@ const App = () => {
             console.log(`Deck size: ${deck.deckCount}`);
             console.log(`Cards in deck: ${deck.deckList.map(card => card.name).join(', ')}`);
             
-            const reports = await simulateDraw(deck, conditions, 5, 10000);
+            const reports = await simulateDraw(deck, conditions, 5, settings.simulationIterations);
             
             // Find maximum probability
             const maxProbability = Math.max(...reports.map(report => report.successRate));
@@ -212,6 +216,17 @@ const App = () => {
         setConditionData(conditions);
     }, [setConditionData]);
 
+    const handleOpenSettings = useCallback(() => {
+        setSettingsOpen(true);
+    }, [setSettingsOpen]);
+
+    const handleCloseSettings = useCallback((newSettings: Settings) => {
+        setSettingsOpen(false);
+        setSettings(newSettings);
+        console.log('New settings:', newSettings);
+
+    }, [setSettings]);
+
     return (
         <div className="App">
             <LoadingOverlay isLoading={isLoading} />
@@ -269,6 +284,26 @@ const App = () => {
             <ErrorSnackbar 
                 message={errorMessage} 
                 onClose={() => setErrorMessage('')}
+            />
+            <IconButton
+                onClick={handleOpenSettings}
+                sx={{
+                    position: 'fixed',
+                    top: 16,
+                    right: 16,
+                    bgcolor: 'background.paper',
+                    '&:hover': {
+                        bgcolor: 'action.hover',
+                    },
+                }}
+                aria-label="settings"
+            >
+                <SettingsIcon />
+            </IconButton>
+            <SettingsDialog
+                open={settingsOpen}
+                settings={settings}
+                onClose={handleCloseSettings}
             />
         </div>
     );
