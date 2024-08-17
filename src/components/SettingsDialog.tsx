@@ -28,7 +28,7 @@ export default function SettingsDialog({ open, settings, onClose }: SettingsDial
 
     return (
         <Dialog open={open} onClose={() => onClose(localSettings)} maxWidth="sm" fullWidth>
-            <DialogTitle>Build Condition</DialogTitle>
+            <DialogTitle>Settings</DialogTitle>
             <DialogContent>
                 <Box component="form" noValidate autoComplete="off" sx={{ mt: 2 }}>
                     <TextField
