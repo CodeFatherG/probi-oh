@@ -75,6 +75,7 @@ export async function getCardDetails(info: CardInformation): Promise<CardDetails
         tags: [
             info.race,
             info.type,
+            ...(info.archetype ? [info.archetype] : []),
             ...(info.attribute ? [info.attribute] : []),
             ...(info.level !== undefined ? [`Level ${info.level}`] : []),
         ].filter(Boolean)
