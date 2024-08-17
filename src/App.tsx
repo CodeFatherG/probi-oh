@@ -220,7 +220,11 @@ const App = () => {
         setSettingsOpen(true);
     }, [setSettingsOpen]);
 
-    const handleCloseSettings = useCallback((newSettings: Settings) => {
+    const handleCloseSettings = useCallback(() => {
+        setSettingsOpen(false);
+    }, [setSettingsOpen]);
+
+    const handleSaveSettings = useCallback((newSettings: Settings) => {
         setSettingsOpen(false);
         setSettings(newSettings);
         console.log('New settings:', newSettings);
@@ -304,6 +308,7 @@ const App = () => {
                 open={settingsOpen}
                 settings={settings}
                 onClose={handleCloseSettings}
+                onSave={handleSaveSettings}
             />
         </div>
     );
