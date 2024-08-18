@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import './styles/App.css';
 import FileInput from './components/FileInput';
 import SimulationRunner from './components/SimulationRunner';
-import ResultDisplay from './components/ResultDisplay';
 import { buildDeck, Deck } from './utils/deck';
 import { BaseCondition } from './utils/condition';
 import { Simulation } from './utils/simulation';
@@ -19,7 +19,7 @@ import ErrorSnackbar from './components/ErrorSnackbar';
 import { getCardDetails } from './utils/details-provider';
 import { loadFromYdkFile } from './utils/ydk-manager';
 import SaveFileComponent from './components/SaveFile';
-import { Box, Grid, IconButton, LinearProgress } from '@mui/material';
+import { Box, Button, Grid, IconButton, LinearProgress, Typography } from '@mui/material';
 import ConditionList from './components/ConditionList';
 import LoadingOverlay from './components/LoadingOverlay';
 import SettingsDialog, { Settings } from './components/SettingsDialog';
@@ -285,14 +285,18 @@ const App = () => {
             </Grid>
             
             {isSimulationRunning && <LinearProgress variant="determinate" value={progress} />}
-            {result && <ResultDisplay result={result} />}
+            {result && (
+                <Typography variant="subtitle1" component="div" sx={{ mr: 2 }}>
+                    {result}
+                </Typography>
+            )}
             {reportData.length > 0 && (
                 <div>
-                <button onClick={toggleReportVisibility}>
-                    {isReportVisible ? 'Hide Report' : 'Show Report'}
-                </button>
-                {isReportVisible && <ReportDisplay reports={reportData} />}
-            </div>
+                    <Button onClick={toggleReportVisibility}>
+                        {isReportVisible ? 'Hide Report' : 'Show Report'}
+                    </Button>
+                    {isReportVisible && <ReportDisplay reports={reportData} />}
+                </div>
             )}
             <ErrorSnackbar 
                 message={errorMessage} 
