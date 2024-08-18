@@ -24,9 +24,9 @@ describe('card-api', () => {
         attribute: "FIRE",
         card_images: [{
             id: 63176202,
-            image_url: "https://images.ygoprodeck.com/images/cards/63176202.jpg",
-            image_url_small: "https://images.ygoprodeck.com/images/cards_small/63176202.jpg",
-            image_url_cropped: "https://images.ygoprodeck.com/images/cards_cropped/63176202.jpg"
+            image_url: "https://raw.githubusercontent.com/CodeFatherG/yugioh-db/master/cards/63176202/images/full.jpg",
+            image_url_small: "https://raw.githubusercontent.com/CodeFatherG/yugioh-db/master/cards/63176202/images/small.jpg",
+            image_url_cropped: "https://raw.githubusercontent.com/CodeFatherG/yugioh-db/master/cards/63176202/images/cropped.jpg"
         }]
     };
 
@@ -226,7 +226,7 @@ describe('card-api', () => {
             (mockDB.get as jest.Mock).mockResolvedValueOnce(mockCardData)
                                      .mockResolvedValueOnce(mockBlob);
             
-            const image = await getCardImage(63176202, mockFetch, mockDBFactory);
+            const image = await getCardImage(63176202, 'full', mockFetch, mockDBFactory);
 
             expect(image).toEqual(mockBlob);
             expect(mockDB.get).toHaveBeenCalledWith('images', mockCardData.card_images[0].image_url);
@@ -240,7 +240,7 @@ describe('card-api', () => {
                 blob: async () => mockBlob
             });
             
-            const image = await getCardImage('Great Shogun Shien', mockFetch, mockDBFactory);
+            const image = await getCardImage('Great Shogun Shien', 'full', mockFetch, mockDBFactory);
 
             expect(image).toEqual(mockBlob);
             expect(mockFetch).toHaveBeenCalledWith(mockCardData.card_images[0].image_url);
@@ -250,7 +250,7 @@ describe('card-api', () => {
         it('should return null if card is not found', async () => {
             (mockDB.get as jest.Mock).mockResolvedValue(null);
             
-            const image = await getCardImage('Non-existent Card', mockFetch, mockDBFactory);
+            const image = await getCardImage('Non-existent Card', 'full', mockFetch, mockDBFactory);
 
             expect(image).toBeNull();
         });
@@ -264,7 +264,7 @@ describe('card-api', () => {
                 statusText: 'Not Found'
             });
     
-            const image = await getCardImage('Error Image', mockFetch, mockDBFactory);
+            const image = await getCardImage('Error Image', 'full', mockFetch, mockDBFactory);
     
             expect(image).toBeNull();
             expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching image:', expect.any(Error));
