@@ -171,16 +171,11 @@ export async function fuzzySearchCard(query: string, fetcher = fetch, dbFactory 
     }
 }
 
-/**
- * Gets the image of a card by ID or name.
- * @param idOrName The ID or name of the card.
- * @param fetcher The fetch function to use.
- * @param dbFactory The database factory function.
- * @returns {Promise<Blob | null>} The card image.
- */
-export async function getCardImage(idOrName: number | string, fetcher = fetch, dbFactory = initDB): Promise<Blob | null> {
+export async function getCardImage(idOrName: number | string, 
+                                   imageType: 'full' | 'small' | 'cropped', 
+                                   fetcher = fetch, 
+                                   dbFactory = initDB): Promise<Blob | null> {
     const db = await dbFactory();
-
     let card: CardInformation | null;
 
     if (typeof idOrName === 'number') {
@@ -194,18 +189,18 @@ export async function getCardImage(idOrName: number | string, fetcher = fetch, d
         return null;
     }
 
-    const imageUrl = card.card_images[0].image_url;
+    const gitLink = `https://raw.githubusercontent.com/CodeFatherG/yugioh-db/master/cards/${card.id}/images/${imageType}.jpg`;
 
-    const cachedImage = await db.get('images', imageUrl);
+    const cachedImage = await db.get('images', gitLink);
     if (cachedImage) return cachedImage;
 
     try {
-        const response = await fetcher(imageUrl);
+        const response = await fetcher(gitLink);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const imageBlob = await response.blob();
-        await db.put('images', imageBlob, imageUrl);
+        await db.put('images', imageBlob, gitLink);
         return imageBlob;
     } catch (error) {
         console.error('Error fetching image:', error);
