@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void, () => void] {
     const readValue = (): T => {
         if (typeof window === 'undefined') {
             return initialValue;
@@ -33,7 +33,16 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => voi
         setStoredValue(readValue());
     }, []);
 
-    return [storedValue, setValue];
+    const clearStorage = () => {
+        try {
+          window.localStorage.removeItem(key);
+          setStoredValue(initialValue);
+        } catch (error) {
+          console.log(error);
+        }
+    };
+
+    return [storedValue, setValue, clearStorage];
 }
 
 export default useLocalStorage;

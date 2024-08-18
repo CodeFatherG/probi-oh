@@ -31,11 +31,11 @@ const App = () => {
     const [result, setResult] = useState<string | null>(null);
     const [reportData, setReportData] = useState<Report[]>([]);
     const [isReportVisible, setIsReportVisible] = useState<boolean>(false);
-    const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
-    const [conditionData, setConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
+    const [cardData, setCardData, clearCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
+    const [conditionData, setConditionData, clearConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
     const [errorMessage, setErrorMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [settings, setSettings] = useLocalStorage<Settings>("settings", { simulationIterations: 10000 });
+    const [settings, setSettings, clearSettings] = useLocalStorage<Settings>("settings", { simulationIterations: 10000, clearCache: false });
     const [settingsOpen, setSettingsOpen] = useState(false);
 
     const autocompleteOptions = useMemo(() => {
@@ -226,6 +226,15 @@ const App = () => {
 
     const handleSaveSettings = useCallback((newSettings: Settings) => {
         setSettingsOpen(false);
+
+        if (newSettings.clearCache) {
+            console.log('Clearing cache...');
+            clearCardData();
+            clearConditionData();
+            clearSettings();
+            return;
+        }
+
         setSettings(newSettings);
         console.log('New settings:', newSettings);
 

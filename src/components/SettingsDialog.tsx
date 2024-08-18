@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogTitle, TextField, Button, Box } from '@mui
 
 export interface Settings {
     simulationIterations: number;
+    clearCache: boolean;
 }
 
 interface SettingsDialogProps {
@@ -59,6 +60,14 @@ export default function SettingsDialog({ open, settings, onClose, onSave }: Sett
                             }
                         }}
                     />
+                    <Button 
+                        onClick={() => {
+                            localSettings.clearCache = true; 
+                            handleSave();
+                        }}
+                    >
+                        Clear Cache
+                    </Button>
                     <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                         <Button onClick={handleClose} sx={{ mr: 1 }}>
                             Cancel
