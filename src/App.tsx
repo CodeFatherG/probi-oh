@@ -179,20 +179,8 @@ const App = () => {
         });
     }, [setCardData]);
 
-    const handleMoveCard = useCallback((name: string, direction: 'up' | 'down') => {
-        setCardData(prevData => {
-            const entries: [string, CardDetails][] = Array.from(prevData.entries());
-            const index = entries.findIndex(([key]) => key === name);
-            if (index === -1) return prevData; // Card not found
-    
-            const newIndex = direction === 'up' ? Math.max(0, index - 1) : Math.min(entries.length - 1, index + 1);
-            if (newIndex === index) return prevData; // No change needed
-    
-            const [movedEntry] = entries.splice(index, 1);
-            entries.splice(newIndex, 0, movedEntry);
-    
-            return new Map(entries);
-        });
+    const handleReorderCards = useCallback((reorderedCards: Map<string, CardDetails>) => {
+        setCardData(reorderedCards);
     }, [setCardData]);
 
     const handleConditionsChange = useCallback((newConditions: string[]) => {
@@ -269,7 +257,7 @@ const App = () => {
                         onUpdateCard={handleUpdateCard}
                         onCreateCard={handleCreateCard}
                         onDeleteCards={handleDeleteCards}
-                        onMoveCard={handleMoveCard}
+                        onReorderCards={handleReorderCards}
                     />
                 </Grid>
                 <Grid item xs={12}>

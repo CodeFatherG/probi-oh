@@ -29,6 +29,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^16.6.0",
     "@mui/icons-material": "^5.16.7",
     "idb": "^8.0.0",
     "mui": "^0.0.1",

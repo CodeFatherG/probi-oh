@@ -8,14 +8,15 @@ import {
 import TagBox from './TagBox';
 import { fuzzySearchCard } from './../utils/card-api';
 import { CardDetails } from './../utils/card-details';
-import { ArrowDownward, ArrowUpward, Delete } from '@mui/icons-material';
+import { Delete, DragIndicator } from '@mui/icons-material';
+import { DragDropContext, Draggable, Droppable, DropResult } from '@hello-pangea/dnd';
 
 interface CardTableProps {
     cards: Map<string, CardDetails>;
     onUpdateCard: (name: string, details: CardDetails) => void;
     onCreateCard: (name: string) => void;
     onDeleteCards: (names: string[]) => void;
-    onMoveCard: (name: string, direction: 'up' | 'down') => void;
+    onReorderCards: (reorderedCards: Map<string, CardDetails>) => void;
 }
 
 export default function CardTable({
@@ -23,7 +24,7 @@ export default function CardTable({
     onUpdateCard,
     onCreateCard,
     onDeleteCards,
-    onMoveCard
+    onReorderCards
 }: CardTableProps) {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -167,10 +168,23 @@ export default function CardTable({
         }
     };
 
-    const handleMoveCard = (direction: 'up' | 'down') => {
-        if (selected.length === 1) {
-            onMoveCard(selected[0], direction);
+    // const handleMoveCard = (direction: 'up' | 'down') => {
+    //     if (selected.length === 1) {
+    //         onMoveCard(selected[0], direction);
+    //     }
+    // };
+
+    const handleDragEnd = (result: DropResult) => {
+        if (!result.destination) {
+            return;
         }
+
+        const items = Array.from(cards);
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
+
+        const reorderedCards = new Map(items);
+        onReorderCards(reorderedCards);
     };
 
     const isSelected = (name: string) => selected.indexOf(name) !== -1;
@@ -202,79 +216,93 @@ export default function CardTable({
                     </Typography>
                 </Box>
                 {selected.length > 0 && (
-                    <>
-                        <IconButton onClick={() => handleMoveCard('up')} disabled={selected.length !== 1}>
-                            <ArrowUpward />
-                        </IconButton>
-                        <IconButton onClick={() => handleMoveCard('down')} disabled={selected.length !== 1}>
-                            <ArrowDownward />
-                        </IconButton>
-                        <IconButton onClick={handleDeleteSelected} disabled={selected.length === 0}>
-                            <Delete />
-                        </IconButton>
-                    </>
+                    <IconButton onClick={handleDeleteSelected} disabled={selected.length === 0}>
+                        <Delete />
+                    </IconButton>
                 )}
             </Toolbar>
             <TableContainer>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell padding="checkbox">
-                                <Checkbox
-                                    indeterminate={selected.length > 0 && selected.length < cards.size}
-                                    checked={cards.size > 0 && selected.length === cards.size}
-                                    onChange={handleSelectAllClick}
-                                />
-                            </TableCell>
-                            <TableCell>Name</TableCell>
-                            <TableCell>Qty</TableCell>
-                            <TableCell>Tags</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {Array.from(cards.entries())
-                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                        .map(([name, details]) => {
-                            const isItemSelected = isSelected(name);
-                            return (
-                            <TableRow
-                                hover
-                                role="checkbox"
-                                aria-checked={isItemSelected}
-                                tabIndex={-1}
-                                key={name}
-                                selected={isItemSelected}
-                            >
+                <DragDropContext onDragEnd={handleDragEnd}>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
                                 <TableCell padding="checkbox">
-                                <Checkbox
-                                        checked={isItemSelected}
-                                        onClick={(event) => handleCheckboxClick(event, name)}
+                                    <Checkbox
+                                        indeterminate={selected.length > 0 && selected.length < cards.size}
+                                        checked={cards.size > 0 && selected.length === cards.size}
+                                        onChange={handleSelectAllClick}
                                     />
                                 </TableCell>
-                                    <TableCell>{name}</TableCell>
-                                    <TableCell>
-                                    <TextField
-                                        type="number"
-                                        value={details.qty || 0}
-                                        onChange={(e) => handleQuantityChange(name, parseInt(e.target.value, 10))}
-                                        inputProps={{ min: 0, style: { width: '50px' } }}
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    <TagBox
-                                        tags={details.tags || []}
-                                        onTagsChange={(tags) => {
-                                            handleTagsChange(name, tags)
-                                        }}
-                                        tagOptions={tagOptions}
-                                    />
-                                </TableCell>
+                                <TableCell>Name</TableCell>
+                                <TableCell>Qty</TableCell>
+                                <TableCell>Tags</TableCell>
                             </TableRow>
-                            );
-                        })}
+                        </TableHead>
+                        <Droppable droppableId="card-list">
+                            {(provided) => (
+                                <TableBody {...provided.droppableProps} ref={provided.innerRef}>
+                                    {Array.from(cards.entries())
+                                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                    .map(([name, details], index) => {
+                                        const isItemSelected = isSelected(name);
+                                        return (
+                                            <Draggable key={name} draggableId={name} index={index}>
+                                                {(provided) => (
+                                                    <TableRow
+                                                        hover
+                                                        role="checkbox"
+                                                        aria-checked={isItemSelected}
+                                                        tabIndex={-1}
+                                                        selected={isItemSelected}
+                                                        ref={provided.innerRef}
+                                                        {...provided.draggableProps}
+                                                    >
+                                                        <TableCell padding="checkbox">
+                                                            <Box display="flex" alignItems="center">
+                                                                <Checkbox
+                                                                    checked={isItemSelected}
+                                                                    onClick={(event) => handleCheckboxClick(event, name)}
+                                                                />
+                                                                <IconButton {...provided.dragHandleProps}>
+                                                                    <DragIndicator />
+                                                                </IconButton>
+                                                            </Box>
+                                                        </TableCell>
+                                                        <TableCell>{name}</TableCell>
+                                                        <TableCell>
+                                                            <TextField
+                                                                type="number"
+                                                                value={details.qty || 0}
+                                                                onChange={(e) => handleQuantityChange(name, parseInt(e.target.value, 10))}
+                                                                inputProps={{ min: 0, style: { width: '50px' } }}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <TagBox
+                                                                tags={details.tags || []}
+                                                                onTagsChange={(tags) => {
+                                                                    handleTagsChange(name, tags)
+                                                                }}
+                                                                tagOptions={tagOptions}
+                                                            />
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )}
+                                            </Draggable>
+                                        );
+                                    })}
+                                    {provided.placeholder}
+                                </TableBody>
+                            )}
+                        </Droppable>
+                    </Table>
+                </DragDropContext>
+                <Table>
+                    <TableBody>
                         <TableRow>
-                            <TableCell colSpan={4}>
+                            <TableCell colSpan={4} sx={{ borderBottom: 'none' }}>
                                 <Autocomplete
+                                    fullWidth
                                     freeSolo
                                     options={autocompleteOptions}
                                     inputValue={newCardName}
@@ -288,10 +316,10 @@ export default function CardTable({
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
-                                                onKeyPress={(e) => {
-                                                    if (e.key === 'Enter') {
-                                                        handleCreateCard(newCardName);
-                                                    }
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    handleCreateCard(newCardName);
+                                                }
                                             }}
                                             placeholder="Add new card..."
                                             fullWidth
