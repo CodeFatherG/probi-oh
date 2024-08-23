@@ -226,7 +226,8 @@ export default function CardTable({
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell padding="checkbox" width="5%">
+                                <TableCell padding="none" width="48px"></TableCell>
+                                <TableCell padding="checkbox" width="48px">
                                     <Checkbox
                                         indeterminate={selected.length > 0 && selected.length < cards.size}
                                         checked={cards.size > 0 && selected.length === cards.size}
@@ -261,16 +262,16 @@ export default function CardTable({
                                                             background: snapshot.isDragging ? 'lightblue' : 'inherit',
                                                         }}
                                                     >
-                                                        <TableCell padding="checkbox" width="5%">
-                                                            <Box display="flex" alignItems="center">
-                                                                <Checkbox
-                                                                    checked={isItemSelected}
-                                                                    onClick={(event) => handleCheckboxClick(event, name)}
-                                                                />
-                                                                <IconButton {...provided.dragHandleProps} size="small">
-                                                                    <DragIndicator />
-                                                                </IconButton>
-                                                            </Box>
+                                                        <TableCell padding="none" width="48px">
+                                                            <IconButton {...provided.dragHandleProps} size="small">
+                                                                <DragIndicator />
+                                                            </IconButton>
+                                                        </TableCell>
+                                                        <TableCell padding="checkbox" width="48px">
+                                                            <Checkbox
+                                                                checked={isItemSelected}
+                                                                onClick={(event) => handleCheckboxClick(event, name)}
+                                                            />
                                                         </TableCell>
                                                         <TableCell width="40%">{name}</TableCell>
                                                         <TableCell width="15%">
