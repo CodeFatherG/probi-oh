@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     Button, TextField, Select, MenuItem, IconButton, Grid,
-    Autocomplete, Alert, Snackbar
+    Autocomplete, Alert, Snackbar, Paper
 } from '@mui/material';
 import { Remove, DragIndicator } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -19,12 +19,220 @@ interface ConditionBuilderDialogProps {
 
 interface Element {
     id: string;
-    type: 'condition' | 'and' | 'or';
+    type: 'condition' | 'and' | 'or' | 'group';
     quantity?: number;
     operator?: string;
     cardName?: string;
     location?: string;
+    children?: Element[];
 }
+
+function createNewElement(type: 'condition' | 'and' | 'or' | 'group'): Element {
+    const newElement: Element = { id: `element-${Date.now()}-${Math.random()}`, type };
+
+    if (type === 'condition') {
+        newElement.quantity = 1;
+        newElement.operator = '>=';
+        newElement.cardName = '';
+        newElement.location = 'Hand';
+    } else if (type === 'group') {
+        newElement.children = [];
+    }
+    return newElement;
+}
+
+function addElementToList(elements: Element[], type: 'condition' | 'and' | 'or' | 'group'): Element[] {
+    const newElements: Element[] = [];
+    const lastElement = elements[elements.length - 1];
+
+    if (type === 'condition' || type === 'group') {
+        newElements.push(createNewElement(type));
+    } else {
+        if (!lastElement || lastElement.type !== 'condition') {
+            newElements.push(createNewElement('condition'));
+        }
+        
+        newElements.push(createNewElement(type));
+        newElements.push(createNewElement('condition'));
+    }
+
+    return([...elements, ...newElements]);
+}
+
+const GroupComponent: React.FC<{
+    element: Element;
+    index: number;
+    updateElement: (index: number, field: string, value: any) => void;
+    autocompleteOptions: string[];
+}> = ({ element, index, updateElement, autocompleteOptions }) => {
+    return (
+        <Paper 
+            elevation={3} 
+            sx={{ p: 2, mb: 2, backgroundColor: 'rgba(0, 0, 0, 0.05)' }}
+        >
+            <Grid container spacing={1} alignItems="center">
+                <Grid item xs={11}>
+                    <Droppable droppableId={`group-${element.id}`} type="group-item">
+                        {(providedDrop) => (
+                            <div {...providedDrop.droppableProps} ref={providedDrop.innerRef}>
+                                <ConditionList
+                                    elements={element.children || []}
+                                    updateElement={(childIndex, field, value) => {
+                                        const newChildren = [...(element.children || [])];
+                                        newChildren[childIndex] = { ...newChildren[childIndex], [field]: value };
+                                        updateElement(index, 'children', newChildren);
+                                    }}
+                                    removeElement={(childIndex) => {
+                                        const newChildren = (element.children || []).filter((_, i) => i !== childIndex);
+                                        updateElement(index, 'children', newChildren);
+                                    }}
+                                    addElement={(type) => {
+                                        const newChildren = addElementToList(element.children || [], type);
+                                        updateElement(index, 'children', newChildren);
+                                    }}
+                                    autocompleteOptions={autocompleteOptions}
+                                    dragType="group-item"
+                                />
+                                {providedDrop.placeholder}
+                            </div>
+                        )}
+                    </Droppable>
+                </Grid>
+            </Grid>
+        </Paper>
+    );
+};
+
+const ConditionList: React.FC<{
+    elements: Element[];
+    updateElement: (index: number, field: string, value: any) => void;
+    removeElement: (index: number) => void;
+    addElement: (type: 'condition' | 'and' | 'or' | 'group') => void;
+    autocompleteOptions: string[];
+    dragType: 'list-item' | 'group-item';
+}> = ({ elements, updateElement, removeElement, addElement, autocompleteOptions, dragType }) => {
+    const renderElement = (element: Element, index: number) => (
+        <Draggable key={element.id} draggableId={element.id} index={index}>
+            {(provided) => (
+                <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                >
+                    <Grid container spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                        <Grid item>
+                            <DragIndicator />
+                        </Grid>
+                        {element.type === 'condition' ? (
+                            <>
+                                <Grid item xs={2}>
+                                    <Select
+                                        size="small"
+                                        value={element.operator}
+                                        onChange={(e) => updateElement(index, 'operator', e.target.value)}
+                                        fullWidth
+                                    >
+                                        <MenuItem value=">=">at least</MenuItem>
+                                        <MenuItem value="=">exactly</MenuItem>
+                                        <MenuItem value="<=">no more than</MenuItem>
+                                    </Select>
+                                </Grid>
+                                <Grid item xs={1}>
+                                    <TextField
+                                        size="small"
+                                        type="number"
+                                        value={element.quantity}
+                                        onChange={(e) => updateElement(index, 'quantity', e.target.value)}
+                                        InputProps={{ inputProps: { min: 1 } }}
+                                        fullWidth
+                                    />
+                                </Grid>
+                                <Grid item xs={5}>
+                                    <Autocomplete
+                                        freeSolo
+                                        options={autocompleteOptions}
+                                        value={element.cardName}
+                                        onInputChange={(event, newValue) => {
+                                            updateElement(index, 'cardName', newValue);
+                                        }}
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                size="small"
+                                                placeholder="Card name or tag"
+                                                fullWidth
+                                            />
+                                        )}
+                                    />
+                                </Grid>
+                                <Grid item xs={2}>
+                                    <Select
+                                        size="small"
+                                        value={element.location}
+                                        onChange={(e) => updateElement(index, 'location', e.target.value)}
+                                        fullWidth
+                                    >
+                                        <MenuItem value="Hand">Hand</MenuItem>
+                                        <MenuItem value="Deck">Deck</MenuItem>
+                                    </Select>
+                                </Grid>
+                            </>
+                        ) : element.type === 'group' ? (
+                            <Grid item xs={10}>
+                                <GroupComponent
+                                    element={element}
+                                    index={index}
+                                    updateElement={updateElement}
+                                    autocompleteOptions={autocompleteOptions}
+                                />
+                            </Grid>
+                        ) : (
+                            <Grid item xs={10}>
+                                <Select
+                                    size="small"
+                                    value={element.type}
+                                    onChange={(e) => updateElement(index, 'type', e.target.value)}
+                                    fullWidth
+                                >
+                                    <MenuItem value="and">AND</MenuItem>
+                                    <MenuItem value="or">OR</MenuItem>
+                                </Select>
+                            </Grid>
+                        )}
+                        <Grid item>
+                            <IconButton onClick={() => removeElement(index)}>
+                                <Remove />
+                            </IconButton>
+                        </Grid>
+                    </Grid>
+                </div>
+            )}
+        </Draggable>
+    );
+
+    return (
+        <>
+            {elements.map((element, index) => renderElement(element, index))}
+            <Grid container spacing={1} sx={{ mt: 2 }}>
+                <Grid item>
+                    <Button variant="outlined" onClick={() => addElement('condition')}>
+                        Add Condition
+                    </Button>
+                </Grid>
+                <Grid item>
+                    <Button variant="outlined" onClick={() => addElement('or')}>
+                        Add Logic
+                    </Button>
+                </Grid>
+                <Grid item>
+                    <Button variant="outlined" onClick={() => addElement('group')}>
+                        Add Group
+                    </Button>
+                </Grid>
+            </Grid>
+        </>
+    );
+};
 
 export default function ConditionBuilderDialog({ open, onClose, onSave, initialCondition, autocompleteOptions }: ConditionBuilderDialogProps) {
     const [elements, setElements] = useState<Element[]>([]);
@@ -33,59 +241,60 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
 
     useEffect(() => {
         if (initialCondition) {
-            const elements: Element[] = [];
-            
-            // parse the condition string to objects
-            const condition = parseCondition(initialCondition);
+            const parseGroup = (condition: AndCondition | OrCondition): Element => {
+                const group = createNewElement('group');
+                group.children = [];
+                group.children.push(...parseElement(condition.conditions[0]));
+                group.children.push(createNewElement(condition instanceof AndCondition ? 'and' : 'or'));
+                group.children.push(...parseElement(condition.conditions[1]));
+                return group;
+            }
 
             // function to parse the next condition object
-            const parseElement = (condition: BaseCondition) => {
+            const parseElement = (condition: BaseCondition): Element[] => {
                 if (condition instanceof AndCondition) {
-                    parseElement(condition.conditions[0]);
-                    elements.push({ id: `element-${elements.length}`, type: 'and' });
-                    parseElement(condition.conditions[1]);
+                    const cond = condition as AndCondition;
+                    if (cond.hasParentheses) {
+                        return [parseGroup(cond)];
+                    } else {
+                        return [
+                            ...parseElement(cond.conditions[0]),
+                            createNewElement('and'),
+                            ...parseElement(cond.conditions[1])
+                        ];
+                    }
                 } else if (condition instanceof OrCondition) {
-                    parseElement(condition.conditions[0]);
-                    elements.push({ id: `element-${elements.length}`, type: 'or' });
-                    parseElement(condition.conditions[1]);
+                    const cond = condition as OrCondition;
+                    if (cond.hasParentheses) {
+                        return [parseGroup(cond)];
+                    } else {
+                        return [
+                            ...parseElement(cond.conditions[0]),
+                            createNewElement('or'),
+                            ...parseElement(cond.conditions[1])
+                        ];
+                    }
                 } else if (condition instanceof Condition) {
-                    elements.push({
-                        id: `element-${elements.length}`,
-                        type: 'condition',
-                        quantity: condition.quantity,
-                        operator: condition.operator,
-                        cardName: condition.cardName,
-                        location: condition.location === LocationConditionTarget.Deck ? 'Deck' : 'Hand'
-                    });
+                    const cond = createNewElement('condition');
+                    cond.quantity = condition.quantity,
+                    cond.operator = condition.operator,
+                    cond.cardName = condition.cardName,
+                    cond.location = condition.location === LocationConditionTarget.Deck ? 'Deck' : 'Hand'
+                    return [cond];
+                } else {
+                    console.error(`Invalid condition object ${condition.toString()}`);
+                    return [];
                 }
             }
 
-            // Now parse the element
-            parseElement(condition);
+            // parse the condition string to objects
+            const condition = parseCondition(initialCondition);
 
-            setElements(elements);
+            setElements(parseElement(condition));
         } else {
             setElements([{ id: 'element-0', type: 'condition', quantity: 1, operator: '>=', cardName: '', location: 'Hand' }]);
         }
     }, [initialCondition, open]);
-    
-    const addElement = (type: 'condition' | 'and' | 'or') => {
-        const newElements: Element[] = [];
-        const lastElement = elements[elements.length - 1];
-
-        if (type === 'condition') {
-            newElements.push({ id: `element-${elements.length}`, type, quantity: 1, operator: '>=', cardName: '', location: 'Hand' });
-        } else {
-            if (!lastElement || lastElement.type !== 'condition') {
-                newElements.push({ id: `element-${elements.length}`, type: 'condition', quantity: 1, operator: '>=', cardName: '', location: 'Hand' });
-            }
-            
-            newElements.push({ id: `element-${elements.length + 1}`, type });
-            newElements.push({ id: `element-${elements.length + 2}`, type: 'condition', quantity: 1, operator: '>=', cardName: '', location: 'Hand' });
-        }
-
-        setElements([...elements, ...newElements]);
-    };
 
     const removeElement = (index: number) => {
         setElements(elements.filter((_, i) => i !== index));
@@ -102,20 +311,43 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
             return;
         }
 
-        const newElements = Array.from(elements);
-        const [reorderedItem] = newElements.splice(result.source.index, 1);
-        newElements.splice(result.destination.index, 0, reorderedItem);
+        const reorder = (list: Element[], startIndex: number, endIndex: number) => {
+            const result = Array.from(list);
+            const [removed] = result.splice(startIndex, 1);
+            result.splice(endIndex, 0, removed);
+            return result;
+        };
 
-        setElements(newElements);
+        if (result.type === 'list-item') {
+            setElements(reorder(elements, result.source.index, result.destination.index));
+        } else if (result.type === 'group-item') {
+            const groupId = result.source.droppableId.split('-')[1];
+            const groupIndex = elements.findIndex(el => el.id === groupId);
+            if (groupIndex !== -1) {
+                const newElements = [...elements];
+                newElements[groupIndex].children = reorder(
+                    newElements[groupIndex].children || [],
+                    result.source.index,
+                    result.destination.index
+                );
+                setElements(newElements);
+            }
+        }
+    };
+
+    const elementToString = (element: Element): string => {
+        if (element.type === 'condition') {
+            const op = element.operator === '>=' ? '+' : element.operator === '<=' ? '-' : '';
+            return `${element.quantity}${op} ${element.cardName} IN ${element.location}`;
+        } else if (element.type === 'group') {
+            return `(${element.children?.map(elementToString).join(' ')})`;
+        }
+        return element.type.toUpperCase();
     };
 
     const handleSave = () => {
         const conditionString = elements.map(el => {
-            if (el.type === 'condition') {
-                const op = el.operator === '>=' ? '+' : el.operator === '<=' ? '-' : '';
-                return `${el.quantity}${op} ${el.cardName} IN ${el.location}`;
-            }
-            return el.type.toUpperCase();
+            return elementToString(el);
         }).join(' ');
 
         try {
@@ -134,125 +366,33 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
         setAlertOpen(false);
     };
 
+    const onAddElement = (type: 'condition' | 'and' | 'or' | 'group') => {
+        const newElements = addElementToList(elements, type);
+        setElements(newElements);
+    }
+
     return (
         <>
             <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
                 <DialogTitle>Build Condition</DialogTitle>
                 <DialogContent>
                     <DragDropContext onDragEnd={handleDragEnd}>
-                        <Droppable droppableId="condition-list">
+                        <Droppable droppableId="condition-list" type="list-item">
                             {(provided) => (
                                 <div {...provided.droppableProps} ref={provided.innerRef}>
-                                    {elements.map((element, index) => (
-                                        <Draggable key={element.id} draggableId={element.id} index={index}>
-                                            {(provided) => (
-                                                <div
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    {...provided.dragHandleProps}
-                                                >
-                                                    <Grid 
-                                                        container 
-                                                        spacing={1} 
-                                                        alignItems="center" 
-                                                        sx={{ mb: 1 }}
-                                                    >
-                                                        <Grid item>
-                                                            <DragIndicator />
-                                                        </Grid>
-                                                        {element.type === 'condition' ? (
-                                                            <>
-                                                                <Grid item xs={2}>
-                                                                    <Select
-                                                                        size="small"
-                                                                        value={element.operator}
-                                                                        onChange={(e) => updateElement(index, 'operator', e.target.value)}
-                                                                        fullWidth
-                                                                    >
-                                                                        <MenuItem value=">=">at least</MenuItem>
-                                                                        <MenuItem value="=">exactly</MenuItem>
-                                                                        <MenuItem value="<=">no more than</MenuItem>
-                                                                    </Select>
-                                                                </Grid>
-                                                                <Grid item xs={1}>
-                                                                    <TextField
-                                                                        size="small"
-                                                                        type="number"
-                                                                        value={element.quantity}
-                                                                        onChange={(e) => updateElement(index, 'quantity', e.target.value)}
-                                                                        InputProps={{ inputProps: { min: 1 } }}
-                                                                    />
-                                                                </Grid>
-                                                                <Grid item xs={4}>
-                                                                    <Autocomplete
-                                                                        freeSolo
-                                                                        options={autocompleteOptions}
-                                                                        value={element.cardName}
-                                                                        onInputChange={(event, newValue) => {
-                                                                            updateElement(index, 'cardName', newValue);
-                                                                        }}
-                                                                        renderInput={(params) => (
-                                                                            <TextField
-                                                                                {...params}
-                                                                                size="small"
-                                                                                placeholder="Card name or tag"
-                                                                                fullWidth
-                                                                            />
-                                                                        )}
-                                                                    />
-                                                                </Grid>
-                                                                <Grid item xs={2}>
-                                                                    <Select
-                                                                        size="small"
-                                                                        value={element.location}
-                                                                        onChange={(e) => updateElement(index, 'location', e.target.value)}
-                                                                        fullWidth
-                                                                    >
-                                                                        <MenuItem value="Hand">Hand</MenuItem>
-                                                                        <MenuItem value="Deck">Deck</MenuItem>
-                                                                    </Select>
-                                                                </Grid>
-                                                            </>
-                                                        ) : (
-                                                            <Grid item xs={9}>
-                                                                <Select
-                                                                    size="small"
-                                                                    value={element.type}
-                                                                    onChange={(e) => updateElement(index, 'type', e.target.value)}
-                                                                    fullWidth
-                                                                >
-                                                                    <MenuItem value="and">AND</MenuItem>
-                                                                    <MenuItem value="or">OR</MenuItem>
-                                                                </Select>
-                                                            </Grid>
-                                                        )}
-                                                        <Grid item>
-                                                            <IconButton onClick={() => removeElement(index)}>
-                                                                <Remove />
-                                                            </IconButton>
-                                                        </Grid>
-                                                    </Grid>
-                                                </div>
-                                            )}
-                                        </Draggable>
-                                    ))}
+                                    <ConditionList
+                                        elements={elements}
+                                        updateElement={updateElement}
+                                        removeElement={removeElement}
+                                        addElement={onAddElement}
+                                        autocompleteOptions={autocompleteOptions}
+                                        dragType="list-item"
+                                    />
                                     {provided.placeholder}
                                 </div>
                             )}
                         </Droppable>
                     </DragDropContext>
-                    <Grid container spacing={1} sx={{ mt: 2 }}>
-                        <Grid item>
-                            <Button variant="outlined" onClick={() => addElement('condition')}>
-                                Add Condition
-                            </Button>
-                        </Grid>
-                        <Grid item>
-                            <Button variant="outlined" onClick={() => addElement('or')}>
-                                Add Logic
-                            </Button>
-                        </Grid>
-                    </Grid>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={onClose}>Cancel</Button>

@@ -112,7 +112,8 @@ export class AndCondition implements BaseCondition {
      * Creates a new AndCondition
      * @param conditions - Array of BaseCondition objects
      */
-    constructor(readonly conditions: BaseCondition[]) {
+    constructor(readonly conditions: BaseCondition[],
+                readonly hasParentheses: boolean = true) {
         if (conditions.some(condition => condition == undefined)) {
             console.error(`Found a dead condition`);
         }
@@ -148,7 +149,7 @@ export class AndCondition implements BaseCondition {
     }
 
     toString(): string {
-        return `(${this.conditions.map(c => c.toString()).join(' AND ')})`;
+        return `${this.hasParentheses ? '(' : ''}${this.conditions.map(c => c.toString()).join(' AND ')}${this.hasParentheses ? ')' : ''}`;
     }
 }
 
@@ -160,7 +161,8 @@ export class OrCondition implements BaseCondition {
      * Creates a new OrCondition
      * @param conditions - Array of BaseCondition objects
      */
-    constructor(readonly conditions: BaseCondition[]) {
+    constructor(readonly conditions: BaseCondition[],
+                readonly hasParentheses: boolean = true) {
         if (conditions.some(condition => condition == undefined)) {
             console.error(`Found a dead condition`);
         }
@@ -196,6 +198,6 @@ export class OrCondition implements BaseCondition {
     }
 
     toString(): string {
-        return `(${this.conditions.map(c => c.toString()).join(' OR ')})`;
+        return `${this.hasParentheses ? '(' : ''}${this.conditions.map(c => c.toString()).join(' OR ')}${this.hasParentheses ? ')' : ''}`;
     }
 }

@@ -90,6 +90,9 @@ function parse(tokens: Token[]): BaseCondition {
 
     /** Parses expressions, handling AND and OR operations */
     function parseExpression(): BaseCondition {
+        const lastToken = tokens[current - 1];
+        const hasParentheses = (lastToken?.type === 'paren' && lastToken.value === '(');
+
         let left: BaseCondition = walk();
     
         while (current < tokens.length && tokens[current].type === 'operator') {
@@ -97,7 +100,7 @@ function parse(tokens: Token[]): BaseCondition {
             current++;
             const right: BaseCondition = walk();
             // Create AndCondition or OrCondition based on the operator
-            left = operator === 'AND' ? new AndCondition([left, right]) : new OrCondition([left, right]);
+            left = operator === 'AND' ? new AndCondition([left, right], hasParentheses) : new OrCondition([left, right], hasParentheses);
         }
     
         return left;
