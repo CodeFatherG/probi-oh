@@ -226,16 +226,16 @@ export default function CardTable({
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell padding="checkbox">
+                                <TableCell padding="checkbox" width="5%">
                                     <Checkbox
                                         indeterminate={selected.length > 0 && selected.length < cards.size}
                                         checked={cards.size > 0 && selected.length === cards.size}
                                         onChange={handleSelectAllClick}
                                     />
                                 </TableCell>
-                                <TableCell>Name</TableCell>
-                                <TableCell>Qty</TableCell>
-                                <TableCell>Tags</TableCell>
+                                <TableCell width="40%">Name</TableCell>
+                                <TableCell width="15%">Qty</TableCell>
+                                <TableCell width="40%">Tags</TableCell>
                             </TableRow>
                         </TableHead>
                         <Droppable droppableId="card-list">
@@ -247,7 +247,7 @@ export default function CardTable({
                                         const isItemSelected = isSelected(name);
                                         return (
                                             <Draggable key={name} draggableId={name} index={index}>
-                                                {(provided) => (
+                                                {(provided, snapshot) => (
                                                     <TableRow
                                                         hover
                                                         role="checkbox"
@@ -256,20 +256,24 @@ export default function CardTable({
                                                         selected={isItemSelected}
                                                         ref={provided.innerRef}
                                                         {...provided.draggableProps}
+                                                        sx={{
+                                                            ...provided.draggableProps.style,
+                                                            background: snapshot.isDragging ? 'lightblue' : 'inherit',
+                                                        }}
                                                     >
-                                                        <TableCell padding="checkbox">
+                                                        <TableCell padding="checkbox" width="5%">
                                                             <Box display="flex" alignItems="center">
                                                                 <Checkbox
                                                                     checked={isItemSelected}
                                                                     onClick={(event) => handleCheckboxClick(event, name)}
                                                                 />
-                                                                <IconButton {...provided.dragHandleProps}>
+                                                                <IconButton {...provided.dragHandleProps} size="small">
                                                                     <DragIndicator />
                                                                 </IconButton>
                                                             </Box>
                                                         </TableCell>
-                                                        <TableCell>{name}</TableCell>
-                                                        <TableCell>
+                                                        <TableCell width="40%">{name}</TableCell>
+                                                        <TableCell width="15%">
                                                             <TextField
                                                                 type="number"
                                                                 value={details.qty || 0}
@@ -277,7 +281,7 @@ export default function CardTable({
                                                                 inputProps={{ min: 0, style: { width: '50px' } }}
                                                             />
                                                         </TableCell>
-                                                        <TableCell>
+                                                        <TableCell width="40%">
                                                             <TagBox
                                                                 tags={details.tags || []}
                                                                 onTagsChange={(tags) => {
