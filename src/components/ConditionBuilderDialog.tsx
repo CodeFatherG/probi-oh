@@ -59,180 +59,204 @@ function addElementToList(elements: Element[], type: 'condition' | 'and' | 'or' 
     return([...elements, ...newElements]);
 }
 
-const GroupComponent: React.FC<{
-    element: Element;
-    index: number;
-    updateElement: (index: number, field: string, value: any) => void;
-    autocompleteOptions: string[];
-}> = ({ element, index, updateElement, autocompleteOptions }) => {
-    return (
-        <Paper 
-            elevation={3} 
-            sx={{ p: 2, mb: 2, backgroundColor: 'rgba(0, 0, 0, 0.05)' }}
-        >
-            <Grid container spacing={1} alignItems="center">
-                <Grid item xs={11}>
-                    <Droppable droppableId={`group-${element.id}`} type="group-item">
-                        {(providedDrop) => (
-                            <div {...providedDrop.droppableProps} ref={providedDrop.innerRef}>
-                                <ConditionList
-                                    elements={element.children || []}
-                                    updateElement={(childIndex, field, value) => {
-                                        const newChildren = [...(element.children || [])];
-                                        newChildren[childIndex] = { ...newChildren[childIndex], [field]: value };
-                                        updateElement(index, 'children', newChildren);
-                                    }}
-                                    removeElement={(childIndex) => {
-                                        const newChildren = (element.children || []).filter((_, i) => i !== childIndex);
-                                        updateElement(index, 'children', newChildren);
-                                    }}
-                                    addElement={(type) => {
-                                        const newChildren = addElementToList(element.children || [], type);
-                                        updateElement(index, 'children', newChildren);
-                                    }}
-                                    autocompleteOptions={autocompleteOptions}
-                                    dragType="group-item"
-                                />
-                                {providedDrop.placeholder}
-                            </div>
-                        )}
-                    </Droppable>
-                </Grid>
-            </Grid>
-        </Paper>
-    );
-};
+interface GroupComponentProps {
+element: Element;
+index: number;
+updateElement: (index: number, field: string, value: any) => void;
+autocompleteOptions: string[];
+}
 
-const ConditionList: React.FC<{
+interface ConditionListProps {
     elements: Element[];
     updateElement: (index: number, field: string, value: any) => void;
     removeElement: (index: number) => void;
     addElement: (type: 'condition' | 'and' | 'or' | 'group') => void;
     autocompleteOptions: string[];
     dragType: 'list-item' | 'group-item';
-}> = ({ elements, updateElement, removeElement, addElement, autocompleteOptions, dragType }) => {
-    const renderElement = (element: Element, index: number) => (
-        <Draggable key={element.id} draggableId={element.id} index={index}>
-            {(provided) => (
+}
+  
+function GroupComponent({ element, index, updateElement, autocompleteOptions}: GroupComponentProps) {
+    return (
+        <Paper
+            elevation={1}
+            sx={{ p: 2, mb: 2, backgroundColor: 'rgba(0, 0, 0, 0.05)' }}
+        >
+            <Grid container spacing={1} alignItems="center">
+                <Grid item xs>
+                    <Droppable droppableId={`group-${Date.now()}-${Math.random()}`} type="group-item">
+                        {(providedDrop) => (
+                        <div>
+                            <ConditionList
+                                elements={element.children || []}
+                                updateElement={(childIndex, field, value) => {
+                                    const newChildren = [...(element.children || [])];
+                                    newChildren[childIndex] = { ...newChildren[childIndex], [field]: value };
+                                    updateElement(index, 'children', newChildren);
+                                }}
+                                removeElement={(childIndex) => {
+                                    const newChildren = (element.children || []).filter((_, i) => i !== childIndex);
+                                    updateElement(index, 'children', newChildren);
+                                }}
+                                addElement={(type) => {
+                                    const newChildren = addElementToList(element.children || [], type);
+                                    updateElement(index, 'children', newChildren);
+                                }}
+                                autocompleteOptions={autocompleteOptions}
+                                dragType="group-item"
+                            />
+                            {providedDrop.placeholder}
+                        </div>
+                        )}
+                    </Droppable>
+                </Grid>
+            </Grid>
+        </Paper>
+    );
+}
+  
+function ConditionList({
+    elements,
+    updateElement,
+    removeElement,
+    addElement,
+    autocompleteOptions,
+    dragType
+}: ConditionListProps) {
+    const renderElement = (element: Element, index: number) => {
+        const content = (
+            <Grid container spacing={1} alignItems="center" sx={{ mb: 1, width: '100%' }}>
+                {dragType === 'list-item' && (
+                    <Grid item>
+                        <DragIndicator />
+                    </Grid>
+                )}
+                {element.type === 'condition' ? (
+                    <>
+                        <Grid item xs={2}>
+                            <Select
+                                size="small"
+                                value={element.operator}
+                                onChange={(e) => updateElement(index, 'operator', e.target.value)}
+                                fullWidth
+                            >
+                                <MenuItem value=">=">at least</MenuItem>
+                                <MenuItem value="=">exactly</MenuItem>
+                                <MenuItem value="<=">no more than</MenuItem>
+                            </Select>
+                        </Grid>
+                        <Grid item xs={2}>
+                            <TextField
+                                size="small"
+                                type="number"
+                                value={element.quantity}
+                                onChange={(e) => updateElement(index, 'quantity', Number(e.target.value))}
+                                InputProps={{ inputProps: { min: 1 } }}
+                                fullWidth
+                            />
+                        </Grid>
+                        <Grid item xs>
+                            <Autocomplete
+                                freeSolo
+                                options={autocompleteOptions}
+                                value={element.cardName}
+                                onInputChange={(event, newValue) => {
+                                    updateElement(index, 'cardName', newValue);
+                                }}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        size="small"
+                                        placeholder="Card name or tag"
+                                        fullWidth
+                                    />
+                                )}
+                            />
+                        </Grid>
+                        <Grid item xs={2}>
+                            <Select
+                                size="small"
+                                value={element.location}
+                                onChange={(e) => updateElement(index, 'location', e.target.value)}
+                                fullWidth
+                            >
+                                <MenuItem value="Hand">Hand</MenuItem>
+                                <MenuItem value="Deck">Deck</MenuItem>
+                            </Select>
+                        </Grid>
+                    </>
+                ) : element.type === 'group' ? (
+                    <Grid item xs>
+                        <GroupComponent
+                            element={element}
+                            index={index}
+                            updateElement={updateElement}
+                            autocompleteOptions={autocompleteOptions}
+                        />
+                    </Grid>
+                ) : (
+                    <Grid item xs>
+                        <Select
+                            size="small"
+                            value={element.type}
+                            onChange={(e) => updateElement(index, 'type', e.target.value as 'and' | 'or')}
+                            fullWidth
+                        >
+                            <MenuItem value="and">AND</MenuItem>
+                            <MenuItem value="or">OR</MenuItem>
+                        </Select>
+                    </Grid>
+                )}
+                <Grid item>
+                    <IconButton onClick={() => removeElement(index)}>
+                        <Remove />
+                    </IconButton>
+                </Grid>
+            </Grid>
+        );
+
+        return dragType === 'list-item' ? (
+            <Draggable key={element.id} draggableId={element.id} index={index}>
+                {(provided) => (
                 <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
+                    style={{...provided.draggableProps.style, width: '100%'}}
                 >
-                    <Grid container spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                        <Grid item>
-                            <DragIndicator />
-                        </Grid>
-                        {element.type === 'condition' ? (
-                            <>
-                                <Grid item xs={2}>
-                                    <Select
-                                        size="small"
-                                        value={element.operator}
-                                        onChange={(e) => updateElement(index, 'operator', e.target.value)}
-                                        fullWidth
-                                    >
-                                        <MenuItem value=">=">at least</MenuItem>
-                                        <MenuItem value="=">exactly</MenuItem>
-                                        <MenuItem value="<=">no more than</MenuItem>
-                                    </Select>
-                                </Grid>
-                                <Grid item xs={1}>
-                                    <TextField
-                                        size="small"
-                                        type="number"
-                                        value={element.quantity}
-                                        onChange={(e) => updateElement(index, 'quantity', e.target.value)}
-                                        InputProps={{ inputProps: { min: 1 } }}
-                                        fullWidth
-                                    />
-                                </Grid>
-                                <Grid item xs={5}>
-                                    <Autocomplete
-                                        freeSolo
-                                        options={autocompleteOptions}
-                                        value={element.cardName}
-                                        onInputChange={(event, newValue) => {
-                                            updateElement(index, 'cardName', newValue);
-                                        }}
-                                        renderInput={(params) => (
-                                            <TextField
-                                                {...params}
-                                                size="small"
-                                                placeholder="Card name or tag"
-                                                fullWidth
-                                            />
-                                        )}
-                                    />
-                                </Grid>
-                                <Grid item xs={2}>
-                                    <Select
-                                        size="small"
-                                        value={element.location}
-                                        onChange={(e) => updateElement(index, 'location', e.target.value)}
-                                        fullWidth
-                                    >
-                                        <MenuItem value="Hand">Hand</MenuItem>
-                                        <MenuItem value="Deck">Deck</MenuItem>
-                                    </Select>
-                                </Grid>
-                            </>
-                        ) : element.type === 'group' ? (
-                            <Grid item xs={10}>
-                                <GroupComponent
-                                    element={element}
-                                    index={index}
-                                    updateElement={updateElement}
-                                    autocompleteOptions={autocompleteOptions}
-                                />
-                            </Grid>
-                        ) : (
-                            <Grid item xs={10}>
-                                <Select
-                                    size="small"
-                                    value={element.type}
-                                    onChange={(e) => updateElement(index, 'type', e.target.value)}
-                                    fullWidth
-                                >
-                                    <MenuItem value="and">AND</MenuItem>
-                                    <MenuItem value="or">OR</MenuItem>
-                                </Select>
-                            </Grid>
-                        )}
-                        <Grid item>
-                            <IconButton onClick={() => removeElement(index)}>
-                                <Remove />
-                            </IconButton>
-                        </Grid>
-                    </Grid>
+                    {content}
                 </div>
-            )}
-        </Draggable>
-    );
+                )}
+            </Draggable>
+        ) : (
+            <div key={element.id} style={{width: '100%'}}>
+                {content}
+            </div>
+        );
+    };
 
     return (
-        <>
+        <div style={{width: '100%'}}>
             {elements.map((element, index) => renderElement(element, index))}
             <Grid container spacing={1} sx={{ mt: 2 }}>
                 <Grid item>
-                    <Button variant="outlined" onClick={() => addElement('condition')}>
-                        Add Condition
-                    </Button>
+                <Button variant="outlined" onClick={() => addElement('condition')}>
+                    Add Condition
+                </Button>
                 </Grid>
                 <Grid item>
-                    <Button variant="outlined" onClick={() => addElement('or')}>
-                        Add Logic
-                    </Button>
+                <Button variant="outlined" onClick={() => addElement('or')}>
+                    Add Logic
+                </Button>
                 </Grid>
                 <Grid item>
-                    <Button variant="outlined" onClick={() => addElement('group')}>
-                        Add Group
-                    </Button>
+                <Button variant="outlined" onClick={() => addElement('group')}>
+                    Add Group
+                </Button>
                 </Grid>
             </Grid>
-        </>
+        </div>
     );
-};
+}
 
 export default function ConditionBuilderDialog({ open, onClose, onSave, initialCondition, autocompleteOptions }: ConditionBuilderDialogProps) {
     const [elements, setElements] = useState<Element[]>([]);
