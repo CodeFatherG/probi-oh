@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     Button, TextField, Select, MenuItem, IconButton, Grid,
-    Autocomplete, Alert, Snackbar, Paper
+    Autocomplete, Alert, Snackbar, Paper,
+    Tooltip
 } from '@mui/material';
 import { Remove, DragIndicator } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -125,11 +126,11 @@ function ConditionList({
     const renderElement = (element: Element, index: number) => {
         const content = (
             <Grid container spacing={1} alignItems="center" sx={{ mb: 1, width: '100%' }}>
-                {dragType === 'list-item' && (
+                <Tooltip title={dragType === 'group-item' ? "Nested draggables are not supported, sorry" : ""}>
                     <Grid item>
-                        <DragIndicator />
+                        <DragIndicator sx={{ color: dragType === 'group-item' ? 'action.disabled' : 'inherit' }} />
                     </Grid>
-                )}
+                </Tooltip>
                 {element.type === 'condition' ? (
                     <>
                         <Grid item xs={2}>
