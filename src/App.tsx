@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import './styles/App.css';
 import FileInput from './components/FileInput';
 import SimulationRunner from './components/SimulationRunner';
-import { loadFromYamlFile } from './utils/yaml-manager';
+import { loadFromYamlFile, serialiseSimulationInputToYaml } from './utils/yaml-manager';
 import { CardDetails } from './utils/card-details';
 import useLocalStorage from './components/LocalStorage';
 import { parseCondition } from './utils/parser';
@@ -18,6 +18,8 @@ import ConditionList from './components/ConditionList';
 import LoadingOverlay from './components/LoadingOverlay';
 import SettingsDialog, { Settings } from './components/SettingsDialog';
 import SettingsIcon from '@mui/icons-material/Settings';
+import CopyButton from './components/CopyButton';
+import { SimulationInput } from './utils/simulation-input';
 
 const App = () => {
     const [cardData, setCardData, clearCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
@@ -163,15 +165,27 @@ const App = () => {
                 </h1>
                 <Grid container spacing={2}>
                     <Grid item xs={12}>
-                        <Box display="flex" flexDirection="row" gap={2}>
-                            <FileInput 
-                                onFileUpload={handleFileUpload} 
-                                acceptedExtensions={[".yaml", ".yml", ".ydk"]} 
-                                importPrompt="Import File" 
-                            />
-                            <SaveFileComponent 
-                                cardData={cardData} 
-                                conditionData={conditionData} 
+                        <Box display="flex" justifyContent="space-between" alignItems="center">
+                            <Box display="flex" gap={2}>
+                                <FileInput 
+                                    onFileUpload={handleFileUpload} 
+                                    acceptedExtensions={[".yaml", ".yml", ".ydk"]} 
+                                    importPrompt="Import File" 
+                                />
+                                <SaveFileComponent 
+                                    cardData={cardData} 
+                                    conditionData={conditionData} 
+                                />
+                            </Box>
+                            <CopyButton 
+                                getText={() => {
+                                    const input: SimulationInput = {
+                                        deck: cardData,
+                                        conditions: conditionData,
+                                    };
+                    
+                                    return serialiseSimulationInputToYaml(input);
+                                }}
                             />
                         </Box>
                     </Grid>
