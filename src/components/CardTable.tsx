@@ -3,7 +3,8 @@ import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
     Checkbox, TextField, IconButton, TablePagination, Toolbar, Typography,
     Autocomplete,
-    Box
+    Box,
+    Button
 } from '@mui/material';
 import TagBox from './TagBox';
 import { fuzzySearchCard } from './../utils/card-api';
@@ -168,12 +169,6 @@ export default function CardTable({
         }
     };
 
-    // const handleMoveCard = (direction: 'up' | 'down') => {
-    //     if (selected.length === 1) {
-    //         onMoveCard(selected[0], direction);
-    //     }
-    // };
-
     const handleDragEnd = (result: DropResult) => {
         if (!result.destination) {
             return;
@@ -191,6 +186,13 @@ export default function CardTable({
 
     return (
         <Paper sx={{ position: 'relative' }}>
+            <Button
+                onClick={() => {
+                    throw new Error('Test Error');
+                }}
+            >
+                Test Error
+            </Button>
             <Toolbar
                 sx = {{
                     position: 'sticky',

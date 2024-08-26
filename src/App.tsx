@@ -18,6 +18,7 @@ import ConditionList from './components/ConditionList';
 import LoadingOverlay from './components/LoadingOverlay';
 import SettingsDialog, { Settings } from './components/SettingsDialog';
 import SettingsIcon from '@mui/icons-material/Settings';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const App = () => {
     const [cardData, setCardData, clearCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
@@ -152,7 +153,7 @@ const App = () => {
     }, [setSettings]);
 
     return (
-        <>
+        <ErrorBoundary>
             <div className="App">
                 <LoadingOverlay isLoading={isLoading} />
                 <h1 style={{
@@ -222,14 +223,14 @@ const App = () => {
                     onClose={handleCloseSettings}
                     onSave={handleSaveSettings}
                 />
-                <ErrorSnackbar message={errorMessage}/>
+                {/* <ErrorSnackbar message={errorMessage}/> */}
             </div>
             <div className="fixed bottom-4 right-4">
                 <Link href="https://github.com/CodeFatherG/probi-oh" className="text-blue-500 hover:text-blue-700" variant='caption'>
                     Visit us on Github!
                 </Link>
             </div>
-        </>
+        </ErrorBoundary>
     );
 };
 
