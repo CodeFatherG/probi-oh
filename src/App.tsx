@@ -19,7 +19,7 @@ import ErrorSnackbar from './components/ErrorSnackbar';
 import { getCardDetails } from './utils/details-provider';
 import { loadFromYdkFile } from './utils/ydk-manager';
 import SaveFileComponent from './components/SaveFile';
-import { Box, Grid, IconButton, LinearProgress } from '@mui/material';
+import { Box, Grid, IconButton, LinearProgress, Link } from '@mui/material';
 import ConditionList from './components/ConditionList';
 import LoadingOverlay from './components/LoadingOverlay';
 import SettingsDialog, { Settings } from './components/SettingsDialog';
@@ -159,80 +159,87 @@ const App = () => {
     }, [setSettings]);
 
     return (
-        <div className="App">
-            <LoadingOverlay isLoading={isLoading} />
-            <h1 style={{
-                display: 'flex',
-                justifyContent: 'center',
-            }}>
-                Probi-oh: Yu-Gi-Oh! Probability Simulator
-            </h1>
-            <Grid container spacing={2}>
-                <Grid item xs={12}>
-                    <Box display="flex" flexDirection="row" gap={2}>
-                        <FileInput 
-                            onFileUpload={handleFileUpload} 
-                            acceptedExtensions={[".yaml", ".yml", ".ydk"]} 
-                            importPrompt="Import File" 
+        <>
+            <div className="App">
+                <LoadingOverlay isLoading={isLoading} />
+                <h1 style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                }}>
+                    Probi-oh: Yu-Gi-Oh! Probability Simulator
+                </h1>
+                <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                        <Box display="flex" flexDirection="row" gap={2}>
+                            <FileInput 
+                                onFileUpload={handleFileUpload} 
+                                acceptedExtensions={[".yaml", ".yml", ".ydk"]} 
+                                importPrompt="Import File" 
+                            />
+                            <SaveFileComponent 
+                                cardData={cardData} 
+                                conditionData={conditionData} 
+                            />
+                        </Box>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <CardTable
+                            cards={cardData}
+                            onUpdateCard={handleUpdateCard}
+                            onCreateCard={handleCreateCard}
+                            onDeleteCards={handleDeleteCards}
+                            onReorderCards={handleReorderCards}
                         />
-                        <SaveFileComponent 
-                            cardData={cardData} 
-                            conditionData={conditionData} 
+                    </Grid>
+                    <Grid item xs={12}>
+                        <ConditionList 
+                            conditions={conditionData} 
+                            onConditionsChange={handleConditionsChange}
+                            autocompleteOptions={autocompleteOptions}
                         />
-                    </Box>
-                </Grid>
-                <Grid item xs={12}>
-                    <CardTable
-                        cards={cardData}
-                        onUpdateCard={handleUpdateCard}
-                        onCreateCard={handleCreateCard}
-                        onDeleteCards={handleDeleteCards}
-                        onReorderCards={handleReorderCards}
-                    />
-                </Grid>
-                <Grid item xs={12}>
-                    <ConditionList 
-                        conditions={conditionData} 
-                        onConditionsChange={handleConditionsChange}
-                        autocompleteOptions={autocompleteOptions}
-                    />
-                </Grid>
-                <Grid item xs={12}>
-                    <SimulationRunner
-                        disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0}
-                        cards={cardData}
-                        conditions={conditionData.map(parseCondition)}
-                        settings={settings}
-                    />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <SimulationRunner
+                            disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0}
+                            cards={cardData}
+                            conditions={conditionData.map(parseCondition)}
+                            settings={settings}
+                        />
 
+                    </Grid>
                 </Grid>
-            </Grid>
-            <ErrorSnackbar 
-                message={errorMessage} 
-                onClose={() => setErrorMessage('')}
-            />
-            <IconButton
-                onClick={handleOpenSettings}
-                sx={{
-                    position: 'fixed',
-                    top: 16,
-                    right: 16,
-                    bgcolor: 'background.paper',
-                    '&:hover': {
-                        bgcolor: 'action.hover',
-                    },
-                }}
-                aria-label="settings"
-            >
-                <SettingsIcon />
-            </IconButton>
-            <SettingsDialog
-                open={settingsOpen}
-                settings={settings}
-                onClose={handleCloseSettings}
-                onSave={handleSaveSettings}
-            />
-        </div>
+                <ErrorSnackbar 
+                    message={errorMessage}
+                    severity='error'
+                />
+                <IconButton
+                    onClick={handleOpenSettings}
+                    sx={{
+                        position: 'fixed',
+                        top: 16,
+                        right: 16,
+                        bgcolor: 'background.paper',
+                        '&:hover': {
+                            bgcolor: 'action.hover',
+                        },
+                    }}
+                    aria-label="settings"
+                >
+                    <SettingsIcon />
+                </IconButton>
+                <SettingsDialog
+                    open={settingsOpen}
+                    settings={settings}
+                    onClose={handleCloseSettings}
+                    onSave={handleSaveSettings}
+                />
+            </div>
+            <div className="fixed bottom-4 right-4">
+                <Link href="https://github.com/CodeFatherG/probi-oh" className="text-blue-500 hover:text-blue-700" variant='caption'>
+                    Visit us on Github!
+                </Link>
+            </div>
+        </>
     );
 };
 
