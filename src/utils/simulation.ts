@@ -33,34 +33,42 @@ export class SimulationBranch {
 /** Represents a single simulation run */
 export class Simulation {
     private readonly _gameState: GameState;
-    private _branches: SimulationBranch[] = [];
+    private _branches: Map<BaseCondition, SimulationBranch[]> = new Map();
 
     /**
      * Creates a new Simulation
      * @param gameState - The initial game state
      * @param _condition - The condition to evaluate
      */
-    public constructor(gameState: GameState, readonly _condition: BaseCondition) {
+    public constructor(gameState: GameState, readonly _conditions: BaseCondition[]) {
         this._gameState = gameState.deepCopy();
     }
 
     private runBranch(branch: SimulationBranch): void {
         branch.run();
-        this._branches.push(branch);
+        
+        if (!this._branches.has(branch.condition)) {
+            this._branches.set(branch.condition, []);
+        }
+
+        const branches = this._branches.get(branch.condition) || [];
+        branches.push(branch);
     }
 
     /** Runs the simulation, evaluating the condition against the game state */
     iterate(): void {
-        // Run a branch with the original game state
-        const branch = new SimulationBranch(this._gameState, this._condition);
-        this.runBranch(branch);
-        if (this.result) return;    // return if branch succeeds, we won.
+        this._conditions.forEach(condition => {
+           // Run a branch with the original game state
+            const branch = new SimulationBranch(this._gameState, condition);
+            this.runBranch(branch);
+            if (this.result) return;    // return if branch succeeds, we won.
 
-        // The gamestate doesn't work, so we need to try all possible branches
-        this.generateFreeCardPermutations(this._gameState);
+            // The gamestate doesn't work, so we need to try all possible branches
+            this.generateFreeCardPermutations(this._gameState, condition); 
+        });
     }
 
-    private generateFreeCardPermutations(gameState: GameState, usedCards: FreeCard[] = []): void {
+    private generateFreeCardPermutations(gameState: GameState, condition: BaseCondition, usedCards: FreeCard[] = []): void {
         const freeCards = gameState.freeCardsInHand.filter(card => 
             freeCardIsUsable(gameState, card) && !usedCards.includes(card)
         );
@@ -76,25 +84,25 @@ export class Simulation {
 
             // Create a new branch with the updated game state
             const newGameState = gameState.deepCopy();
-            const branch = new SimulationBranch(newGameState, this._condition);
+            const branch = new SimulationBranch(newGameState, condition);
             processFreeCard(branch, freeCard);
             this.runBranch(branch);
 
             if (this.result) return;  // If we've found a winning combination, stop searching
 
             // Recursively generate permutations with the remaining free cards
-            this.generateFreeCardPermutations(branch.gameState, [...usedCards, freeCard]);
+            this.generateFreeCardPermutations(branch.gameState, condition, [...usedCards, freeCard]);
         }
     }
 
     /** Gets the result of the simulation */
     public get result(): boolean {
-        return this.branches.some(b => b.result);
+        return this.successfulBranches.some(([, branch]) => branch !== undefined);
     }
 
-    /** Gets the condition being evaluated */
-    public get condition(): BaseCondition {
-        return this._condition;
+    /** Gets the conditions being evaluated */
+    public get conditions(): BaseCondition[] {
+        return this._conditions;
     }
 
     /** Gets the game state used in the simulation */
@@ -103,23 +111,23 @@ export class Simulation {
     }
 
     /** Gets the branches of the simulation */
-    public get branches(): SimulationBranch[] {
+    public get branches(): Map<BaseCondition, SimulationBranch[]> {
         return this._branches;
     }
 
     /** Get the branch that succeeded */
-    public get successfulBranch(): SimulationBranch | undefined {
-        return this._branches.find(b => b.result);
+    public get successfulBranches(): [BaseCondition, SimulationBranch | undefined][] {
+        return Array.from(this._branches).map(([condition, branches]) => [condition, branches.find(branch => branch.result)]) as [BaseCondition, SimulationBranch | undefined][];
     }
 
     /** Get the branches that failed */
-    public get failedBranches(): SimulationBranch[] {
-        return this._branches.filter(b => !b.result);
+    public get failedBranches(): [BaseCondition, SimulationBranch[] | undefined][] {
+        return Array.from(this._branches).map(([condition, branches]) => [condition, branches.find(branch => !branch.result)]) as [BaseCondition, SimulationBranch[] | undefined][];
     }
 }
 
-export function runSimulation(gameState: GameState, condition: BaseCondition): Simulation {
-    const simulation = new Simulation(gameState, condition);
+export function runSimulation(gameState: GameState, conditions: BaseCondition[]): Simulation {
+    const simulation = new Simulation(gameState, conditions);
     simulation.iterate();
     return simulation;
 }

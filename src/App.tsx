@@ -19,18 +19,14 @@ import ErrorSnackbar from './components/ErrorSnackbar';
 import { getCardDetails } from './utils/details-provider';
 import { loadFromYdkFile } from './utils/ydk-manager';
 import SaveFileComponent from './components/SaveFile';
-import { Box, Button, Grid, IconButton, LinearProgress, Typography } from '@mui/material';
+import { Box, Grid, IconButton, LinearProgress } from '@mui/material';
 import ConditionList from './components/ConditionList';
 import LoadingOverlay from './components/LoadingOverlay';
 import SettingsDialog, { Settings } from './components/SettingsDialog';
 import SettingsIcon from '@mui/icons-material/Settings';
+import ResultDisplay from './components/ResultDisplay';
 
 const App = () => {
-    const [isSimulationRunning, setIsSimulationRunning] = useState(false);
-    const [progress, setProgress] = useState(0);
-    const [result, setResult] = useState<string | null>(null);
-    const [reportData, setReportData] = useState<Report[]>([]);
-    const [isReportVisible, setIsReportVisible] = useState<boolean>(false);
     const [cardData, setCardData, clearCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
     const [conditionData, setConditionData, clearConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
     const [errorMessage, setErrorMessage] = useState('');
@@ -64,72 +60,6 @@ const App = () => {
             console.error('Error loading file:', err);
         }
         setIsLoading(false);
-    };
-
-    const simulateDraw = async (deck: Deck, 
-                        conditions: (BaseCondition)[], 
-                        handSize: number, 
-                        trials: number): Promise<Report[]> => {
-        const simulations: Simulation[][] = Array(conditions.length).fill([]).map(() => []);
-    
-        for (let i = 0; i < trials; i++) {
-            // Create the game state for this trial
-            const gamestate = new GameState(deck.deepCopy());
-
-            // draw the hand for this trial so it is common to all conditions   
-            gamestate.drawHand(handSize);
-
-            conditions.forEach((condition, index) => {
-                // Create the simulation for this condition
-                const simulation = new Simulation(gamestate.deepCopy(), condition);
-                simulations[index].push(simulation);
-                simulation.iterate();
-            });
-            
-            if (i % 100 === 0 || i === trials - 1) {
-                const progress = Math.round(((i + 1) / trials) * 100);
-                setProgress(progress);
-
-                // Yield to the event loop to keep UI responsive
-                await new Promise(resolve => setTimeout(resolve, 0));
-            }
-        }
-    
-        return simulations.flatMap(simulationSet => Report.generateReports(simulationSet));
-    }
-
-    const runSimulation = async () => {
-        setProgress(0);
-        setResult(null);
-        setIsSimulationRunning(true);
-
-        try {
-            console.log(`Cards: ${Array.from(cardData, ([card, details]) => `${card}: ${details.qty || 1}`).join(', ')}`);
-            const deck = buildDeck(cardData);
-            const conditions = conditionData.map(condition => parseCondition(condition));
-            console.log('Starting simulation...');
-            console.log(`Deck size: ${deck.deckCount}`);
-            console.log(`Cards in deck: ${deck.deckList.map(card => card.name).join(', ')}`);
-            
-            const reports = await simulateDraw(deck, conditions, 5, settings.simulationIterations);
-            
-            // Find maximum probability
-            const maxProbability = Math.max(...reports.map(report => report.successRate));
-            
-            setResult(`Maximum probability of success: ${(maxProbability * 100).toFixed(2)}%`);
-            
-            setReportData(reports);
-            
-            console.log(`Simulation complete. Maximum success probability: ${(maxProbability * 100).toFixed(2)}%`);
-        } catch (err) {
-            console.error('Error running simulation:', err);
-        } finally {
-            setIsSimulationRunning(false);
-        }
-    };
-
-    const toggleReportVisibility = () => {
-        setIsReportVisible(!isReportVisible);
     };
 
     // CardTable callback hooks
@@ -268,24 +198,15 @@ const App = () => {
                     />
                 </Grid>
                 <Grid item xs={12}>
-                    <SimulationRunner onRun={runSimulation} disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0 || isSimulationRunning} />
+                    <SimulationRunner
+                        disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0}
+                        cards={cardData}
+                        conditions={conditionData.map(parseCondition)}
+                        settings={settings}
+                    />
+
                 </Grid>
             </Grid>
-            
-            {isSimulationRunning && <LinearProgress variant="determinate" value={progress} />}
-            {result && (
-                <Typography variant="subtitle1" component="div" sx={{ mr: 2 }}>
-                    {result}
-                </Typography>
-            )}
-            {reportData.length > 0 && (
-                <div>
-                    <Button onClick={toggleReportVisibility}>
-                        {isReportVisible ? 'Hide Report' : 'Show Report'}
-                    </Button>
-                    {isReportVisible && <ReportDisplay reports={reportData} />}
-                </div>
-            )}
             <ErrorSnackbar 
                 message={errorMessage} 
                 onClose={() => setErrorMessage('')}

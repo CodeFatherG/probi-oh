@@ -1,55 +1,91 @@
 import React from 'react';
-import { Report } from '../utils/report'; // Adjust the import path as necessary
+import { ConditionStatistics, Report } from '../utils/report';
+import { Box, Collapse, List, ListItemButton, ListItemText, Typography } from '@mui/material';
+import { ExpandLess, ExpandMore } from '@mui/icons-material';
 
 interface ReportDisplayProps {
-    reports: Report[];
+    report: Report;
 }
 
-const ReportDisplay = ({ reports }: ReportDisplayProps) => {
+interface ConditionReportProps {
+    stats: ConditionStatistics;
+}
+
+function ConditionReport({ stats }: ConditionReportProps) {
+    const [open, setOpen] = React.useState(false);
+
+    const renderCondition = (condition: string, successRate: number, hasSubConditions: boolean) => (
+        <ListItemButton onClick={() => hasSubConditions && setOpen(!open)}>
+            <ListItemText 
+                primary={condition} 
+                secondary={`${(successRate * 100).toFixed(2)}%`} 
+            />
+            {hasSubConditions && (open ? <ExpandLess /> : <ExpandMore />)}
+        </ListItemButton>
+    );
+
     return (
-        <div className="report-container">
-            {reports.map((report, index) => (
-                <div key={index} className="report">
-                    <h3>Condition {index + 1}: {report.conditionStats.condition.toString()}</h3>
-                    <p>Success Rate: {report.successRatePercentage}</p>
-                    
-                    <h4>Card Statistics:</h4>
-                    <ul>
-                        {Array.from(report.cardNameStats.entries()).map(([name, stats]) => (
-                            <li key={name}>
-                                {name}: Seen {((stats.cardSeenCount / report.simulations.length) * 100).toFixed(2)}% of the time 
-                                and drawn {((stats.cardDrawnCount / stats.cardSeenCount) * 100).toFixed(2)}%
-                            </li>
+        <Box>
+            {renderCondition(
+                stats.condition.toString(), 
+                stats.successRate, 
+                stats.subConditionStats.size > 0
+            )}
+            {stats.subConditionStats.size > 0 && (
+                <Collapse in={open} timeout="auto" unmountOnExit>
+                    <List component="div" sx={{ pl: 4 }}>
+                        {Array.from(stats.subConditionStats.entries()).map(([key, subStats], index) => (
+                            <Box key={index}>
+                                {renderCondition(
+                                    key.toString(), 
+                                    subStats.successRate, 
+                                    false
+                                )}
+                            </Box>
                         ))}
-                    </ul>
-                    
-                    <h4>Free Card Statistics:</h4>
-                    <ul>
+                    </List>
+                </Collapse>
+            )}
+        </Box>
+    );
+}
+
+export default function ReportDisplay({ report }: ReportDisplayProps) {
+    return (
+        <>
+            <Typography variant="h4">Card Statistics:</Typography>
+            <List>
+                {Array.from(report.cardNameStats.entries()).map(([name, stats]) => (
+                    <ListItemText key={name}>
+                        {name}: Seen {((stats.cardSeenCount / report.simulations.length) * 100).toFixed(2)}% of the time
+                        {stats.cardDrawnCount > 0 && (
+                            <> and drawn {((stats.cardDrawnCount / stats.cardSeenCount) * 100).toFixed(2)}%</>
+                        )}
+                  </ListItemText>
+                ))}
+            </List>
+            
+            {report.freeCardStats.size > 0 && (
+                <>
+                    <Typography variant="h4">Free Card Statistics:</Typography>
+                    <List>
                         {Array.from(report.freeCardStats.entries()).map(([name, stats]) => (
-                            <li key={name}>
+                            <ListItemText key={name}>
                                 {name}: Seen {((stats.cardSeenCount / report.simulations.length) * 100).toFixed(2)}% of the time. 
                                 Used {(stats.activationRate * 100).toFixed(2)}% of the time 
                                 and wasted {(stats.unusedRate * 100).toFixed(2)}%
-                            </li>
+                            </ListItemText>
                         ))}
-                    </ul>
-                    
-                    <h4>Condition Statistics:</h4>
-                    <ul>
-                        <li>
-                            {report.conditionStats.condition.toString()}: 
-                            Success Rate: {(report.conditionStats.successRate * 100).toFixed(2)}%
-                        </li>
-                        {Array.from(report.conditionStats.subConditionStats.entries()).map(([key, stats]) => (
-                            <li key={key}>
-                                {key}: Success Rate: {(stats.successRate * 100).toFixed(2)}%
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            ))}
-        </div>
+                    </List>
+                </>
+            )};
+            
+            <Typography variant="h4">Condition Statistics:</Typography>
+            <List>
+                {Array.from(report.conditionStats.entries()).map(([, stats], index) => (
+                    <ConditionReport key={index} stats={stats} />
+                ))}
+            </List>
+        </>
     );
-};
-
-export default ReportDisplay;
+}
