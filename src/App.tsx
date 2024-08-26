@@ -2,13 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import './styles/App.css';
 import FileInput from './components/FileInput';
 import SimulationRunner from './components/SimulationRunner';
-import { buildDeck, Deck } from './utils/deck';
-import { BaseCondition } from './utils/condition';
-import { Simulation } from './utils/simulation';
-import { GameState } from './utils/game-state';
-import { Report } from './utils/report';
 import { loadFromYamlFile } from './utils/yaml-manager';
-import ReportDisplay from './components/ReportDisplay';
 import { CardDetails } from './utils/card-details';
 import useLocalStorage from './components/LocalStorage';
 import { parseCondition } from './utils/parser';
@@ -19,12 +13,11 @@ import ErrorSnackbar from './components/ErrorSnackbar';
 import { getCardDetails } from './utils/details-provider';
 import { loadFromYdkFile } from './utils/ydk-manager';
 import SaveFileComponent from './components/SaveFile';
-import { Box, Grid, IconButton, LinearProgress, Link } from '@mui/material';
+import { Box, Grid, IconButton, Link } from '@mui/material';
 import ConditionList from './components/ConditionList';
 import LoadingOverlay from './components/LoadingOverlay';
 import SettingsDialog, { Settings } from './components/SettingsDialog';
 import SettingsIcon from '@mui/icons-material/Settings';
-import ResultDisplay from './components/ResultDisplay';
 
 const App = () => {
     const [cardData, setCardData, clearCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
@@ -208,10 +201,6 @@ const App = () => {
 
                     </Grid>
                 </Grid>
-                <ErrorSnackbar 
-                    message={errorMessage}
-                    severity='error'
-                />
                 <IconButton
                     onClick={handleOpenSettings}
                     sx={{
@@ -233,6 +222,7 @@ const App = () => {
                     onClose={handleCloseSettings}
                     onSave={handleSaveSettings}
                 />
+                <ErrorSnackbar message={errorMessage}/>
             </div>
             <div className="fixed bottom-4 right-4">
                 <Link href="https://github.com/CodeFatherG/probi-oh" className="text-blue-500 hover:text-blue-700" variant='caption'>

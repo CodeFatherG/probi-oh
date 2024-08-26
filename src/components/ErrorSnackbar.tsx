@@ -1,35 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { Snackbar, Alert } from '@mui/material';
+import { Snackbar, Alert, Link } from '@mui/material';
 
-export default function ErrorSnackbar ({ message, timeout = 5000, onClose }) {
+interface ErrorSnackbar {
+    message: string;
+    timeout?: number;
+}
+
+export default function ErrorSnackbar ({ message, timeout = 5000}: ErrorSnackbar) {
     const [open, setOpen] = useState(false);
 
     useEffect(() => {
         if (message) {
-        setOpen(true);
+            setOpen(true);
         }
     }, [message]);
-
-    const handleClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setOpen(false);
-        if (onClose) {
-        onClose();
-        }
-    };
 
     return (
         <Snackbar
             anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             open={open}
             autoHideDuration={timeout}
-            onClose={handleClose}
         >
-        <Alert onClose={handleClose} severity="info" sx={{ width: '100%' }}>
-            {message}
-        </Alert>
+            <Alert severity='error' sx={{ width: '100%' }}>
+                {message}
+                <br />
+                <Link 
+                    href="https://github.com/CodeFatherG/probi-oh/issues/new/choose" 
+                    className="text-blue-500 hover:text-blue-700" 
+                    variant='caption'
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Experienced an issue? Let us know!
+                </Link>
+            </Alert>
         </Snackbar>
     );
 }
