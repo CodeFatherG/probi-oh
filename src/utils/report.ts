@@ -30,23 +30,23 @@ export class CardStatistics {
 }
 
 export class FreeCardStatistics extends CardStatistics {
-    private _activationCount: number = 0;
+    private _usedToWinCount: number = 0;
     private _unusedCount: number = 0;
 
-    activated(): void {
-        this._activationCount++;
+    usedToWin(): void {
+        this._usedToWinCount++;
     }
 
     unused(): void {
         this._unusedCount++;
     }
 
-    get activationCount(): number {
-        return this._activationCount;
+    get usedToWinCount(): number {
+        return this._usedToWinCount;
     }
 
-    get activationRate(): number {
-        return this.activationCount / this.cardSeenCount;
+    get usedToWinRate(): number {
+        return this.usedToWinCount / this.cardSeenCount;
     }
 
     get unusedCount(): number {
@@ -196,7 +196,7 @@ export class Report {
 
                 const usedFreeCards = successfulBranch.gameState.freeCardsPlayedThisTurn;
                 for (const freeCard of usedFreeCards) {
-                    (this.getCardStatistic(this._cardNameStats, freeCard.name, freeCard.isFree) as FreeCardStatistics)!.activated();
+                    (this.getCardStatistic(this._cardNameStats, freeCard.name, freeCard.isFree) as FreeCardStatistics)!.usedToWin();
                 }
 
                 const unusedFreeCards = successfulBranch.gameState.freeCardsInHand;

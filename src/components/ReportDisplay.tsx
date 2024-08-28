@@ -72,8 +72,8 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
                         {Array.from(report.freeCardStats.entries()).map(([name, stats]) => (
                             <ListItemText key={name}>
                                 {name}: Seen {((stats.cardSeenCount / report.simulations.length) * 100).toFixed(2)}% of the time. 
-                                Used {(stats.activationRate * 100).toFixed(2)}% of the time 
-                                and wasted {(stats.unusedRate * 100).toFixed(2)}%
+                                {(stats.usedToWinRate * 100).toFixed(2)}% of the time it helped you to win
+                                and {(stats.unusedRate * 100).toFixed(2)}% of the time you won without using it.
                             </ListItemText>
                         ))}
                     </List>
