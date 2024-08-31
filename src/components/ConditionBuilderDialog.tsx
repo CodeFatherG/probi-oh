@@ -43,21 +43,7 @@ function createNewElement(type: 'condition' | 'and' | 'or' | 'group'): Element {
 }
 
 function addElementToList(elements: Element[], type: 'condition' | 'and' | 'or' | 'group'): Element[] {
-    const newElements: Element[] = [];
-    const lastElement = elements[elements.length - 1];
-
-    if (type === 'condition' || type === 'group') {
-        newElements.push(createNewElement(type));
-    } else {
-        if (!lastElement || lastElement.type !== 'condition') {
-            newElements.push(createNewElement('condition'));
-        }
-        
-        newElements.push(createNewElement(type));
-        newElements.push(createNewElement('condition'));
-    }
-
-    return([...elements, ...newElements]);
+    return([...elements, createNewElement(type)]);
 }
 
 interface GroupComponentProps {
