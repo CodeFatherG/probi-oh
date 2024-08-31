@@ -19,6 +19,7 @@ export default function ErrorSnackbar ({ message, timeout = 5000}: ErrorSnackbar
         <Snackbar
             anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             open={open}
+            onClose={() => setOpen(false)}
             autoHideDuration={timeout}
         >
             <Alert severity='error' sx={{ width: '100%' }}>
