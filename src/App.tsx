@@ -26,7 +26,11 @@ const App = () => {
     const [conditionData, setConditionData, clearConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
     const [errorMessage, setErrorMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [settings, setSettings, clearSettings] = useLocalStorage<Settings>("settings", { simulationIterations: 10000, clearCache: false });
+    const [settings, setSettings, clearSettings] = useLocalStorage<Settings>("settings", { 
+        simulationIterations: 10000, 
+        simulationHandSize: 5, 
+        clearCache: false 
+    });
     const [settingsOpen, setSettingsOpen] = useState(false);
 
     const autocompleteOptions = useMemo(() => {

@@ -65,7 +65,7 @@ export default function SimulationRunner({ disabled,
             console.log(`Cards: ${Array.from(cards, ([card, details]) => `${card}: ${details.qty || 1}`).join(', ')}`);
             const deck = buildDeck(cards);
 
-            const sims = await simulateDraw(deck, conditions, 5, settings.simulationIterations);
+            const sims = await simulateDraw(deck, conditions, settings.simulationHandSize, settings.simulationIterations);
             const report = Report.generateReports(sims);
 
             setReportData(report);

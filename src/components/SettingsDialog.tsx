@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogTitle, TextField, Button, Box } from '@mui
 
 export interface Settings {
     simulationIterations: number;
+    simulationHandSize: number;
     clearCache: boolean;
 }
 
@@ -51,6 +52,21 @@ export default function SettingsDialog({ open, settings, onClose, onSave }: Sett
                         type="number"
                         name="simulationIterations"
                         value={localSettings.simulationIterations}
+                        onChange={handleChange}
+                        margin="normal"
+                        onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault(); // Prevent form submission on Enter
+                                handleSave();
+                            }
+                        }}
+                    />
+                    <TextField
+                        fullWidth
+                        label="Hand Size"
+                        type="number"
+                        name="simulationHandSize"
+                        value={localSettings.simulationHandSize}
                         onChange={handleChange}
                         margin="normal"
                         onKeyPress={(e) => {

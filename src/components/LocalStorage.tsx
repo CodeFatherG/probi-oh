@@ -8,7 +8,19 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => voi
 
         try {
             const item = window.localStorage.getItem(key);
-            return item ? JSON.parse(item) : initialValue;
+            if (item) {
+                const parsedItem = JSON.parse(item);
+                if (Array.isArray(initialValue)) {
+                    // If initialValue is an array, ensure parsedItem is also an array
+                    return (Array.isArray(parsedItem) ? parsedItem : []) as T;
+                } else if (typeof initialValue === 'object' && initialValue !== null) {
+                    // If initialValue is an object, merge missing properties
+                    return { ...initialValue, ...parsedItem } as T;
+                }
+                // For primitive types, return the parsed item as is
+                return parsedItem as T;
+            }
+            return initialValue;
         } catch (error) {
             console.warn(`Error reading localStorage key "${key}":`, error);
             return initialValue;
@@ -35,10 +47,10 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => voi
 
     const clearStorage = () => {
         try {
-          window.localStorage.removeItem(key);
-          setStoredValue(initialValue);
+            window.localStorage.removeItem(key);
+            setStoredValue(initialValue);
         } catch (error) {
-          console.log(error);
+            console.log(error);
         }
     };
 
