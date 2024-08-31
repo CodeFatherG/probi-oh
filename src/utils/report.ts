@@ -128,6 +128,17 @@ export class Report {
             }
         });
         this.processSimulations();
+
+        this._cardNameStats = this.sortMapByKey(this._cardNameStats);
+        this._cardTagStats = this.sortMapByKey(this._cardTagStats);
+        this._banishedCardNameStats = this.sortMapByKey(this._banishedCardNameStats);
+        this._banishedCardTagStats = this.sortMapByKey(this._banishedCardTagStats);
+        this._discardedCardNameStats = this.sortMapByKey(this._discardedCardNameStats);
+        this._discardedCardTagStats = this.sortMapByKey(this._discardedCardTagStats);
+    }
+
+    private sortMapByKey<T>(map: Map<string, T>): Map<string, T> {
+        return new Map([...map.entries()].sort((a, b) => a[0].localeCompare(b[0])));
     }
 
     public static generateReports(simulations: Simulation[]): Report {
