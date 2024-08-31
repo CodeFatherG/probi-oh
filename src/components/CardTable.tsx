@@ -10,6 +10,7 @@ import { fuzzySearchCard } from './../utils/card-api';
 import { CardDetails } from './../utils/card-details';
 import { Delete, DragIndicator } from '@mui/icons-material';
 import { DragDropContext, Draggable, Droppable, DropResult } from '@hello-pangea/dnd';
+import useLocalStorage from './LocalStorage';
 
 interface CardTableProps {
     cards: Map<string, CardDetails>;
@@ -27,7 +28,7 @@ export default function CardTable({
     onReorderCards
 }: CardTableProps) {
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [rowsPerPage, setRowsPerPage, ] = useLocalStorage<number>('rowsPerPage', 5);
     const [selected, setSelected] = useState<string[]>([]);
     const [newCardName, setNewCardName] = useState<string>('');
     const [selectedCardName, setSelectedCardName] = useState<string>('');
