@@ -20,6 +20,12 @@ export enum LocationConditionTarget {
     Deck
 }
 
+function getMatchingCards(condition: Condition, cardList: Card[]): Card[] {
+    return cardList.filter(card => 
+        card.name === condition.cardName || (card.tags && card.tags.includes(condition.cardName))
+    );
+}
+
 /** Specific condition for card evaluation */
 export class Condition implements BaseCondition {
     private _successes: number = 0;
@@ -236,8 +242,7 @@ function evaluateSimpleCondition(condition: Condition, gameState: GameState): bo
                 break;
         }
 
-        const count = cardList.filter(card => card.name === condition.cardName 
-            || (card.tags && card.tags.includes(condition.cardName))).length;
+        const count = getMatchingCards(condition, cardList).length;
 
         let result = false;
         switch(condition.operator) {
