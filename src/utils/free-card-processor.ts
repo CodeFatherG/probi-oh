@@ -2,7 +2,7 @@ import { Card, FreeCard } from "./card";
 import { ConditionType, CostType, RestrictionType } from "./card-details";
 import { SimulationBranch } from "./simulation";
 import { GameState } from './game-state';
-import { AndCondition, BaseCondition, Condition, OrCondition } from "./condition";
+import { AndCondition, BaseCondition, Condition, evaluateCondition, OrCondition } from "./condition";
 
 function cardCanPayCost(gameState: GameState, card: FreeCard): boolean {
     if (!card.cost) {
@@ -190,7 +190,7 @@ function countMetConditions(condition: BaseCondition, gameState: GameState, card
             hand.push(card);
         }
 
-        return condition.evaluate(gameState) ? 1 : 0;
+        return evaluateCondition(condition, gameState) ? 1 : 0;
     } else if (condition instanceof AndCondition) {
         return condition.conditions.filter(c => countMetConditions(c, localGameState, card) > 0).length;
     } else if (condition instanceof OrCondition) {
