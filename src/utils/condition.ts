@@ -11,8 +11,16 @@ export interface BaseCondition {
 
     recordSuccess(): void;
 
+    recordFailure(): void;
+
     /** Number of successful evaluations */
     get successes(): number;
+
+    /** Number of successful evaluations */
+    get failures(): number;
+
+    /** Total number of evaluations */
+    get totalEvaluations(): number;
 }
 
 export enum LocationConditionTarget {
@@ -29,6 +37,7 @@ function getMatchingCards(condition: Condition, cardList: Card[]): Card[] {
 /** Specific condition for card evaluation */
 export class Condition implements BaseCondition {
     private _successes: number = 0;
+    private _failures: number = 0;
 
     /**
      * Creates a new Condition
@@ -51,6 +60,18 @@ export class Condition implements BaseCondition {
 
     recordSuccess(): void {
         this._successes++;
+    }
+
+    get failures(): Readonly<number> {
+        return this._failures;
+    }
+
+    recordFailure(): void {
+        this._failures++;
+    }
+
+    get totalEvaluations(): Readonly<number> {
+        return this.successes + this.failures;
     }
 
     requiredCards(hand: Card[]): Card[] {
@@ -86,6 +107,7 @@ export class Condition implements BaseCondition {
 /** Logical AND condition composed of multiple base conditions */
 export class AndCondition implements BaseCondition {
     private _successes: number = 0;
+    private _failures: number = 0;
 
     constructor(
         readonly conditions: BaseCondition[],
@@ -102,6 +124,18 @@ export class AndCondition implements BaseCondition {
 
     recordSuccess(): void {
         this._successes++;
+    }
+
+    get failures(): Readonly<number> {
+        return this._failures;
+    }
+
+    recordFailure(): void {
+        this._failures++;
+    }
+
+    get totalEvaluations(): Readonly<number> {
+        return this.successes + this.failures;
     }
 
     private checkCombinations(hand: Card[], deck: Deck, conditions: BaseCondition[]): boolean {
@@ -147,7 +181,7 @@ export class AndCondition implements BaseCondition {
             } as GameState;
     
 
-            if (evaluateCondition(condition, tempGameState)) {
+            if (evaluateCondition(condition, tempGameState.hand, tempGameState.deck.deckList)) {
                 return [condition.requiredCards(hand)];
             }
             return [];
@@ -190,6 +224,7 @@ export class AndCondition implements BaseCondition {
 /** Logical OR condition composed of multiple base conditions */
 export class OrCondition implements BaseCondition {
     private _successes: number = 0;
+    private _failures: number = 0;
 
     /**
      * Creates a new OrCondition
@@ -211,6 +246,18 @@ export class OrCondition implements BaseCondition {
         this._successes++;
     }
 
+    get failures(): Readonly<number> {
+        return this._failures;
+    }
+
+    recordFailure(): void {
+        this._failures++;
+    }
+
+    get totalEvaluations(): Readonly<number> {
+        return this.successes + this.failures;
+    }
+
     requiredCards(hand: Card[]): Card[] {
         let _hand = hand.slice();
 
@@ -226,55 +273,104 @@ export class OrCondition implements BaseCondition {
     }
 }
 
-function evaluateSimpleCondition(condition: Condition, gameState: GameState): boolean {
+function generateHandPermutations(hand: Card[]): Card[][] {
+    function permute(arr: Card[], start: number = 0): Card[][] {
+        if (start === arr.length - 1) {
+            return [arr.slice()];
+        }
+
+        const permutations: Card[][] = [];
+
+        for (let i = start; i < arr.length; i++) {
+            [arr[start], arr[i]] = [arr[i], arr[start]]; // Swap elements
+            permutations.push(...permute(arr, start + 1));
+            [arr[start], arr[i]] = [arr[i], arr[start]]; // Swap back
+        }
+
+        return permutations;
+    }
+
+    return permute(hand);
+}
+
+interface Result {
+    success: boolean;
+    usedCards: Card[];
+}
+
+function evaluateSimpleCondition(condition: Condition, 
+                                 hand: Card[], 
+                                 deck: Card[]): Result {
     /** Evaluates the condition against a hand of cards */
-    function evaluate(): boolean {
+    function evaluate(): Result {
         let cardList: Card[] = [];
         switch (condition.location) {
             case LocationConditionTarget.Deck:
-                cardList = gameState.deck.deckList;
+                cardList = deck
                 break;
             default:
                 console.error(`Unknown location: ${condition.location}`);
                 // Fallthrough to Hand case
             case LocationConditionTarget.Hand:
-                cardList = gameState.hand;
+                cardList = hand;
                 break;
         }
 
         const count = getMatchingCards(condition, cardList).length;
 
         let result = false;
+        let usedCards: Card[] = [];
         switch(condition.operator) {
-            case '>=': result = count >= condition.quantity; break;
-            case '=': result = count === condition.quantity; break;
-            case '<=': result = count <= condition.quantity; break;
+            case '>=': 
+                result = count >= condition.quantity;
+                usedCards = getMatchingCards(condition, cardList).slice(0, condition.quantity);
+                break;
+
+            case '=': 
+                result = count === condition.quantity; 
+                usedCards = getMatchingCards(condition, cardList).slice(0, condition.quantity);
+                break;
+
+            case '<=': 
+                result = count <= condition.quantity; 
+                break;
+
             default: throw new Error(`Unknown operator: ${condition.operator}`);
         }
 
         if (result) {
             condition.recordSuccess();
+        } else {
+            condition.recordFailure();
         }
 
-        return result;
+        return {
+            success: result,
+            usedCards: usedCards
+        };
     }
 
     return evaluate();
 }
 
-function evaluateAndCondition(condition: AndCondition, gameState: GameState): boolean {
-    function evaluate(): boolean {
+function evaluateAndCondition(condition: AndCondition, hand: Card[], deck: Card[]): Result {
+    function evaluate(): Result {
         // init as a pass
-        let result = true;
+        const result: Result = { success: true, usedCards: [] };
         condition.conditions.forEach(condition => {
-            if (!evaluateCondition(condition, gameState)) {
+            const ret = checkCondition(condition, hand.filter(c => !result.usedCards.includes(c)), deck)
+            if (!ret.success) {
                 // then if any result fails consider the overall failure (.every)
-                result = false;
+                result.success = false;
+            } else {
+                result.usedCards.push(...ret.usedCards);
             }
         });
         
-        if (result) {
+        if (result.success) {
             condition.recordSuccess();
+        } else {
+            condition.recordFailure();
         }
 
         return result;
@@ -283,19 +379,21 @@ function evaluateAndCondition(condition: AndCondition, gameState: GameState): bo
     return evaluate();
 }
 
-function evaluateOrCondition(condition: OrCondition, gameState: GameState): boolean {
-    function evaluate(): boolean {
+function evaluateOrCondition(condition: OrCondition, hand: Card[], deck: Card[]): Result {
+    function evaluate(): Result {
         // init as a fail
-        let result = false;
+        const result: Result = { success: false, usedCards: [] };
         condition.conditions.forEach(condition => {
-            if (evaluateCondition(condition, gameState)) {
+            if (checkCondition(condition, hand, deck).success) {
                 // then if any result passes consider the overall failure (.some)
-                result = true;
+                result.success = true;
             }
         });
         
-        if (result) {
+        if (result.success) {
             condition.recordSuccess();
+        } else {
+            condition.recordFailure();
         }
 
         return result;
@@ -304,14 +402,30 @@ function evaluateOrCondition(condition: OrCondition, gameState: GameState): bool
     return evaluate();
 }
 
-export function evaluateCondition(condition: BaseCondition, gameState: GameState): boolean {
+function checkCondition(condition: BaseCondition, hand: Card[], deck: Card[]): Result {
+    let result;
+    
     if (condition instanceof Condition) {
-        return evaluateSimpleCondition(condition, gameState);
+        result = evaluateSimpleCondition(condition, hand, deck);
     } else if (condition instanceof AndCondition) {
-        return evaluateAndCondition(condition, gameState);
+        result = evaluateAndCondition(condition, hand, deck);
     } else if (condition instanceof OrCondition) {
-        return evaluateOrCondition(condition, gameState);
+        result = evaluateOrCondition(condition, hand, deck);
     } else {
         throw new Error(`Unknown condition type: ${condition}`);
     }
+
+    return result;
+}
+
+export function evaluateCondition(condition: BaseCondition, hand: Card[], deck: Card[]): boolean {
+    const permutations = generateHandPermutations(hand);
+
+    for (const hand of permutations) {
+        if (checkCondition(condition, hand, deck).success) {
+            return true;
+        }
+    }
+
+    return false;
 }

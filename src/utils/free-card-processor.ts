@@ -190,7 +190,7 @@ function countMetConditions(condition: BaseCondition, gameState: GameState, card
             hand.push(card);
         }
 
-        return evaluateCondition(condition, gameState) ? 1 : 0;
+        return evaluateCondition(condition, gameState.hand, gameState.deck.deckList) ? 1 : 0;
     } else if (condition instanceof AndCondition) {
         return condition.conditions.filter(c => countMetConditions(c, localGameState, card) > 0).length;
     } else if (condition instanceof OrCondition) {

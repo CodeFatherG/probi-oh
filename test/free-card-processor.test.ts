@@ -19,6 +19,9 @@ describe('free-card-processor', () => {
             requiredCards: jest.fn().mockReturnValue([CreateCard('Required Card', {})]),
             successes: 0,
             recordSuccess: jest.fn(),
+            recordFailure: jest.fn(),
+            failures: 0,
+            totalEvaluations: 0,
         };
         simulation = new SimulationBranch(gameState, mockCondition);
     });
@@ -227,6 +230,9 @@ describe('Free Card Tests', () => {
             requiredCards: jest.fn().mockReturnValue([CreateCard('Required Card', {})]),
             successes: 0,
             recordSuccess: jest.fn(),
+            recordFailure: jest.fn(),
+            failures: 0,
+            totalEvaluations: 0,
         };
         simulation = new SimulationBranch(gameState, mockCondition);
     });
@@ -426,7 +432,10 @@ describe('freeCardIsUsable', () => {
             requiredCards: jest.fn().mockReturnValue([]),
             successes: 0,
             recordSuccess: jest.fn(),
-            toString: jest.fn()
+            toString: jest.fn(),
+            recordFailure: jest.fn(),
+            failures: 0,
+            totalEvaluations: 0,
         };
     });
 
@@ -502,7 +511,10 @@ describe('processFreeCard', () => {
             requiredCards: jest.fn().mockReturnValue([]),
             successes: 0,
             recordSuccess: jest.fn(),
-            toString: jest.fn()
+            toString: jest.fn(),
+            recordFailure: jest.fn(),
+            failures: 0,
+            totalEvaluations: 0,
         };
         simulation = { gameState, condition: mockCondition } as SimulationBranch;
     });
@@ -577,7 +589,10 @@ describe('cardCanPayCost (via freeCardIsUsable)', () => {
             requiredCards: jest.fn().mockReturnValue([]),
             successes: 0,
             recordSuccess: jest.fn(),
-            toString: jest.fn()
+            toString: jest.fn(),
+            recordFailure: jest.fn(),
+            failures: 0,
+            totalEvaluations: 0,
         };
     });
 

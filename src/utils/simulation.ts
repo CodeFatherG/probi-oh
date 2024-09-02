@@ -13,7 +13,7 @@ export class SimulationBranch {
     }
 
     run(): void {
-        this._result = evaluateCondition(this._condition, this._gameState);
+        this._result = evaluateCondition(this._condition, this._gameState.hand, this._gameState.deck.deckList);
     }
 
     get result(): boolean {

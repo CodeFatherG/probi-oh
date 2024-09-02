@@ -41,6 +41,12 @@ describe('Simulation', () => {
         });
 
         // Mock other properties
+        Object.defineProperty(mockGameState, 'deck', {
+            get: jest.fn().mockImplementation(() => { return mockDeck; })
+        });
+        Object.defineProperty(mockDeck, 'deckList', {
+            get: jest.fn().mockImplementation(() => { return []; })
+        });
         Object.defineProperty(mockGameState, 'freeCardsInHand', {
             get: jest.fn().mockImplementation(() => { return mockHand.filter(card => (card as FreeCard).isFree); })
         });
@@ -65,6 +71,10 @@ describe('Simulation', () => {
 
         // Mock evaluateCondition function
         (evaluateCondition as jest.Mock).mockImplementation(() => false);
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
     });
 
     test('constructor initializes correctly', () => {
@@ -149,6 +159,12 @@ describe('SimulationBranch', () => {
         mockGameState.deepCopy.mockReturnValue(mockGameState);
         
         // Mock other properties
+        Object.defineProperty(mockGameState, 'deck', {
+            get: jest.fn().mockImplementation(() => { return mockDeck; })
+        });
+        Object.defineProperty(mockDeck, 'deckList', {
+            get: jest.fn().mockImplementation(() => { return []; })
+        });
         Object.defineProperty(mockGameState, 'freeCardsInHand', {
             get: jest.fn().mockImplementation(() => { return mockHand.filter(card => (card as FreeCard).isFree); })
         });
@@ -180,7 +196,7 @@ describe('SimulationBranch', () => {
         const branch = new SimulationBranch(mockGameState, mockCondition);
         branch.run();
         expect(branch.result).toBe(true);
-        expect(evaluateCondition).toHaveBeenCalledWith(mockCondition, mockGameState);
+        expect(evaluateCondition).toHaveBeenCalledWith(mockCondition, mockGameState.hand, mockDeck.deckList);
     });
 });
 
@@ -200,6 +216,12 @@ describe('runSimulation', () => {
         mockGameState.deepCopy.mockReturnValue(mockGameState);
         
         // Mock other properties
+        Object.defineProperty(mockGameState, 'deck', {
+            get: jest.fn().mockImplementation(() => { return mockDeck; })
+        });
+        Object.defineProperty(mockDeck, 'deckList', {
+            get: jest.fn().mockImplementation(() => { return []; })
+        });
         Object.defineProperty(mockGameState, 'freeCardsInHand', {
             get: jest.fn().mockImplementation(() => { return mockHand.filter(card => (card as FreeCard).isFree); })
         });
