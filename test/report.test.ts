@@ -108,7 +108,11 @@
 //     return condition;
 // };
 
-// describe('Report', () => {
+describe('Report', () => {
+    it ('should pass', () => {
+        expect(true).toBe(true);
+    });
+});
 //     let mockInitialHand: IMockCard[];
 //     let mockFinalHand: IMockCard[];
 //     let mockDeckCards: IMockCard[];

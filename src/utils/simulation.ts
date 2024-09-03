@@ -1,5 +1,5 @@
 import { FreeCard } from "./card";
-import { BaseCondition } from "./condition";
+import { BaseCondition, evaluateCondition } from "./condition";
 import { freeCardIsUsable, processFreeCard } from "./free-card-processor";
 import { GameState } from "./game-state";
 
@@ -13,7 +13,7 @@ export class SimulationBranch {
     }
 
     run(): void {
-        this._result = this._condition.evaluate(this._gameState);
+        this._result = evaluateCondition(this._condition, this._gameState.hand, this._gameState.deck.deckList);
     }
 
     get result(): boolean {

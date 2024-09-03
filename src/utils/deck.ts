@@ -47,9 +47,9 @@ export class Deck {
         this._cards.push(...cards);
     }
 
-    /** Gets the list of cards in the deck */
-    get deckList(): Readonly<Card[]> {
-        return Object.freeze([...this._cards]);
+    /** Gets the list of cards in the deck (copy of array) */
+    get deckList(): Card[] {
+        return [...this._cards];
     }
 
     /** Gets the number of cards in the deck */

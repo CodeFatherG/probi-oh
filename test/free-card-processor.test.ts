@@ -16,9 +16,12 @@ describe('free-card-processor', () => {
         const gameState = new GameState(testDeck);
         gameState.drawHand(5);
         mockCondition = {
-            evaluate: jest.fn().mockReturnValue(true),
             requiredCards: jest.fn().mockReturnValue([CreateCard('Required Card', {})]),
-            successes: 0
+            successes: 0,
+            recordSuccess: jest.fn(),
+            recordFailure: jest.fn(),
+            failures: 0,
+            totalEvaluations: 0,
         };
         simulation = new SimulationBranch(gameState, mockCondition);
     });
@@ -224,9 +227,12 @@ describe('Free Card Tests', () => {
         const gameState = new GameState(testDeck);
         gameState.drawHand(5);
         mockCondition = {
-            evaluate: jest.fn().mockReturnValue(true),
             requiredCards: jest.fn().mockReturnValue([CreateCard('Required Card', {})]),
-            successes: 0
+            successes: 0,
+            recordSuccess: jest.fn(),
+            recordFailure: jest.fn(),
+            failures: 0,
+            totalEvaluations: 0,
         };
         simulation = new SimulationBranch(gameState, mockCondition);
     });
@@ -423,10 +429,13 @@ describe('freeCardIsUsable', () => {
         gameState = new GameState(testDeck);
         gameState.drawHand(5);
         mockCondition = {
-            evaluate: jest.fn().mockReturnValue(true),
             requiredCards: jest.fn().mockReturnValue([]),
             successes: 0,
-            toString: jest.fn()
+            recordSuccess: jest.fn(),
+            toString: jest.fn(),
+            recordFailure: jest.fn(),
+            failures: 0,
+            totalEvaluations: 0,
         };
     });
 
@@ -499,10 +508,13 @@ describe('processFreeCard', () => {
         gameState = new GameState(testDeck);
         gameState.drawHand(5);
         mockCondition = {
-            evaluate: jest.fn().mockReturnValue(true),
             requiredCards: jest.fn().mockReturnValue([]),
             successes: 0,
-            toString: jest.fn()
+            recordSuccess: jest.fn(),
+            toString: jest.fn(),
+            recordFailure: jest.fn(),
+            failures: 0,
+            totalEvaluations: 0,
         };
         simulation = { gameState, condition: mockCondition } as SimulationBranch;
     });
@@ -574,10 +586,13 @@ describe('cardCanPayCost (via freeCardIsUsable)', () => {
         gameState = new GameState(testDeck);
         gameState.drawHand(5);
         mockCondition = {
-            evaluate: jest.fn().mockReturnValue(true),
             requiredCards: jest.fn().mockReturnValue([]),
             successes: 0,
-            toString: jest.fn()
+            recordSuccess: jest.fn(),
+            toString: jest.fn(),
+            recordFailure: jest.fn(),
+            failures: 0,
+            totalEvaluations: 0,
         };
     });
 
