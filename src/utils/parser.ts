@@ -274,7 +274,7 @@ function tokenize(input: string): Token[] {
             continue;
         }
 
-        throw new TypeError(`Unknown character: ${char} at position ${current} of ${input}`);
+        throw new TypeError('Unknown character: ' + char);
     }
 
     return tokens;

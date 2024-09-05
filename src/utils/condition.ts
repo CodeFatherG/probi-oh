@@ -1,13 +1,6 @@
 import { Card } from './card';
 import { Deck } from './deck';
 import { GameState } from './game-state';
-import { parseCondition } from './parser';
-
-export interface SerialisedCondition {
-    condition: string;
-    successes: number;
-    failures: number;
-}
 
 /** Base condition interface for card evaluation */
 export interface BaseCondition {
@@ -33,26 +26,6 @@ export interface BaseCondition {
 export enum LocationConditionTarget {
     Hand,
     Deck
-}
-
-export function serialiseCondition(condition: BaseCondition): SerialisedCondition {
-    return {
-        condition: condition.toString(),
-        successes: condition.successes,
-        failures: condition.failures
-    };
-}
-
-export function deserialiseCondition(serialisedCondition: SerialisedCondition): BaseCondition {
-    const condition = parseCondition(serialisedCondition.condition);
-    for (let i = 0; i < serialisedCondition.successes; i++) {
-        condition.recordSuccess();
-    }
-    for (let i = 0; i < serialisedCondition.failures; i++) {
-        condition.recordFailure();
-    }
-
-    return condition;
 }
 
 function getMatchingCards(condition: Condition, cardList: Card[]): Card[] {
