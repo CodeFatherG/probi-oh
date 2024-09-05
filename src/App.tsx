@@ -29,7 +29,6 @@ const App = () => {
     const [settings, setSettings, clearSettings] = useLocalStorage<Settings>("settings", { 
         simulationIterations: 10000, 
         simulationHandSize: 5, 
-        batchSize: 1000,
         clearCache: false 
     });
     const [settingsOpen, setSettingsOpen] = useState(false);
@@ -214,7 +213,7 @@ const App = () => {
                         <SimulationRunner
                             disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0}
                             cards={cardData}
-                            conditions={conditionData}
+                            conditions={conditionData.map(parseCondition)}
                             settings={settings}
                         />
 

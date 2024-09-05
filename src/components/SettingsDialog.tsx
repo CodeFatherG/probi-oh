@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogTitle, TextField, Button, Box } from '@mui
 export interface Settings {
     simulationIterations: number;
     simulationHandSize: number;
-    batchSize: number;
     clearCache: boolean;
 }
 
@@ -70,24 +69,6 @@ export default function SettingsDialog({ open, settings, onClose, onSave }: Sett
                         value={localSettings.simulationHandSize}
                         onChange={handleChange}
                         margin="normal"
-                        onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                                e.preventDefault(); // Prevent form submission on Enter
-                                handleSave();
-                            }
-                        }}
-                    />
-                    <TextField
-                        fullWidth
-                        label="Batch Size"
-                        type="number"
-                        name="batchSize"
-                        value={localSettings.batchSize}
-                        onChange={handleChange}
-                        margin="normal"
-                        inputProps={{
-                            min: 100
-                        }}
                         onKeyPress={(e) => {
                             if (e.key === 'Enter') {
                                 e.preventDefault(); // Prevent form submission on Enter

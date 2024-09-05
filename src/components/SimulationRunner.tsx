@@ -1,8 +1,11 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState } from 'react';
 import Button from '@mui/material/Button';
 import { CardDetails } from '../utils/card-details';
+import { BaseCondition } from '../utils/condition';
 import { Settings } from './SettingsDialog';
 import { Simulation } from '../utils/simulation';
+import { buildDeck, Deck } from '../utils/deck';
+import { GameState } from '../utils/game-state';
 import ResultDisplay from './ResultDisplay';
 import { Report } from '../utils/report';
 import { Box, LinearProgress, Stack } from '@mui/material';
@@ -10,90 +13,90 @@ import { Box, LinearProgress, Stack } from '@mui/material';
 interface SimulationRunnerProps {
     disabled: boolean;
     cards: Map<string, CardDetails>;
-    conditions: string[];
+    conditions: BaseCondition[];
     settings: Settings;
 }
 
-const NUM_WORKERS = navigator.hardwareConcurrency || 4; // Use available cores or default to 4
-
-export default function SimulationRunner({
-    disabled,
-    cards,
-    conditions,
-    settings
-}: SimulationRunnerProps) {
+export default function SimulationRunner({ disabled, 
+                                           cards, 
+                                           conditions, 
+                                           settings }: SimulationRunnerProps) {
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
     const [progress, setProgress] = useState(0);
     const [reportData, setReportData] = useState<Report | null>(null);
-    const [workers, setWorkers] = useState<Worker[]>([]);
 
-    useEffect(() => {
-        setWorkers(Array.from({ length: NUM_WORKERS }).map(() => new Worker(new URL('../workers/simulation.worker.ts', import.meta.url))));
-        console.log(`Running simulations with ${NUM_WORKERS} workers`);
-    }, []);
+    const simulateDraw = async (deck: Deck, 
+                                conditions: BaseCondition[], 
+                                handSize: number, 
+                                trials: number): Promise<Simulation[]> => {
+        const simulations: Simulation[] = [];
 
-    const runSimulation = useCallback(async () => {
+        for (let i = 0; i < trials; i++) {
+            // Create the game state for this trial
+            const gamestate = new GameState(deck.deepCopy());
+
+            // draw the hand for this trial so it is common to all conditions   
+            gamestate.drawHand(handSize);
+
+            const simulation = new Simulation(gamestate.deepCopy(), conditions);
+            simulations.push(simulation);
+
+            // Run the simulation
+            simulation.iterate();
+
+            if (i % 100 === 0 || i === trials - 1) {
+                const progress = Math.round(((i + 1) / trials) * 100);
+                setProgress(progress);
+
+                // Yield to the event loop to keep UI responsive
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+        }
+
+        return simulations
+    }
+
+    const runSimulation = async () => {
         setProgress(0);
         setIsSimulationRunning(true);
         setReportData(null);
 
         try {
-            const results: Simulation[][] = [];
-            const batchesPerWorker = Math.ceil(settings.simulationIterations / (settings.batchSize * NUM_WORKERS));
+            console.log(`Cards: ${Array.from(cards, ([card, details]) => `${card}: ${details.qty || 1}`).join(', ')}`);
+            const deck = buildDeck(cards);
 
-            for (const worker of workers) {
-                worker.onmessage = (event) => {
-                    const sims = JSON.parse(event.data).map(Simulation.deserialise);
-                    results.push(sims);
-                    setProgress((prevProgress) => {
-                        const newProgress = prevProgress + (100 / NUM_WORKERS / batchesPerWorker);
-                        return Math.min(newProgress, 100);
-                    });
+            const sims = await simulateDraw(deck, conditions, settings.simulationHandSize, settings.simulationIterations);
+            const report = Report.generateReports(sims);
 
-                    if (results.length === NUM_WORKERS * batchesPerWorker) {
-                        const allSimulations = results.flat();
-                        const report = Report.generateReports(allSimulations);
-                        setReportData(report);
-                        setIsSimulationRunning(false);
-                    }
-                };
-
-                for (let j = 0; j < batchesPerWorker; j++) {
-                    worker.postMessage({
-                        cards: Array.from(cards.entries()),
-                        conditions: JSON.stringify(conditions),
-                        handSize: settings.simulationHandSize,
-                        batchSize: settings.batchSize,
-                    });
-                }
-            }
+            setReportData(report);
         } catch (err) {
             console.error('Error running simulation:', err);
+        } finally {
             setIsSimulationRunning(false);
         }
-    }, [cards, conditions, settings]);
+    };
 
     return (
         <Stack spacing={2} sx={{ width: '100%' }}>
-            <Button
-                variant="contained"
-                onClick={runSimulation}
+            <Button 
+                variant="contained" 
+                onClick={() => runSimulation()} 
                 disabled={disabled || isSimulationRunning}
                 fullWidth
             >
                 Run Simulation
             </Button>
-           
+            
             {isSimulationRunning && (
                 <LinearProgress variant="determinate" value={progress} />
             )}
-           
+            
             {reportData && (
-                <Box sx={{
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center'
+                <Box sx={{ 
+                    width: '100%', 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center' 
                 }}>
                     <ResultDisplay report={reportData} />
                 </Box>
