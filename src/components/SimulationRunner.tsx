@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Button from '@mui/material/Button';
 import { CardDetails } from '../utils/card-details';
-import { BaseCondition } from '../utils/condition';
+import { BaseCondition, conditionHasAnd } from '../utils/condition';
 import { Settings } from './SettingsDialog';
 import { Simulation } from '../utils/simulation';
 import { buildDeck, Deck } from '../utils/deck';
@@ -31,6 +31,8 @@ export default function SimulationRunner({ disabled,
                                 trials: number): Promise<Simulation[]> => {
         const simulations: Simulation[] = [];
 
+        console.time('simulateDraw');
+
         for (let i = 0; i < trials; i++) {
             // Create the game state for this trial
             const gamestate = new GameState(deck.deepCopy());
@@ -52,6 +54,8 @@ export default function SimulationRunner({ disabled,
                 await new Promise(resolve => setTimeout(resolve, 0));
             }
         }
+
+        console.timeEnd('simulateDraw');
 
         return simulations
     }

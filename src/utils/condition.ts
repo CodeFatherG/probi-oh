@@ -418,13 +418,33 @@ function checkCondition(condition: BaseCondition, hand: Card[], deck: Card[]): R
     return result;
 }
 
-export function evaluateCondition(condition: BaseCondition, hand: Card[], deck: Card[]): boolean {
-    const permutations = generateHandPermutations(hand);
-
-    for (const hand of permutations) {
-        if (checkCondition(condition, hand, deck).success) {
+export function conditionHasAnd(condition: BaseCondition): boolean {
+    const checkAnd = (condition: BaseCondition): boolean => {
+        if (condition instanceof Condition) {
+            return false
+        } else if (condition instanceof AndCondition) {
             return true;
+        } else if (condition instanceof OrCondition) {
+            return condition.conditions.some(checkAnd);
+        } else {
+            throw new Error(`Unknown condition type: ${condition}`);
         }
+    }
+
+    return checkAnd(condition);
+}
+
+export function evaluateCondition(condition: BaseCondition, hand: Card[], deck: Card[]): boolean {
+    if (conditionHasAnd(condition)) {
+        const permutations = generateHandPermutations(hand);
+
+        for (const hand of permutations) {
+            if (checkCondition(condition, hand, deck).success) {
+                return true;
+            }
+        }
+    } else {
+        return checkCondition(condition, hand, deck).success;
     }
 
     return false;
