@@ -1,19 +1,49 @@
 import { FreeCard } from "./card";
-import { BaseCondition, evaluateCondition } from "./condition";
+import { BaseCondition, deserialiseCondition, evaluateCondition, serialiseCondition, SerialisedCondition } from "./condition";
 import { freeCardIsUsable, processFreeCard } from "./free-card-processor";
-import { GameState } from "./game-state";
+import { GameState, SerialisedGameState } from "./game-state";
+
+export interface SerialisedSimulation {
+    gameState: SerialisedGameState;
+    conditions: SerialisedCondition[];
+    branches: SerialisedSimulationBranch[];
+}
+
+interface SerialisedSimulationBranch {
+    result: boolean;
+    gameState: SerialisedGameState;
+    condition: SerialisedCondition;
+}
 
 export class SimulationBranch {
     private readonly _gameState: GameState;
     private _result: boolean;
+    private _condition: BaseCondition;
 
-    constructor(gameState: GameState, readonly _condition: BaseCondition) {
+    constructor(gameState: GameState, condition: BaseCondition) {
         this._gameState = gameState.deepCopy();
         this._result = false;
+        this._condition = condition;
     }
 
     run(): void {
         this._result = evaluateCondition(this._condition, this._gameState.hand, this._gameState.deck.deckList);
+    }
+
+    serialise(): SerialisedSimulationBranch {
+        return {
+            result: this.result,
+            gameState: this._gameState.serialise(),
+            condition: serialiseCondition(this._condition)
+        }
+    }
+
+    static deserialise(serialisedBranch: SerialisedSimulationBranch): SimulationBranch {
+        const gameState = GameState.deserialize(serialisedBranch.gameState);
+        const condition = deserialiseCondition(serialisedBranch.condition);
+        const branch = new SimulationBranch(gameState, condition);
+        branch._result = serialisedBranch.result;
+        return branch;
     }
 
     get result(): boolean {
@@ -32,16 +62,18 @@ export class SimulationBranch {
 
 /** Represents a single simulation run */
 export class Simulation {
-    private readonly _gameState: GameState;
+    private _gameState: GameState;
     private _branches: Map<BaseCondition, SimulationBranch[]> = new Map();
+    private _conditions: BaseCondition[];
 
     /**
      * Creates a new Simulation
      * @param gameState - The initial game state
      * @param _condition - The condition to evaluate
      */
-    public constructor(gameState: GameState, readonly _conditions: BaseCondition[]) {
+    public constructor(gameState: GameState, conditions: BaseCondition[]) {
         this._gameState = gameState.deepCopy();
+        this._conditions = conditions
     }
 
     private runBranch(branch: SimulationBranch): void {
@@ -95,9 +127,41 @@ export class Simulation {
         }
     }
 
+    public serialise(): SerialisedSimulation {
+        return {
+            gameState: this._gameState.serialise(),
+            conditions: this._conditions.map(serialiseCondition),
+            branches: Array.from(this._branches).map(([, branches]) => branches.map(branch => branch.serialise())).flat()
+        }
+    }
+
+    public static deserialise(serialisedSimulation: SerialisedSimulation): Simulation {
+        const gameState = GameState.deserialize(serialisedSimulation.gameState);
+        const conditions = serialisedSimulation.conditions.map(deserialiseCondition);
+        const simulation = new Simulation(gameState, conditions);
+
+        const branches = serialisedSimulation.branches.map(SimulationBranch.deserialise)
+        for (const branch of branches) {
+            if (!simulation._branches.has(branch.condition)) {
+                simulation._branches.set(branch.condition, []);
+            }
+            simulation._branches.get(branch.condition)?.push(branch);
+        }
+
+        return simulation;
+    }
+
     /** Gets the result of the simulation */
     public get result(): boolean {
-        return this.successfulBranches.some(([, branch]) => branch !== undefined);
+        return this.successfulBranches.some(([, branch]) => 
+            {
+                const result = branch !== undefined && branch.result;
+                if (result) {
+                    console.log(branch);
+                }
+
+                return result;
+            });
     }
 
     /** Gets the conditions being evaluated */

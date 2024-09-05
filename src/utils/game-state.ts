@@ -1,21 +1,15 @@
 import { Card, CreateCard, FreeCard } from "./card";
-import { CostType } from "./card-details";
-import { Deck } from "./deck";
+import { CardDetails } from "./card-details";
+import { buildDeck, Deck } from "./deck";
 
-/**
- * Callback function for the excavation effect of a card
- * @param cards - The cards to choose from
- * @returns The card chosen
- */
-export interface excavationCb {(cards: Card[]): Card}
 
-/**
- * Callback function for determining the cost of a card from hand
- * @param hand - The current hand
- * @param costType - The type of cost to pay
- * @returns The cards to pay the cost
- */
-export interface handCostCb {(hand: Card[], costType: CostType): Card[]}
+export interface SerialisedGameState {
+    hand: { name: string; details: CardDetails }[];
+    deck: { name: string; details: CardDetails }[];
+    banishPile: { name: string; details: CardDetails }[];
+    graveyard: { name: string; details: CardDetails }[];
+    cardsPlayedThisTurn: { name: string; details: CardDetails }[];
+}
 
 /** Represents the current state of a game */
 export class GameState {
@@ -43,6 +37,26 @@ export class GameState {
         newState._banishPile = this._banishPile.map(card => CreateCard(card.name, { ...card.details }));
         newState._graveyard = this._graveyard.map(card => CreateCard(card.name, { ...card.details }));
         return newState;
+    }
+
+    public serialise(): SerialisedGameState {
+        return {
+            hand: this.hand.map(card => ({ name: card.name, details: card.details })),
+            deck: this.deck.deckList.map(card => ({ name: card.name, details: card.details })),
+            banishPile: this.banishPile.map(card => ({ name: card.name, details: card.details })),
+            graveyard: this.graveyard.map(card => ({ name: card.name, details: card.details })),
+            cardsPlayedThisTurn: this.cardsPlayedThisTurn.map(card => ({ name: card.name, details: card.details }))
+        };
+    }
+
+    public static deserialize(serialisedGameState: SerialisedGameState): GameState {
+        const deck = buildDeck(new Map(serialisedGameState.deck.map(c => [c.name, c.details])));
+        const gameState = new GameState(deck);
+        gameState._hand = serialisedGameState.hand.map(c => CreateCard(c.name, c.details));
+        gameState._banishPile = serialisedGameState.banishPile.map(c => CreateCard(c.name, c.details));
+        gameState._graveyard = serialisedGameState.graveyard.map(c => CreateCard(c.name, c.details));
+        gameState._cardsPlayed = serialisedGameState.cardsPlayedThisTurn.map(c => CreateCard(c.name, c.details));
+        return gameState;
     }
 
     public drawHand(handSize: number = 5): void {
