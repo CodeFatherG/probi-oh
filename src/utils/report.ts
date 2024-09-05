@@ -147,6 +147,9 @@ export class Report {
 
     private processSimulations(): void {
         for (const simulation of this.simulations) {
+            if (simulation.successfulBranches.length !== 0) {
+                console.log(simulation.successfulBranches);
+            }
             // Process the initial hand recording seen counts
             this.processInitialHand(simulation.gameState);
 
