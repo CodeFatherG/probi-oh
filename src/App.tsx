@@ -21,7 +21,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import CopyButton from './components/CopyButton';
 import { SimulationInput } from './utils/simulation-input';
 
-const App = () => {
+export default function App() {
     const [cardData, setCardData, clearCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
     const [conditionData, setConditionData, clearConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
     const [errorMessage, setErrorMessage] = useState('');
@@ -159,14 +159,10 @@ const App = () => {
 
     return (
         <>
-            <div className="App">
+            <div className="app">
                 <LoadingOverlay isLoading={isLoading} />
-                <h1 style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                }}>
-                    Probi-oh: Yu-Gi-Oh! Probability Simulator
-                </h1>
+                <h1 className="heading" style={{paddingTop: "20px"}}>Probi-oh</h1>
+                <h3 className="heading">Yu-Gi-Oh! Probability Simulator</h3>
                 <Grid container spacing={2}>
                     <Grid item xs={12}>
                         <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -249,6 +245,4 @@ const App = () => {
             </div>
         </>
     );
-};
-
-export default App;
+}
