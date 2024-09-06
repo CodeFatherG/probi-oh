@@ -159,7 +159,7 @@ export default function App() {
 
     return (
         <>
-            <div className="app">
+            <Box className="app">
                 <LoadingOverlay isLoading={isLoading} />
                 <h1 className="heading" style={{paddingTop: "20px"}}>Probi-oh</h1>
                 <h3 className="heading">Yu-Gi-Oh! Probability Simulator</h3>
@@ -237,12 +237,7 @@ export default function App() {
                     onSave={handleSaveSettings}
                 />
                 <ErrorSnackbar message={errorMessage}/>
-            </div>
-            <div className="fixed bottom-4 right-4">
-                <Link href="https://github.com/CodeFatherG/probi-oh" className="text-blue-500 hover:text-blue-700" variant='caption'>
-                    Visit us on Github!
-                </Link>
-            </div>
+            </Box>
         </>
     );
 }
