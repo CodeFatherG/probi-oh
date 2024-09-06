@@ -13,13 +13,14 @@ import ErrorSnackbar from './components/ErrorSnackbar';
 import { getCardDetails } from './utils/details-provider';
 import { loadFromYdkFile } from './utils/ydk-manager';
 import SaveFileComponent from './components/SaveFile';
-import { Box, Grid, IconButton, Link } from '@mui/material';
+import { Box, Grid, IconButton, Typography } from '@mui/material';
 import ConditionList from './components/ConditionList';
 import LoadingOverlay from './components/LoadingOverlay';
 import SettingsDialog, { Settings } from './components/SettingsDialog';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CopyButton from './components/CopyButton';
 import { SimulationInput } from './utils/simulation-input';
+import GitLink from './components/GitLink';
 
 export default function App() {
     const [cardData, setCardData, clearCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
@@ -161,8 +162,8 @@ export default function App() {
         <>
             <Box className="app">
                 <LoadingOverlay isLoading={isLoading} />
-                <h1 className="heading" style={{paddingTop: "20px"}}>Probi-oh</h1>
-                <h3 className="heading">Yu-Gi-Oh! Probability Simulator</h3>
+                <Typography className="heading" variant='h1' style={{paddingTop: "20px"}}>Probi-oh</Typography>
+                <Typography className="heading" variant='h4'>Yu-Gi-Oh! Probability Simulator</Typography>
                 <Grid container spacing={2}>
                     <Grid item xs={12}>
                         <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -238,6 +239,7 @@ export default function App() {
                 />
                 <ErrorSnackbar message={errorMessage}/>
             </Box>
+            <GitLink link="https://github.com/CodeFatherG/probi-oh" text="Visit us on Github!" />
         </>
     );
 }
