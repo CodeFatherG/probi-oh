@@ -1,16 +1,18 @@
 import React, { useCallback, useState } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-    Checkbox, TextField, IconButton, TablePagination, Toolbar, Typography,
-    Autocomplete,
-    Box
+    TextField, IconButton, TablePagination, Toolbar, Typography,
+    Autocomplete,Box,
 } from '@mui/material';
-import TagBox from './TagBox';
-import { fuzzySearchCard } from './../utils/card-api';
-import { CardDetails } from './../utils/card-details';
-import { Delete, DragIndicator } from '@mui/icons-material';
+import { fuzzySearchCard } from '../../utils/card-api';
+import { CardDetails } from '../../utils/card-details';
+import { Delete } from '@mui/icons-material';
 import { DragDropContext, Draggable, Droppable, DropResult } from '@hello-pangea/dnd';
-import useLocalStorage from './LocalStorage';
+import useLocalStorage from '../Storage/LocalStorage';
+import CardRow from './CardRow';
+import DeleteDialog from './DeleteDialog';
+
+
 
 interface CardTableProps {
     cards: Map<string, CardDetails>;
@@ -34,6 +36,8 @@ export default function CardTable({
     const [selectedCardName, setSelectedCardName] = useState<string>('');
     const [autocompleteOptions, setAutocompleteOptions] = useState<string[]>([]);
     const [tagOptions, setTagOptions] = useState<string[]>([...new Set(Array.from(cards.values()).flatMap(card => card.tags || []))]);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deleteDialogPrompt, setDeleteDialogPrompt] = useState('');
 
     const calculateCardSummary = useCallback(() => {
         let totalCount = 0;
@@ -65,14 +69,6 @@ export default function CardTable({
         setTagOptions(Array.from(allTags));
     };
 
-    const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.checked) {
-        setSelected(Array.from(cards.keys()));
-        } else {
-        setSelected([]);
-        }
-    };
-
     const selectCard = (name: string) => {
         const selectedIndex = selected.indexOf(name);
         let newSelected: string[] = [];
@@ -93,11 +89,6 @@ export default function CardTable({
         setSelected(newSelected);
     }
 
-    const handleCheckboxClick = (event: React.MouseEvent<unknown>, name: string) => {
-        event.stopPropagation();
-        selectCard(name);
-    };
-
     const handleChangePage = (event: unknown, newPage: number) => {
         setPage(newPage);
     };
@@ -106,23 +97,6 @@ export default function CardTable({
         const newRowsPerPage = parseInt(event.target.value, 10);
         setRowsPerPage(newRowsPerPage);
         setPage(0);
-    };
-
-    const handleQuantityChange = (name: string, quantity: number) => {
-        const cardDetails = cards.get(name);
-        if (cardDetails) {
-            onUpdateCard(name, { ...cardDetails, qty: quantity });
-        }
-    };
-
-    const handleTagsChange = (name: string, tags: string[]) => {
-        const cardDetails = cards.get(name);
-        if (cardDetails) {
-            const updatedCards = new Map(cards);
-            updatedCards.set(name, { ...cardDetails, tags });
-            onUpdateCard(name, { ...cardDetails, tags });
-            updateTagOptions(updatedCards);
-        }
     };
 
     const handleNewCardNameChange = async (event: React.ChangeEvent<object>, value: string, reason: string) => {
@@ -139,6 +113,11 @@ export default function CardTable({
             setSelectedCardName('');
             setAutocompleteOptions([]);
         }
+    };
+
+    const handleDetailsChange = (name: string, details: CardDetails) => {
+        onUpdateCard(name, details);
+        updateTagOptions(cards);
     };
 
     const handleCreateCard = (cardName: string) => {
@@ -162,18 +141,15 @@ export default function CardTable({
         setAutocompleteOptions([]);
     };
 
-    const handleDeleteSelected = () => {
+    const handleDelete = () => {
         if (selected.length > 0) {
             onDeleteCards(selected);
             setSelected([]);
+        } else {
+            setDeleteDialogPrompt('Are you sure you want to delete all cards?');
+            setDeleteDialogOpen(true);
         }
     };
-
-    // const handleMoveCard = (direction: 'up' | 'down') => {
-    //     if (selected.length === 1) {
-    //         onMoveCard(selected[0], direction);
-    //     }
-    // };
 
     const handleDragEnd = (result: DropResult) => {
         if (!result.destination) {
@@ -216,11 +192,9 @@ export default function CardTable({
                         M: {calculateCardSummary().monsterCount} • S: {calculateCardSummary().spellCount} • T: {calculateCardSummary().trapCount}
                     </Typography>
                 </Box>
-                {selected.length > 0 && (
-                    <IconButton onClick={handleDeleteSelected} disabled={selected.length === 0}>
-                        <Delete />
-                    </IconButton>
-                )}
+                <IconButton onClick={handleDelete} disabled={cards.size === 0}>
+                    <Delete />
+                </IconButton>
             </Toolbar>
             <TableContainer>
                 <DragDropContext onDragEnd={handleDragEnd}>
@@ -228,16 +202,9 @@ export default function CardTable({
                         <TableHead>
                             <TableRow>
                                 <TableCell padding="none" width="48px"></TableCell>
-                                <TableCell padding="checkbox" width="48px">
-                                    <Checkbox
-                                        indeterminate={selected.length > 0 && selected.length < cards.size}
-                                        checked={cards.size > 0 && selected.length === cards.size}
-                                        onChange={handleSelectAllClick}
-                                    />
-                                </TableCell>
-                                <TableCell width="40%">Name</TableCell>
-                                <TableCell width="15%">Qty</TableCell>
-                                <TableCell width="40%">Tags</TableCell>
+                                <TableCell width="40%" sx={{textAlign:'center', margin:'auto'}}>Name</TableCell>
+                                <TableCell width="15%" sx={{textAlign:'center', margin:'auto'}}>Qty</TableCell>
+                                <TableCell width="40%" sx={{textAlign:'center', margin:'auto'}}>Tags</TableCell>
                             </TableRow>
                         </TableHead>
                         <Droppable droppableId="card-list">
@@ -246,53 +213,20 @@ export default function CardTable({
                                     {Array.from(cards.entries())
                                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                     .map(([name, details], index) => {
-                                        const isItemSelected = isSelected(name);
                                         return (
                                             <Draggable key={name} draggableId={name} index={index}>
-                                                {(provided, snapshot) => (
-                                                    <TableRow
+                                                {(provided, ) => (
+                                                    <CardRow
+                                                        cardName={name}
+                                                        cardDetails={details}
+                                                        tagOptions={tagOptions}
+                                                        draggableProvided={provided}
+                                                        onDetailsChange={handleDetailsChange}
                                                         hover
-                                                        role="checkbox"
-                                                        aria-checked={isItemSelected}
                                                         tabIndex={-1}
-                                                        selected={isItemSelected}
-                                                        ref={provided.innerRef}
-                                                        {...provided.draggableProps}
-                                                        sx={{
-                                                            ...provided.draggableProps.style,
-                                                            background: snapshot.isDragging ? 'lightblue' : 'inherit',
-                                                        }}
-                                                    >
-                                                        <TableCell padding="none" width="48px">
-                                                            <IconButton {...provided.dragHandleProps} size="small">
-                                                                <DragIndicator />
-                                                            </IconButton>
-                                                        </TableCell>
-                                                        <TableCell padding="checkbox" width="48px">
-                                                            <Checkbox
-                                                                checked={isItemSelected}
-                                                                onClick={(event) => handleCheckboxClick(event, name)}
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell width="40%">{name}</TableCell>
-                                                        <TableCell width="15%">
-                                                            <TextField
-                                                                type="number"
-                                                                value={details.qty || 0}
-                                                                onChange={(e) => handleQuantityChange(name, parseInt(e.target.value, 10))}
-                                                                inputProps={{ min: 0, style: { width: '50px' } }}
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell width="40%">
-                                                            <TagBox
-                                                                tags={details.tags || []}
-                                                                onTagsChange={(tags) => {
-                                                                    handleTagsChange(name, tags)
-                                                                }}
-                                                                tagOptions={tagOptions}
-                                                            />
-                                                        </TableCell>
-                                                    </TableRow>
+                                                        selected={isSelected(name)}
+                                                        onClick={() => selectCard(name)}
+                                                    />
                                                 )}
                                             </Draggable>
                                         );
@@ -345,6 +279,17 @@ export default function CardTable({
                 page={page}
                 onPageChange={handleChangePage}
                 onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+            <DeleteDialog
+                prompt={deleteDialogPrompt}
+                open={deleteDialogOpen}
+                onClose={(result) => {
+                    if (result) {
+                        // delete all
+                        onDeleteCards(Array.from(cards.keys()));
+                        setDeleteDialogOpen(false);
+                    }
+                }}
             />
         </Paper>
     );

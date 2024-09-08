@@ -1,8 +1,8 @@
 import React from 'react';
-import { CardStatistics, ConditionStatistics, FreeCardStatistics, Report } from '../utils/report';
-import { Box, Card, Collapse, List, ListItemButton, ListItemText, Typography } from '@mui/material';
+import { CardStatistics, ConditionStatistics, FreeCardStatistics, Report } from '../../utils/report';
+import { Box, Collapse, List, ListItemButton, ListItemText, Typography } from '@mui/material';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
-import { BaseCondition } from '../utils/condition';
+import { BaseCondition } from '../../utils/condition';
 
 interface ReportDisplayProps {
     report: Report;
@@ -96,8 +96,6 @@ function CardReport({title, stats, simCount}: CardReportProps) {
         </>
     );
 }
-
-function CardDisplay({})
 
 function FreeCardReport({ stats, simCount }: FreeCardReportProps) {
     return (

@@ -172,7 +172,7 @@ export async function fuzzySearchCard(query: string, fetcher = fetch, dbFactory 
 }
 
 export async function getCardImage(idOrName: number | string, 
-                                   imageType: 'full' | 'small' | 'cropped', 
+                                   imageType: 'full' | 'small' | 'cropped' = 'full', 
                                    fetcher = fetch, 
                                    dbFactory = initDB): Promise<Blob | null> {
     const db = await dbFactory();
