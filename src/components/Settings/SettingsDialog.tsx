@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogTitle, TextField, Button, Box } from '@mui/material';
+import { Dialog, DialogContent, DialogTitle, TextField, Button, Box, IconButton } from '@mui/material';
+import InfoDialog from './InfoDialog';
+import { Info } from '@mui/icons-material';
 
 export interface Settings {
     simulationIterations: number;
@@ -16,6 +18,7 @@ interface SettingsDialogProps {
 
 export default function SettingsDialog({ open, settings, onClose, onSave }: SettingsDialogProps) {
     const [localSettings, setLocalSettings] = useState<Settings>(settings);
+    const [infoOpen, setInfoOpen] = useState(false);
 
     useEffect(() => {
         if (open) {
@@ -43,9 +46,17 @@ export default function SettingsDialog({ open, settings, onClose, onSave }: Sett
 
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-            <DialogTitle>Settings</DialogTitle>
-            <DialogContent>
-                <Box component="form" noValidate autoComplete="off" sx={{ mt: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 2 }}>
+                <DialogTitle sx={{ padding: 0 }}>Settings</DialogTitle>
+                <IconButton
+                    onClick={() => setInfoOpen(true)}
+                    sx={{ padding: 0 }}
+                >
+                    <Info />
+                </IconButton>
+            </Box>
+            <DialogContent sx={{pt: 0}}>
+                <Box component="form" noValidate autoComplete="off">
                     <TextField
                         fullWidth
                         label="Simulation Iterations"
@@ -94,6 +105,10 @@ export default function SettingsDialog({ open, settings, onClose, onSave }: Sett
                     </Box>
                 </Box>
             </DialogContent>
+            <InfoDialog
+                open={infoOpen}
+                onClose={() => setInfoOpen(false)}
+            />
         </Dialog>
     );
 }

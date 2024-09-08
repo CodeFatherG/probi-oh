@@ -1,8 +1,11 @@
-.App {
-    max-width: 800px;
+.app {
+    max-width: 90%;
+    min-height: 90%;
+    max-height: 90%;
     margin: 0 auto;
-    background-color: white;
+    background-color: #18191D;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 0 10px #C00086;
+    margin-bottom: 10px;
 }

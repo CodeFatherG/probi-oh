@@ -1,10 +1,10 @@
 import React from 'react';
 import { Button, Dialog, DialogTitle, List, ListItem, ListItemButton, ListItemText, Tooltip } from '@mui/material';
 import { saveAs } from 'file-saver';
-import { CardDetails } from '../utils/card-details';
-import { SimulationInput } from '../utils/simulation-input';
-import { serialiseSimulationInputToYaml } from '../utils/yaml-manager';
-import { serialiseCardsToYdk } from '../utils/ydk-manager';
+import { CardDetails } from '../../utils/card-details';
+import { SimulationInput } from '../../utils/simulation-input';
+import { serialiseSimulationInputToYaml } from '../../utils/yaml-manager';
+import { serialiseCardsToYdk } from '../../utils/ydk-manager';
 
 interface SaveFileComponentProps {
     cardData: Map<string, CardDetails>;
