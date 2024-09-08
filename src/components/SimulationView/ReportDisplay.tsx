@@ -30,34 +30,22 @@ interface FreeCardReportProps {
 function ConditionReport({ stats }: ConditionReportProps) {
     const [open, setOpen] = React.useState(false);
 
-    const renderCondition = (condition: string, successRate: number, hasSubConditions: boolean) => (
-        <ListItemButton onClick={() => hasSubConditions && setOpen(!open)}>
-            <ListItemText 
-                primary={condition} 
-                secondary={`${(successRate * 100).toFixed(2)}%`} 
-            />
-            {hasSubConditions && (open ? <ExpandLess /> : <ExpandMore />)}
-        </ListItemButton>
-    );
+    const hasSubConditions = stats.subConditionStats.size > 0;
 
     return (
         <>
-            {renderCondition(
-                stats.condition.toString(), 
-                stats.successRate, 
-                stats.subConditionStats.size > 0
-            )}
+            <ListItemButton onClick={() => hasSubConditions && setOpen(!open)}>
+                <ListItemText 
+                    primary={stats.condition.toString()} 
+                    secondary={`${((stats.condition.successes / stats.totalEvaluations) * 100).toFixed(2)}%`} 
+                />
+                {hasSubConditions && (open ? <ExpandLess /> : <ExpandMore />)}
+            </ListItemButton>
             {stats.subConditionStats.size > 0 && (
                 <Collapse in={open} timeout="auto" unmountOnExit>
                     <List component="div" sx={{ pl: 4 }}>
-                        {Array.from(stats.subConditionStats.entries()).map(([key, subStats], index) => (
-                            <Box key={index}>
-                                {renderCondition(
-                                    key.toString(), 
-                                    subStats.successRate, 
-                                    false
-                                )}
-                            </Box>
+                        {Array.from(stats.subConditionStats.entries()).map(([, stats], index) => (
+                            <ConditionReport key={index} stats={stats} />
                         ))}
                     </List>
                 </Collapse>

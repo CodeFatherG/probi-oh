@@ -59,7 +59,7 @@ export class FreeCardStatistics extends CardStatistics {
 }
 
 export class ConditionStatistics {
-    private _subConditionStats: Map<string, ConditionStatistics> = new Map();
+    private _subConditionStats: Map<BaseCondition, ConditionStatistics> = new Map();
 
     constructor(private readonly _condition: BaseCondition,
                 private readonly _totalEvaluations: number
@@ -77,7 +77,7 @@ export class ConditionStatistics {
             if (condition instanceof AndCondition || condition instanceof OrCondition) {
                 for (const subCondition of condition.conditions) {
                     stats.addSubConditionStats(subCondition);
-                    processCondition(stats.subConditionStats.get(subCondition.toString()), subCondition);
+                    processCondition(stats.subConditionStats.get(subCondition), subCondition);
                 }
             }
         };
@@ -86,9 +86,8 @@ export class ConditionStatistics {
     }
 
     addSubConditionStats(subCondition: BaseCondition): void {
-        const conditionKey = subCondition.toString();
-        if (!this.subConditionStats.has(conditionKey)) {
-            this.subConditionStats.set(conditionKey, new ConditionStatistics(subCondition, this._totalEvaluations));
+        if (!this.subConditionStats.has(subCondition)) {
+            this.subConditionStats.set(subCondition, new ConditionStatistics(subCondition, this._totalEvaluations));
         }
     }
 
@@ -104,7 +103,7 @@ export class ConditionStatistics {
         return this._totalEvaluations;
     }
 
-    public get subConditionStats(): Map<string, ConditionStatistics> {
+    public get subConditionStats(): Map<BaseCondition, ConditionStatistics> {
         return this._subConditionStats;
     }
 }
@@ -162,26 +161,40 @@ export class Report {
         }
     }
 
-    private processInitialHand(gameState: GameState): void {
-        const cardCounts = new Map<string, number>();
-    
-        // Count occurrences of each card
-        for (const card of gameState.hand) {
-            const count = cardCounts.get(card.name) || 0;
-            cardCounts.set(card.name, count + 1);
+    private countCards(list: string[]): Map<string, number> {
+        const counts = new Map<string, number>();
+        for (const card of list) {
+            const count = counts.get(card) || 0;
+            counts.set(card, count + 1);
         }
-    
+
+        return counts;
+    }
+
+    private countCardsInHand(hand: Card[]): void {
+        const cardCounts = this.countCards(hand.map(card => card.name));
+        
         // Process card counts
         for (const [cardName, count] of cardCounts) {
-            const card = gameState.hand.find(c => c.name === cardName);
+            const card = hand.find(c => c.name === cardName);
             if (card) {
                 this.getCardStatistic(this._cardNameStats, cardName, card.isFree)!.cardSeen(count);
-    
-                for (const tag of card.tags || []) {
-                    this.getCardStatistic(this._cardTagStats, tag)!.cardSeen(count);
-                }
             }
         }
+    }
+
+    private countTagsInHand(hand: Card[]): void {
+        const cardCounts = this.countCards(hand.map(card => card.tags ?? []).flat());
+        
+        // Process card counts
+        for (const [tagName, count] of cardCounts) {
+            this.getCardStatistic(this._cardTagStats, tagName)!.cardSeen(count);
+        }
+    }
+
+    private processInitialHand(gameState: GameState): void {
+        this.countCardsInHand(gameState.hand);
+        this.countTagsInHand(gameState.hand);
     }
 
     private processFreeCards(simulation: Simulation): void {
