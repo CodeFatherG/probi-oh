@@ -78,7 +78,7 @@ function CardReport({title, stats, simCount}: CardReportProps) {
                         {stats.cardDrawnCount > 0 && (
                             <> and drawn {((stats.cardDrawnCount / stats.cardSeenCount) * 100).toFixed(2)}%</>
                         )}
-                </ListItemText>
+                    </ListItemText>
                 ))}
             </List>
         </>
@@ -89,7 +89,7 @@ function FreeCardReport({ stats, simCount }: FreeCardReportProps) {
     return (
         <>
             <Typography variant="h4">Free Card Statistics:</Typography>
-            <List>
+            <List component='div' sx={{ pl: 4 }}>
                 {Array.from(stats.entries()).map(([name, stats]) => (
                     <ListItemText key={name}>
                         {name}: Seen {((stats.cardSeenCount / simCount) * 100).toFixed(2)}% of the time.
