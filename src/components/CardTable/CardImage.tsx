@@ -22,11 +22,19 @@ export default function CardImage({ name, type: type = 'full', ...props}: CardIm
                     const url = URL.createObjectURL(imageBlob);
                     setImageSrc(url);
                 } else {
-                    setImageSrc(FALLBACK_IMAGE_URL);
+                    const blankBlob = await getCardImage(73915052, type);
+                    if (blankBlob) {
+                        const url = URL.createObjectURL(blankBlob);
+                        setImageSrc(url);
+                    }
                 }
             } catch (err) {
                 console.error('Error loading image:', err);
-                setImageSrc(FALLBACK_IMAGE_URL);
+                const blankBlob = await getCardImage(73915052, type);
+                if (blankBlob) {
+                    const url = URL.createObjectURL(blankBlob);
+                    setImageSrc(url);
+                }
             }
             setLoadingImage(false);
         };
