@@ -27,7 +27,7 @@ export default function InfoDialog({open, onClose}: InfoDialogProps) {
                         a card is a "Combo Piece" and without caring what the card is, your condition can just find you a combo piece. IE, "I need to see 
                         a starter and a combo piece in my opening hand, or I could see a combo piece and a searcher. That would be fine too".
                         <br/><br/>
-                        I am a mechatronic engineer by trade and have always had a passion for yugioh. I found that a lot of simulators in the yugioh community
+                        I am a Mechatronic engineer and have always had a passion for yugioh. I found that a lot of simulators in the yugioh community
                         just did not support the complexity that is yugioh. I wanted to make a simulator that could support the complexity of yugioh and
                         present it in a simple way. This project was a learning experience for me in developing a client side web application using React and
                         Typescript. If you have any suggestions or encounter any bugs, please feel free to reach out to me on {' '}
