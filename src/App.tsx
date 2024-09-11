@@ -3,7 +3,6 @@ import './styles/App.css';
 import SimulationRunner from './components/SimulationView/SimulationRunner';
 import { CardDetails } from './utils/card-details';
 import useLocalStorage from './components/Storage/LocalStorage';
-import { parseCondition } from './utils/parser';
 import useLocalStorageMap from './components/Storage/MapStorage';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Box, IconButton, Stack, Typography } from '@mui/material';
@@ -62,7 +61,7 @@ export default function App() {
                     <SimulationRunner
                         disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0}
                         cards={cardData}
-                        conditions={conditionData.map(parseCondition)}
+                        conditions={conditionData}
                         settings={settings}
                     />
                 </Stack>

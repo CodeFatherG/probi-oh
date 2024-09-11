@@ -9,11 +9,12 @@ import { GameState } from '../../utils/game-state';
 import ResultDisplay from './ResultDisplay';
 import { Report } from '../../utils/report';
 import { Box, LinearProgress, Stack } from '@mui/material';
+import { parseCondition } from '../../utils/parser';
 
 interface SimulationRunnerProps {
     disabled: boolean;
     cards: Map<string, CardDetails>;
-    conditions: BaseCondition[];
+    conditions: string[];
     settings: Settings;
 }
 
@@ -65,7 +66,7 @@ export default function SimulationRunner({ disabled,
             console.log(`Cards: ${Array.from(cards, ([card, details]) => `${card}: ${details.qty || 1}`).join(', ')}`);
             const deck = buildDeck(cards);
 
-            const sims = await simulateDraw(deck, conditions, settings.simulationHandSize, settings.simulationIterations);
+            const sims = await simulateDraw(deck, conditions.map(parseCondition), settings.simulationHandSize, settings.simulationIterations);
             const report = Report.generateReports(sims);
 
             setReportData(report);
