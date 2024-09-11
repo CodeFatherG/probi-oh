@@ -106,8 +106,11 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
     return (
         <>
             <CardReport title="Card Statistics:" stats={report.cardNameStats} simCount={report.simulations.length} />
-            <CardReport title="Tag Statistics:" stats={report.cardTagStats} simCount={report.simulations.length} />
             
+            {report.cardTagStats.size > 0 && (
+                <CardReport title="Tag Statistics:" stats={report.cardTagStats} simCount={report.simulations.length} />
+            )}
+
             {report.banishedCardNameStats.size > 0 && (
                 <CardReport title="Banished Card Statistics:" stats={report.banishedCardNameStats} simCount={report.simulations.length} />
             )}
