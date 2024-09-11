@@ -6,11 +6,12 @@ import useLocalStorage from './components/Storage/LocalStorage';
 import { parseCondition } from './utils/parser';
 import useLocalStorageMap from './components/Storage/MapStorage';
 import ErrorBoundary from './components/ErrorBoundary';
-import { Box, Button, IconButton, Stack, Typography } from '@mui/material';
+import { Box, IconButton, Stack, Typography } from '@mui/material';
 import SettingsDialog, { Settings } from './components/Settings/SettingsDialog';
 import SettingsIcon from '@mui/icons-material/Settings';
 import GitLink from './components/GitLink';
 import ConfigBuilder from './components/ConfigurationView/ConfigView';
+import MobileDialog from './components/MobileDialog';
 
 export default function App() {
     const [cardData, setCardData, clearCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
@@ -88,6 +89,7 @@ export default function App() {
                 />
             </Box>
             <GitLink link="https://github.com/CodeFatherG/probi-oh" text="Visit us on Github!" />
+            <MobileDialog />
         </ErrorBoundary>
     );
 }
