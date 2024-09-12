@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import ReactGA from 'react-ga4'
 import Button from '@mui/material/Button';
 import { CardDetails } from '../../utils/card-details';
 import { BaseCondition } from '../../utils/condition';
@@ -26,54 +25,6 @@ export default function SimulationRunner({ disabled,
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
     const [progress, setProgress] = useState(0);
     const [reportData, setReportData] = useState<Report | null>(null);
-
-    const recordAnalytics = (deck: Map<string, CardDetails>, 
-                             conditions: string[], 
-                             settings: Settings) => {
-        const recordSimulationInput = () => {
-            ReactGA.event({
-                category: "Simulation",
-                action: "Settings",
-                label: "Deck Size",
-                value: deck.size
-            });
-
-            ReactGA.event({
-                category: "Simulation",
-                action: "Settings",
-                label: "Condition Count",
-                value: conditions.length
-            });
-
-            ReactGA.event({
-                category: "Simulation",
-                action: "Settings",
-                label: "Iterations",
-                value: settings.simulationIterations
-            });
-
-            ReactGA.event({
-                category: "Simulation",
-                action: "Settings",
-                label: "Hand Size",
-                value: settings.simulationHandSize
-            });
-        }
-
-        const recordDeck = () => {
-            Array.from(cards, ([card, details]) => {
-                ReactGA.event({
-                    category: "Simulation",
-                    action: "Cards",
-                    label: card,
-                    value: details.qty
-                });
-            });
-        }
-
-        recordSimulationInput();
-        recordDeck();
-    };
 
     const simulateDraw = async (deck: Deck, 
                                 conditions: BaseCondition[], 
@@ -113,8 +64,6 @@ export default function SimulationRunner({ disabled,
 
         try {
             console.log(`Cards: ${Array.from(cards, ([card, details]) => `${card}: ${details.qty || 1}`).join(', ')}`);
-            recordAnalytics(cards, conditions, settings);
-
             const deck = buildDeck(cards);
 
             const sims = await simulateDraw(deck, conditions.map(parseCondition), settings.simulationHandSize, settings.simulationIterations);

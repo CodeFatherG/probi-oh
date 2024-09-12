@@ -1,5 +1,4 @@
 import React, { useState, useEffect, ReactNode } from 'react';
-import ReactGA from 'react-ga4';
 import { Snackbar, Alert, Link } from '@mui/material';
 
 interface ErrorBoundaryProps {
@@ -35,7 +34,6 @@ const ErrorBoundary: React.FC<ErrorBoundaryProps> = ({ children, timeout = 5000 
 
     const handleError = (error: Error) => {
         setState({ hasError: true, error });
-        trackError(error.name, error.message);
     };
 
     useEffect(() => {
@@ -44,14 +42,6 @@ const ErrorBoundary: React.FC<ErrorBoundaryProps> = ({ children, timeout = 5000 
             window.removeEventListener('error', (event) => handleError(event.error));
         };
     }, []);
-
-    const trackError = (errorName: string, errorMessage: string)  =>{
-        ReactGA.event({
-            category: "Error",
-            action: errorName,
-            label: errorMessage
-        });
-    }
 
     if (state.hasError) {
         return (
