@@ -1,7 +1,7 @@
 import React from 'react';
 import { Done } from '@mui/icons-material';
 import { Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Typography, useMediaQuery, useTheme } from '@mui/material';
-import useSessionStorage from './Storage/SessionStorage';
+import useSessionStorage from '../hooks/useSessionStorage';
 
 export default function MobileDialog() {
     const theme = useTheme();

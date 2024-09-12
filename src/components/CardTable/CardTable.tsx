@@ -8,7 +8,7 @@ import { fuzzySearchCard } from '../../utils/card-api';
 import { CardDetails } from '../../utils/card-details';
 import { Delete } from '@mui/icons-material';
 import { DragDropContext, Draggable, Droppable, DropResult } from '@hello-pangea/dnd';
-import useLocalStorage from '../Storage/LocalStorage';
+import useLocalStorage from '../../hooks/useLocalStorage';
 import CardRow from './CardRow';
 import DeleteDialog from './DeleteDialog';
 

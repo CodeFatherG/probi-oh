@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void, () => void] {
+export default function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void, () => void] {
     const readValue = (): T => {
         if (typeof window === 'undefined') {
             return initialValue;
@@ -56,5 +56,3 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => voi
 
     return [storedValue, setValue, clearStorage];
 }
-
-export default useLocalStorage;
