@@ -1,86 +1,166 @@
 deck:
+  Great Shogun Shien:
+    tags:
+      - Warrior
+      - Effect Monster
+      - FIRE
+      - Level 7
+    qty: 1
   Grandmaster of the Six Samurai:
-    qty: 1
     tags:
-    - Six Samurai
+      - Warrior
+      - Effect Monster
+      - Six Samurai
+      - EARTH
+      - Level 5
+    qty: 1
   Secret Six Samurai - Kizaru:
-    qty: 3
     tags:
-    - Six Samurai
+      - Warrior
+      - Effect Monster
+      - Secret Six Samurai
+      - EARTH
+      - Level 4
+    qty: 1
   Legendary Six Samurai - Kizan:
-    qty: 3
     tags:
-    - Six Samurai
+      - Warrior
+      - Effect Monster
+      - Six Samurai
+      - EARTH
+      - Level 4
+    qty: 3
+  Legendary Six Samurai - Mizuho:
+    tags:
+      - Warrior
+      - Effect Monster
+      - Six Samurai
+      - FIRE
+      - Level 3
+    qty: 1
   Secret Six Samurai - Hatsume:
-    qty: 1
     tags:
-    - Six Samurai
-  The Six Samurai - Yariza:
+      - Warrior
+      - Effect Monster
+      - Secret Six Samurai
+      - WATER
+      - Level 3
     qty: 1
+  Legendary Six Samurai - Shinai:
     tags:
-    - Six Samurai
+      - Warrior
+      - Effect Monster
+      - Six Samurai
+      - WATER
+      - Level 3
+    qty: 1
   Anarchist Monk of the Six Samurai:
-    qty: 2
     tags:
-    - Six Samurai
+      - Warrior
+      - Tuner Monster
+      - Six Samurai
+      - DARK
+      - Level 3
+    qty: 3
+  Spirit of the Six Samurai:
+    tags:
+      - Warrior
+      - Union Effect Monster
+      - Six Samurai
+      - EARTH
+      - Level 3
+    qty: 1
   Legendary Six Samurai - Kageki:
-    qty: 3
     tags:
-    - Six Samurai
+      - Warrior
+      - Effect Monster
+      - Six Samurai
+      - WIND
+      - Level 3
+    qty: 1
   Ash Blossom & Joyous Spring:
-    qty: 3
     tags:
-    - Hand Trap
+      - Zombie
+      - Tuner Monster
+      - FIRE
+      - Level 3
+    qty: 3
   Instructor of the Six Samurai:
+    tags:
+      - Warrior
+      - Tuner Monster
+      - Six Samurai
+      - EARTH
+      - Level 2
     qty: 3
+  Pot of Prosperity:
     tags:
-    - Six Samurai
-  Secret Six Samurai - Fuma:
-    qty: 1
-    tags:
-    - Six Samurai
-  Effect Veiler:
+      - Normal
+      - Spell Card
+      - Greed
+    free:
+      count: 0
+      oncePerTurn: true
+      restriction:
+        - 2
+        - 1
+      excavate:
+        count: 6
+        pick: 1
     qty: 3
-    tags:
-    - Hand Trap
   Reinforcement of the Army:
+    tags:
+      - Normal
+      - Spell Card
     qty: 1
-    tags:
-    - Search
-    - Six Samurai
   Shien's Smoke Signal:
-    qty: 3
     tags:
-    - Search
-    - Six Samurai
-  Cunning of the Six Samurai:
-    qty: 2
+      - Normal
+      - Spell Card
+      - Six Samurai
+    qty: 3
   Asceticism of the Six Samurai:
+    tags:
+      - Quick-Play
+      - Spell Card
+      - Six Samurai
     qty: 1
   Six Strike - Double Assault:
+    tags:
+      - Quick-Play
+      - Spell Card
+      - Six Strike
     qty: 2
   Gateway of the Six:
+    tags:
+      - Continuous
+      - Spell Card
     qty: 1
-    tags:
-    - Counter
   Shien's Dojo:
-    qty: 3
     tags:
-    - Counter
+      - Continuous
+      - Spell Card
+    qty: 3
   Infinite Impermanence:
+    tags:
+      - Normal
+      - Trap Card
     qty: 3
+  Upstart Goblin:
     tags:
-    - Hand Trap
-  Free Card A:
-    qty: 5
-    tags:
-      - Free Card
+      - Normal
+      - Spell Card
     free:
+      count: 1
+      oncePerTurn: false
       cost:
-        type: Discard,
-        value: 3
-      count: 2
+        type: 2
+        value: -1000
+    qty: 3
 
 conditions:
-  - 2+ Six Samurai OR (1+ Six Samurai AND 1+ Counter)
-  - 2+ Six Samurai OR (1+ Six Samurai AND 1+ Counter) OR 1+ Search
+  - 1+ Legendary Six Samurai - Kageki IN Hand AND 1+ Six Samurai IN Hand
+  - 1+ Six Samurai IN Hand AND 1+ Legendary Six Samurai - Kizan IN Hand
+  - >-
+    1+ Six Samurai IN Hand AND (1+ Anarchist Monk of the Six Samurai IN Hand OR
+    1+ Instructor of the Six Samurai IN Hand)
