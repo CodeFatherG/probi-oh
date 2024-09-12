@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import './styles/App.css';
-import ReactGA from 'react-ga4'
 import SimulationRunner from './components/SimulationView/SimulationRunner';
 import { CardDetails } from './utils/card-details';
 import useLocalStorage from './components/Storage/LocalStorage';
@@ -22,11 +21,6 @@ export default function App() {
         clearCache: false 
     });
     const [settingsOpen, setSettingsOpen] = useState(false);
-
-    useEffect(() => {
-        ReactGA.initialize("G-X8FLYH2DMT");
-        ReactGA.send({ hitType: "pageview", page: "/", title: "Home" });
-    }, [])
 
     const handleSaveSettings = useCallback((newSettings: Settings) => {
         setSettingsOpen(false);
