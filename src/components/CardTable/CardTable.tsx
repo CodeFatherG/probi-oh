@@ -288,6 +288,8 @@ export default function CardTable({
                         // delete all
                         onDeleteCards(Array.from(cards.keys()));
                         setDeleteDialogOpen(false);
+                    } else {
+                        setDeleteDialogOpen(false);
                     }
                 }}
             />
