@@ -166,7 +166,7 @@ function payCost(gameState: GameState, card: FreeCard, condition: BaseCondition)
                 const requirements = card.cost.value as string[];
                 cardsToRemove = matchCards(requirements, prioritizedCards).slice(0, requirements.length);
 
-                if (cardsToRemove.length < requirements.length) {
+                if (cardsToRemove.length === 0) {
                     throw new Error("Not enough cards to pay cost");
                 }
             }
@@ -227,9 +227,9 @@ function payPostConditions(gameState: GameState, card: FreeCard, condition: Base
                     }
                 } else {
                     const requirements = card.condition.value as string;
-                    cardsToRemove = matchCards([requirements], prioritizedCards).slice(0, requirements.length);
+                    cardsToRemove = [matchCards([requirements], prioritizedCards)[0]];
     
-                    if (cardsToRemove.length < requirements.length) {
+                    if (cardsToRemove.length === 0) {
                         throw new Error("Not enough cards to pay cost");
                     }
                 }
