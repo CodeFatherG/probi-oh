@@ -1,5 +1,5 @@
+import React, { MouseEvent } from "react";
 import { Box, IconButton, TableCell, TableRow, TableRowProps, TextField, Typography } from "@mui/material";
-import React from "react";
 import TagBox from "./TagBox";
 import CardImage from "./CardImage";
 import { DragIndicator } from "@mui/icons-material";
@@ -16,12 +16,15 @@ interface CardRowProps extends TableRowProps {
 
 export default function CardRow({ cardName, cardDetails, tagOptions, draggableProvided, onDetailsChange, ...props }: CardRowProps) {
 
-    const handleQuantityChange = (name: string, quantity: number) => {
-        onDetailsChange(name, { ...cardDetails, qty: quantity });
+    const handleQuantityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        event.stopPropagation();
+        const quantity = parseInt(event.target.value, 10);
+        onDetailsChange(cardName, { ...cardDetails, qty: quantity });
     };
 
-    const handleTagsChange = (name: string, tags: string[]) => {
-        onDetailsChange(name, { ...cardDetails, tags });
+    const handleTagsChange = (tags: string[], event: MouseEvent) => {
+        event.stopPropagation();
+        onDetailsChange(cardName, { ...cardDetails, tags });
     };
 
     return (
@@ -61,17 +64,17 @@ export default function CardRow({ cardName, cardDetails, tagOptions, draggablePr
                 <TextField
                     type="number"
                     value={cardDetails.qty || 0}
-                    onChange={(e) => handleQuantityChange(cardName, parseInt(e.target.value, 10))}
+                    onChange={handleQuantityChange}
+                    onClick={(e) => e.stopPropagation()}
                     inputProps={{ min: 0, style: { width: '50px' } }}
                 />
             </TableCell>
             <TableCell width="45%">
                 <TagBox
                     tags={cardDetails.tags || []}
-                    onTagsChange={(tags) => {
-                        handleTagsChange(cardName, tags)
-                    }}
+                    onTagsChange={handleTagsChange}
                     tagOptions={tagOptions}
+                    onClick={(e) => e.stopPropagation()}
                 />
             </TableCell>
         </TableRow>
