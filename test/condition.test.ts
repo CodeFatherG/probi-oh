@@ -1,7 +1,7 @@
-import { Card, CreateCard } from '../src/utils/card';
-import { Condition, AndCondition, OrCondition, LocationConditionTarget as LocationTarget, evaluateCondition, conditionHasAnd, cardsThatSatisfy, BaseCondition } from '../src/utils/condition';
-import { Deck } from '../src/utils/deck';
-import { GameState } from '../src/utils/game-state';
+import { Card, CreateCard } from '../src/core/data/card';
+import { Condition, AndCondition, OrCondition, LocationConditionTarget as LocationTarget, evaluateCondition, conditionHasAnd, cardsThatSatisfy, BaseCondition } from '../src/core/sim/condition';
+import { Deck } from '../src/core/data/deck';
+import { GameState } from '../src/core/data/game-state';
 
 describe('Condition', () => {
     let testCards: Card[];

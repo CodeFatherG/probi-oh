@@ -1,6 +1,6 @@
-import { CardDetails, CostType, ConditionType, RestrictionType } from '../src/utils/card-details';
-import {CardInformation} from '../src/utils/card-information';
-import { getCardDetails } from '../src/utils/details-provider';
+import { CardDetails, CostType, ConditionType, RestrictionType } from '../src/core/data/card-details';
+import {CardInformation} from '../src/core/ygo/card-information';
+import { getCardDetails } from '../src/core/ygo/details-provider';
 
 describe('getCardDetails', () => {
     // Test for a card with free details

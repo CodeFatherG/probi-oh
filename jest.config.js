@@ -1,8 +1,8 @@
 module.exports = {
     preset: 'ts-jest',
     testEnvironment: 'node',
-    roots: ['<rootDir>/src/utils', '<rootDir>/test'],
-    testMatch: ['**/src/utils/**/*.test.ts', '**/test/**/*.test.ts'],
+    roots: ['<rootDir>/src/core', '<rootDir>/test'],
+    testMatch: ['**/src/core/**/*.test.ts', '**/test/**/*.test.ts'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     moduleNameMapper: {
         '^(\\.{1,2}/.*)\\.js$': '$1',
@@ -26,6 +26,6 @@ module.exports = {
     coveragePathIgnorePatterns: [
         '/node_modules/',
         '/test/',
-        '/src/(?!utils)/'  // Ignore everything in src except the utils folder
+        '/src/(?!core)/'  // Ignore everything in src except the core folder
     ]
 };

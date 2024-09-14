@@ -1,13 +1,13 @@
-import { Card, FreeCard, CreateCard } from "../src/utils/card";
-import { GameState } from "../src/utils/game-state";
-import { SimulationBranch } from "../src/utils/simulation";
-import { CostType, RestrictionType, ConditionType, CardDetails } from "../src/utils/card-details";
-import { Condition, AndCondition, OrCondition } from "../src/utils/condition";
+import { Card, FreeCard, CreateCard } from "../src/core/data/card";
+import { GameState } from "../src/core/data/game-state";
+import { SimulationBranch } from "../src/core/sim/simulation";
+import { CostType, RestrictionType, ConditionType, CardDetails } from "../src/core/data/card-details";
+import { Condition, AndCondition, OrCondition } from "../src/core/sim/condition";
 import { 
     freeCardIsUsable, 
     excavate,
     processFreeCard 
-} from "../src/utils/free-card-processor";
+} from "../src/core/sim/free-card-processor";
 import { MockDeck } from "./mock/deck.mock";
 import { MockGameState } from "./mock/game-state.mock";
 import { MockSimulationBranch } from "./mock/simulation-branch.mock";

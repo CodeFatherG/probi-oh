@@ -1,5 +1,5 @@
-import { Card } from "../../src/utils/card";
-import { Deck } from "../../src/utils/deck";
+import { Card } from "../../src/core/data/card";
+import { Deck } from "../../src/core/data/deck";
 
 export class MockDeck extends Deck {
     constructor(cards: Card[] = [], deckSize: number = 40) {

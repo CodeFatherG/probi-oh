@@ -1,5 +1,5 @@
-import { Card, CreateCard } from "../../src/utils/card";
-import { GameState } from "../../src/utils/game-state";
+import { Card, CreateCard } from "../../src/core/data/card";
+import { GameState } from "../../src/core/data/game-state";
 import { MockDeck } from "./deck.mock";
 
 export class MockGameState extends GameState {

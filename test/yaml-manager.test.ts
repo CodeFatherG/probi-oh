@@ -1,13 +1,13 @@
-import { loadFromYamlFile, loadFromYamlString, serialiseConditionsToYaml, serialiseCardsToYaml, serialiseSimulationInputToYaml } from '../src/utils/yaml-manager';
-import { Deck } from '../src/utils/deck';
-import { CreateCard } from '../src/utils/card';
-import { Condition, AndCondition, OrCondition, BaseCondition } from '../src/utils/condition';
+import { loadFromYamlFile, loadFromYamlString, serialiseConditionsToYaml, serialiseCardsToYaml, serialiseSimulationInputToYaml } from '../src/core/data/yaml-manager';
+import { Deck } from '../src/core/data/deck';
+import { CreateCard } from '../src/core/data/card';
+import { Condition, AndCondition, OrCondition, BaseCondition } from '../src/core/sim/condition';
 import * as yaml from 'js-yaml';
-import * as cardApi from '../src/utils/card-api';
-import { SimulationInput } from '../src/utils/simulation-input';
-import { CardDetails } from '../src/utils/card-details';
+import * as cardApi from '../src/core/ygo/card-api';
+import { SimulationInput } from '../src/core/data/simulation-input';
+import { CardDetails } from '../src/core/data/card-details';
 
-jest.mock('../src/utils/card-api');
+jest.mock('../src/core/ygo/card-api');
 
 // Mock ProgressEvent
 class MockProgressEvent {

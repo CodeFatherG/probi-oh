@@ -1,5 +1,5 @@
-import { parseCondition } from '../src/utils/parser';
-import { Condition, AndCondition, OrCondition, LocationConditionTarget } from '../src/utils/condition';
+import { parseCondition } from '../src/core/data/parser';
+import { Condition, AndCondition, OrCondition, LocationConditionTarget } from '../src/core/sim/condition';
 
 describe('parseCondition', () => {
     it('should parse a simple condition', () => {

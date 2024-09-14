@@ -1,8 +1,8 @@
 // card-api.test.ts
 
-import { getCardById, getCardByName, fuzzySearchCard, getCardImage, clearCardDatabase } from '../src/utils/card-api';
+import { getCardById, getCardByName, fuzzySearchCard, getCardImage, clearCardDatabase } from '../src/core/ygo/card-api';
 import { IDBPDatabase, openDB } from 'idb';
-import { CardInformation } from '../src/utils/card-information';
+import { CardInformation } from '../src/core/ygo/card-information';
 
 jest.mock('idb');
 
