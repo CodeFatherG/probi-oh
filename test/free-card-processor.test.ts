@@ -10,19 +10,7 @@ import {
 } from "../src/utils/free-card-processor";
 import { MockDeck } from "./mock/deck.mock";
 import { MockGameState } from "./mock/game-state.mock";
-
-class MockSimulationBranch extends SimulationBranch {
-    constructor(
-        gameState: GameState,
-        condition: Condition | AndCondition | OrCondition
-    ) { super(gameState, condition); }
-    run(): void {
-        throw new Error("Method not implemented.");
-    }
-    get result(): boolean {
-        throw new Error("Method not implemented.");
-    }
-}
+import { MockSimulationBranch } from "./mock/simulation-branch.mock";
 
 describe('Free Card Processor', () => {
     let mockGameState: MockGameState;
