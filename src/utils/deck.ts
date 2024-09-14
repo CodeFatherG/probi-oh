@@ -3,7 +3,7 @@ import { Card, CreateCard } from "./card";
 
 /** Represents a deck of cards */
 export class Deck {
-    private _cards: Card[];
+    protected _cards: Card[];
 
     /**
      * Creates a new Deck

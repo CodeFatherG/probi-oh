@@ -19,11 +19,11 @@ export interface handCostCb {(hand: Card[], costType: CostType): Card[]}
 
 /** Represents the current state of a game */
 export class GameState {
-    private _deck: Deck;
-    private _hand: Card[] = [];
-    private _banishPile: Card[] = [];
-    private _graveyard: Card[] = [];
-    private _cardsPlayed: Card[] = [];
+    protected _deck: Deck;
+    protected _hand: Card[] = [];
+    protected _banishPile: Card[] = [];
+    protected _graveyard: Card[] = [];
+    protected _cardsPlayed: Card[] = [];
 
     /**
      * Creates a new GameState
@@ -75,6 +75,10 @@ export class GameState {
     public banishFromHand(cards: Card[]) {
         this._banishPile.push(...cards);
         this._hand = this._hand.filter(card => !cards.includes(card));
+    }
+
+    public banishFromDeck(cards: Card[]) {
+        this._banishPile.push(...cards);
     }
 
     /** Gets the current deck */

@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "ms-vscode.js-debug-nightly",
+        "ms-vscode.vscode-typescript-next",
+        "steoates.autoimport",
+        "nucllear.vscode-extension-auto-import",
+        "mgmcdermott.vscode-language-babel",
+        "dbaeumer.vscode-eslint",
+        "orta.vscode-jest"
+    ]
+}

@@ -1,5 +1,5 @@
 import { Card, CreateCard } from '../src/utils/card';
-import { Condition, AndCondition, OrCondition, LocationConditionTarget as LocationTarget, evaluateCondition } from '../src/utils/condition';
+import { Condition, AndCondition, OrCondition, LocationConditionTarget as LocationTarget, evaluateCondition, conditionHasAnd, cardsThatSatisfy, BaseCondition } from '../src/utils/condition';
 import { Deck } from '../src/utils/deck';
 import { GameState } from '../src/utils/game-state';
 
@@ -130,20 +130,6 @@ describe('Condition', () => {
         expect(evaluateCondition(condition, mockGameState.hand, mockGameState.deck.deckList)).toBe(true);
         testCards = [CreateCard('Different Card', { tags: ['OtherTag'] })];
         expect(evaluateCondition(condition, mockGameState.hand, mockGameState.deck.deckList)).toBe(false);
-    });
-
-    it ('should only pick one required card', () => {
-        const condition = new Condition('TestTag', 1, '>=');
-        const requiredCards = condition.requiredCards([CreateCard('Different Card', { tags: ['TestTag'] }), CreateCard('Different Card', { tags: ['TestTag'] })]);
-
-        expect(requiredCards.length).toBe(1);
-    });
-
-    it ('should pick all required card', () => {
-        const condition = new Condition('TestTag', 2, '=');
-        const requiredCards = condition.requiredCards([CreateCard('Different Card', { tags: ['TestTag'] }), CreateCard('Different Card', { tags: ['TestTag'] })]);
-
-        expect(requiredCards.length).toBe(2);
     });
 
     describe('Location targets', () => {
@@ -331,6 +317,13 @@ describe('AndCondition', () => {
         expect(evaluateCondition(andCondition, mockGameState.hand, mockGameState.deck.deckList)).toBe(true);
         expect(andCondition.successes).toBe(1);
     });
+
+    it('should handle a single condition', () => {
+        const singleCondition = new Condition('Test Card');
+        const singleAndCondition = new AndCondition([singleCondition]);
+        const hand = [CreateCard('Test Card', {})];
+        expect(evaluateCondition(singleAndCondition, hand, [])).toBe(true);
+    });
 });
 
 describe('OrCondition', () => {
@@ -423,6 +416,18 @@ describe('OrCondition', () => {
         console.error = jest.fn(); // Mock console.error
         new OrCondition([condition1, condition2 as any]);
         expect(console.error).toHaveBeenCalledWith('Found a dead condition');
+    });
+
+    it('should handle an empty array of conditions', () => {
+        const emptyOrCondition = new OrCondition([]);
+        expect(evaluateCondition(emptyOrCondition, [], [])).toBe(false);
+    });
+
+    it('should handle a single condition', () => {
+        const singleCondition = new Condition('Test Card');
+        const singleOrCondition = new OrCondition([singleCondition]);
+        const hand = [CreateCard('Test Card', {})];
+        expect(evaluateCondition(singleOrCondition, hand, [])).toBe(true);
     });
 });
 
@@ -530,5 +535,135 @@ describe('Complex nested conditions', () => {
             expect(evaluateCondition(complexCondition, mockGameState.hand, mockGameState.deck.deckList)).toBe(false);
             expect(complexCondition.successes).toBe(0);
         });
+    });
+});
+
+describe('conditionHasAnd', () => {
+    it('should return false for a simple Condition', () => {
+        const condition = new Condition('Test Card');
+        expect(conditionHasAnd(condition)).toBe(false);
+    });
+
+    it('should return true for an AndCondition', () => {
+        const andCondition = new AndCondition([new Condition('Card A'), new Condition('Card B')]);
+        expect(conditionHasAnd(andCondition)).toBe(true);
+    });
+
+    it('should return false for a simple OrCondition', () => {
+        const orCondition = new OrCondition([new Condition('Card A'), new Condition('Card B')]);
+        expect(conditionHasAnd(orCondition)).toBe(false);
+    });
+
+    it('should return true for a nested OrCondition containing an AndCondition', () => {
+        const nestedCondition = new OrCondition([
+            new Condition('Card A'),
+            new AndCondition([new Condition('Card B'), new Condition('Card C')])
+        ]);
+        expect(conditionHasAnd(nestedCondition)).toBe(true);
+    });
+
+    it('should throw an error for an unknown condition type', () => {
+        const unknownCondition = { type: 'unknown' } as any;
+        expect(() => conditionHasAnd(unknownCondition)).toThrow('Unknown condition type');
+    });
+});
+
+describe('cardsThatSatisfy', () => {
+    let testCards: Card[];
+
+    beforeEach(() => {
+        testCards = [
+            CreateCard('Card A', { tags: ['Tag1', 'Tag3'] }),
+            CreateCard('Card B', { tags: ['Tag2'] }),
+            CreateCard('Card C', { tags: ['Tag1', 'Tag2'] }),
+            CreateCard('Card D', { tags: ['Tag3'] }),
+        ];
+    });
+
+    it('should correctly identify cards for a simple condition', () => {
+        const condition = new Condition('Tag1');
+        const result = cardsThatSatisfy(condition, testCards);
+
+        expect(result.size).toBe(1);
+        expect(result.get(condition)?.length).toBe(2);
+        expect(result.get(condition)?.map(card => card.name)).toEqual(['Card A', 'Card C']);
+    });
+
+    it('should handle conditions based on card names', () => {
+        const condition = new Condition('Card B');
+        const result = cardsThatSatisfy(condition, testCards);
+
+        expect(result.size).toBe(1);
+        expect(result.get(condition)?.length).toBe(1);
+        expect(result.get(condition)?.[0].name).toBe('Card B');
+    });
+
+    it('should correctly process AND conditions', () => {
+        const condition1 = new Condition('Tag1');
+        const condition2 = new Condition('Tag2');
+        const andCondition = new AndCondition([condition1, condition2]);
+
+        const result = cardsThatSatisfy(andCondition, testCards);
+
+        expect(result.size).toBe(2);
+        expect(result.get(condition1)?.length).toBe(2);
+        expect(result.get(condition2)?.length).toBe(2);
+        expect(result.get(condition1)?.map(card => card.name)).toEqual(['Card A', 'Card C']);
+        expect(result.get(condition2)?.map(card => card.name)).toEqual(['Card B', 'Card C']);
+    });
+
+    it('should correctly process OR conditions', () => {
+        const condition1 = new Condition('Tag1');
+        const condition2 = new Condition('Tag3');
+        const orCondition = new OrCondition([condition1, condition2]);
+
+        const result = cardsThatSatisfy(orCondition, testCards);
+
+        expect(result.size).toBe(2);
+        expect(result.get(condition1)?.length).toBe(2);
+        expect(result.get(condition2)?.length).toBe(2);
+        expect(result.get(condition1)?.map(card => card.name)).toEqual(['Card A', 'Card C']);
+        expect(result.get(condition2)?.map(card => card.name)).toEqual(['Card A', 'Card D']);
+    });
+
+    it('should handle nested conditions', () => {
+        const condition1 = new Condition('Tag1');
+        const condition2 = new Condition('Tag2');
+        const condition3 = new Condition('Tag3');
+        const nestedAnd = new AndCondition([condition1, condition2]);
+        const complexCondition = new OrCondition([nestedAnd, condition3]);
+
+        const result = cardsThatSatisfy(complexCondition, testCards);
+
+        expect(result.size).toBe(3);
+        expect(result.get(condition1)?.length).toBe(2);
+        expect(result.get(condition2)?.length).toBe(2);
+        expect(result.get(condition3)?.length).toBe(2);
+        expect(result.get(condition1)?.map(card => card.name)).toEqual(['Card A', 'Card C']);
+        expect(result.get(condition2)?.map(card => card.name)).toEqual(['Card B', 'Card C']);
+        expect(result.get(condition3)?.map(card => card.name)).toEqual(['Card A', 'Card D']);
+    });
+
+    it('should return an empty map for conditions with no matching cards', () => {
+        const condition = new Condition('NonExistentTag');
+        const result = cardsThatSatisfy(condition, testCards);
+
+        expect(result.size).toBe(1);
+        expect(result.get(condition)?.length).toBe(0);
+    });
+
+    it('should reject a condition with unknown type', () => {
+        class deadCondition implements BaseCondition {
+            toString(): string {
+                return 'Dead Condition';
+            }
+            recordSuccess(): void {
+                
+            }
+            get successes(): number {
+                return 0;
+            }
+        }
+        expect(() => cardsThatSatisfy(new deadCondition(), testCards)).toThrow('Unknown condition type');
     });
 });

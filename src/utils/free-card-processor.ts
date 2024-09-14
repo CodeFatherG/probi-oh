@@ -2,7 +2,7 @@ import { Card, FreeCard } from "./card";
 import { ConditionType, CostType, RestrictionType } from "./card-details";
 import { SimulationBranch } from "./simulation";
 import { GameState } from './game-state';
-import { AndCondition, BaseCondition, Condition, evaluateCondition, OrCondition } from "./condition";
+import { BaseCondition, cardsThatSatisfy, Condition, matchCards } from "./condition";
 
 function cardCanPayCost(gameState: GameState, card: FreeCard): boolean {
     if (!card.cost) {
@@ -25,9 +25,17 @@ function cardCanPayCost(gameState: GameState, card: FreeCard): boolean {
             break;
 
         case CostType.BanishFromHand:
-            if (handLessCard.length < (card.cost.value as number))
-            {
-                return false;
+            if (typeof(card.cost.value) === "number") {
+                if (handLessCard.length < (card.cost.value as number))
+                {
+                    return false;
+                } 
+            } else if (typeof(card.cost.value) === "string") {
+                (card.cost.value as string[]).forEach(c => {
+                    if (!handLessCard.some(h => h.name === c)) {
+                        return false;
+                    }
+                });
             }
             break;
 
@@ -36,6 +44,12 @@ function cardCanPayCost(gameState: GameState, card: FreeCard): boolean {
                 if (handLessCard.length < (card.cost.value as number)) {
                     return false;
                 }
+            } else if (typeof(card.cost.value) === "string") {
+                (card.cost.value as string[]).forEach(c => {
+                    if (!handLessCard.some(h => h.name === c)) {
+                        return false;
+                    }
+                });
             }
             break;
 
@@ -109,36 +123,51 @@ export function freeCardIsUsable(gameState: GameState, card: FreeCard): boolean 
     return true;
 }
 
+function satisfactoryCardPriority(condition: BaseCondition, list: Card[]): Card[] {
+    const cards = cardsThatSatisfy(condition, list);
+    
+    return list.sort((a, b) => {
+        const priorityA = countCardSatisfactions(a, cards);
+        const priorityB = countCardSatisfactions(b, cards);
+        return priorityA - priorityB;
+    });
+}
+
+function countCardSatisfactions(card: Card, satisfiedConditions: Map<Condition, Card[]>): number {
+    return Array.from(satisfiedConditions.values())
+        .filter(satisfiedCards => satisfiedCards.includes(card))
+        .length;
+}
+
 function payCost(gameState: GameState, card: FreeCard, condition: BaseCondition): void {
     if (!card.cost) {
         return;
     }
 
-    const requiredCards = condition.requiredCards(gameState.hand);
+    const prioritizedCards = satisfactoryCardPriority(condition, gameState.hand);
 
     switch (card.cost.type) {
         case CostType.BanishFromDeck:
-            gameState.banishFromHand([...Array(card.cost.value as number)].map(() => gameState.deck.drawCard()));
+            gameState.banishFromDeck([...Array(card.cost.value as number)].map(() => gameState.deck.drawCard()));
             break;
 
         case CostType.BanishFromHand:
         case CostType.Discard:
         {
-            const availableCards = gameState.hand.filter(c => !requiredCards.includes(c));
-            let cardsToRemove = [];
+            let cardsToRemove: Card[] = [];
 
-            if (typeof(card.cost.value) === "number") {
-                cardsToRemove.push(...availableCards.slice(0, card.cost.value as number));
+            if (typeof card.cost.value === "number") {
+                cardsToRemove = prioritizedCards.slice(0, card.cost.value as number);
                 
                 if (cardsToRemove.length < (card.cost.value as number)) {
                     throw new Error("Not enough cards to pay cost");
                 }
             } else {
                 const requirements = card.cost.value as string[];
-                cardsToRemove = availableCards.filter(c => requirements.includes(c.name) || c.tags?.some(t => requirements.includes(t)));
+                cardsToRemove = matchCards(requirements, prioritizedCards).slice(0, requirements.length);
 
-                if (!cardsToRemove) {
-                    throw new Error("No card to pay cost");
+                if (cardsToRemove.length < requirements.length) {
+                    throw new Error("Not enough cards to pay cost");
                 }
             }
 
@@ -164,39 +193,13 @@ export function excavate(gameState: GameState, card: FreeCard, condition: BaseCo
     const { count, pick } = card.excavate;
     const excavatedCards = [...Array(count)].map(() => gameState.deck.drawCard());
     
-    // Calculate the base score (how many conditions are met with the current hand)
-    const baseScore = countMetConditions(condition, gameState, null);
-
-    // Sort excavated cards based on their contribution to completing the condition
-    const sortedCards = excavatedCards.sort((a, b) => {
-        const aScore = countMetConditions(condition, gameState, a) - baseScore;
-        const bScore = countMetConditions(condition, gameState, b) - baseScore;
-        return bScore - aScore; // Sort in descending order
-    });
+    const prioritizedCards = satisfactoryCardPriority(condition, excavatedCards);
 
     // Add the best cards to the hand
-    gameState.hand.push(...sortedCards.slice(0, pick));
+    gameState.hand.push(...prioritizedCards.slice(0, pick));
 
     // Put the rest back on top of the deck
-    gameState.deck.addToBottom(sortedCards.slice(pick));
-}
-
-function countMetConditions(condition: BaseCondition, gameState: GameState, card: Card | null): number {
-    const localGameState = gameState.deepCopy();
-
-    if (condition instanceof Condition) {
-        if (card) {
-            const hand = localGameState.hand;
-            hand.push(card);
-        }
-
-        return evaluateCondition(condition, gameState.hand, gameState.deck.deckList) ? 1 : 0;
-    } else if (condition instanceof AndCondition) {
-        return condition.conditions.filter(c => countMetConditions(c, localGameState, card) > 0).length;
-    } else if (condition instanceof OrCondition) {
-        return condition.conditions.some(c => countMetConditions(c, localGameState, card) > 0) ? 1 : 0;
-    }
-    return 0;
+    gameState.deck.addToBottom(prioritizedCards.slice(pick));
 }
 
 function payPostConditions(gameState: GameState, card: FreeCard, condition: BaseCondition): boolean {
@@ -204,56 +207,39 @@ function payPostConditions(gameState: GameState, card: FreeCard, condition: Base
         return true;
     }
 
-    const requiredCards = condition.requiredCards(gameState.hand);
+    const prioritizedCards = satisfactoryCardPriority(condition, gameState.hand);
 
     switch (card.condition.type) {
         case ConditionType.BanishFromDeck:
-            gameState.banishFromHand([...Array(card.condition.value as number)].map(() => gameState.deck.drawCard()));
+            gameState.banishFromDeck([...Array(card.condition.value as number)].map(() => gameState.deck.drawCard()));
             break;
 
         case ConditionType.Discard:
         case ConditionType.BanishFromHand:
-        {
-            const availableCards = gameState.hand.filter(c => !requiredCards.includes(c));
-
-            if (typeof(card.condition.value) === "number") {
-                const count = card.condition.value as number;
-                if (availableCards.length < count) {
-                    return false;
+            {
+                let cardsToRemove: Card[] = [];
+    
+                if (typeof card.condition.value === "number") {
+                    cardsToRemove = prioritizedCards.slice(0, card.condition.value as number);
+                    
+                    if (cardsToRemove.length < (card.condition.value as number)) {
+                        throw new Error("Not enough cards to pay cost");
+                    }
+                } else {
+                    const requirements = card.condition.value as string;
+                    cardsToRemove = matchCards([requirements], prioritizedCards).slice(0, requirements.length);
+    
+                    if (cardsToRemove.length < requirements.length) {
+                        throw new Error("Not enough cards to pay cost");
+                    }
                 }
-
-                const cardsToRemove = availableCards.slice(0, count);
-
+    
                 if (card.condition.type === ConditionType.BanishFromHand) {
                     gameState.banishFromHand(cardsToRemove);
                 } else {
                     gameState.discardFromHand(cardsToRemove);
                 }
-    
-                let hand = gameState.hand;
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                hand = gameState.hand.filter(c => !cardsToRemove.includes(c));
-            } else {
-                const requirement = card.condition.value as string;
-                
-                const cardToRemove = availableCards.find(c => c.tags?.includes(requirement) || c.name === requirement);
-
-                if (!cardToRemove) {
-                    return false;
-                }
-
-                if (card.condition.type === ConditionType.BanishFromHand) {
-                    gameState.banishFromHand([cardToRemove]);
-                } else {
-                    gameState.discardFromHand([cardToRemove]);
-                }
-    
-                let hand = gameState.hand;
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                hand = gameState.hand.filter(c => c === cardToRemove);
-                break;
             }
-        }
             break;
     }
 

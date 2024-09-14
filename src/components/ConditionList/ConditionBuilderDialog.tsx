@@ -47,15 +47,15 @@ function addElementToList(elements: Element[], type: 'condition' | 'and' | 'or' 
 }
 
 interface GroupComponentProps {
-element: Element;
-index: number;
-updateElement: (index: number, field: string, value: any) => void;
-autocompleteOptions: string[];
+    element: Element;
+    index: number;
+    updateElement: (index: number, field: string, value: string | number | Element[]) => void;
+    autocompleteOptions: string[];
 }
 
 interface ConditionListProps {
     elements: Element[];
-    updateElement: (index: number, field: string, value: any) => void;
+    updateElement: (index: number, field: string, value: string | number | Element[]) => void;
     removeElement: (index: number) => void;
     addElement: (type: 'condition' | 'and' | 'or' | 'group') => void;
     autocompleteOptions: string[];
@@ -311,7 +311,7 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
         setElements(elements.filter((_, i) => i !== index));
     };
 
-    const updateElement = (index: number, field: string, value: any) => {
+    const updateElement = (index: number, field: string, value: string | number) => {
         const newElements = [...elements];
         newElements[index] = { ...newElements[index], [field]: value };
         setElements(newElements);

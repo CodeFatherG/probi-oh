@@ -1,12 +1,7 @@
 import { Card } from './card';
-import { Deck } from './deck';
-import { GameState } from './game-state';
 
 /** Base condition interface for card evaluation */
 export interface BaseCondition {
-    /** The cards in the hand required for this condition */
-    requiredCards(hand: Card[]): Card[];
-
     toString(): string;
 
     recordSuccess(): void;
@@ -20,9 +15,9 @@ export enum LocationConditionTarget {
     Deck
 }
 
-function getMatchingCards(condition: Condition, cardList: Card[]): Card[] {
+export function matchCards(search: string[], cardList: Card[]): Card[] {
     return cardList.filter(card => 
-        card.name === condition.cardName || (card.tags && card.tags.includes(condition.cardName))
+        search.some(s => s == card.name || (card.tags && card.tags.includes(s)))
     );
 }
 
@@ -39,7 +34,7 @@ export class Condition implements BaseCondition {
     constructor(
         readonly cardName: string, 
         readonly quantity: number = 1, 
-        readonly operator: string = '>=',
+        readonly operator: '>=' | '=' | '<=' = '>=',
         readonly location: LocationConditionTarget = LocationConditionTarget.Hand
     ) {
     }
@@ -53,30 +48,12 @@ export class Condition implements BaseCondition {
         this._successes++;
     }
 
-    requiredCards(hand: Card[]): Card[] {
-        const _hand = hand.slice();
-        const _requiredCards = [];
-        // Remove cards used for this condition
-        for (let i = 0; i < this.quantity; i++) {
-            const index = _hand.findIndex(card => card.name === this.cardName || (card.tags && card.tags.includes(this.cardName)));
-            if (index === -1) {
-                return [];
-            }
-
-            _requiredCards.push(_hand[index]);
-            _hand.splice(index, 1);
-        }
-
-        return _requiredCards;
-    }
-
     toString(): string {
-        function operatorToSign(operator: string): string {
+        function operatorToSign(operator: '>=' | '=' | '<='): string {
             switch (operator) {
                 case '>=': return '+';
                 case '=': return '';
                 case '<=': return '-';
-                default: return operator;
             }
         }
         return `${this.quantity}${operatorToSign(this.operator)} ${this.cardName} IN ${LocationConditionTarget[this.location]}`;
@@ -102,84 +79,6 @@ export class AndCondition implements BaseCondition {
 
     recordSuccess(): void {
         this._successes++;
-    }
-
-    private checkCombinations(hand: Card[], deck: Deck, conditions: BaseCondition[]): boolean {
-        if (conditions.length === 0) {
-            return true; // All conditions have been satisfied
-        }
-
-        const currentCondition = conditions[0];
-        const remainingConditions = conditions.slice(1);
-
-        // Get all possible combinations of cards that satisfy the current condition
-        const possibleCombinations = this.getPossibleCombinations(hand, deck, currentCondition);
-
-        for (const usedCards of possibleCombinations) {
-            const remainingHand = hand.filter(card => !usedCards.includes(card));
-            
-            // Recursively check if the remaining conditions can be satisfied with the remaining hand
-            if (this.checkCombinations(remainingHand, deck, remainingConditions)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private getPossibleCombinations(hand: Card[], deck: Deck, condition: BaseCondition): Card[][] {
-        if (condition instanceof Condition) {
-            const matchingCards = hand.filter(card => 
-                card.name === condition.cardName || (card.tags && card.tags.includes(condition.cardName))
-            );
-
-            // Generate all combinations of the required number of cards
-            return this.getCombinations(matchingCards, condition.quantity);
-        } else {
-            // For nested conditions, we need to evaluate them separately
-            const tempGameState = {
-                get hand() {
-                    return hand;
-                },
-                get deck() {
-                    return deck;
-                }
-            } as GameState;
-    
-
-            if (evaluateCondition(condition, tempGameState.hand, tempGameState.deck.deckList)) {
-                return [condition.requiredCards(hand)];
-            }
-            return [];
-        }
-    }
-
-    private getCombinations(cards: Card[], k: number): Card[][] {
-        if (k > cards.length || k <= 0) {
-            return [];
-        }
-        if (k === cards.length) {
-            return [cards];
-        }
-        if (k === 1) {
-            return cards.map(card => [card]);
-        }
-
-        const combinations: Card[][] = [];
-        for (let i = 0; i < cards.length - k + 1; i++) {
-            const head = cards[i];
-            const tailCombos = this.getCombinations(cards.slice(i + 1), k - 1);
-            tailCombos.forEach(tailCombo => {
-                combinations.push([head, ...tailCombo]);
-            });
-        }
-        return combinations;
-    }
-
-    requiredCards(hand: Card[]): Card[] {
-        const usedCards: Set<Card> = new Set();
-        this.checkCombinations(hand, new Deck([]), this.conditions);
-        return Array.from(usedCards);
     }
 
     toString(): string {
@@ -209,16 +108,6 @@ export class OrCondition implements BaseCondition {
 
     recordSuccess(): void {
         this._successes++;
-    }
-
-    requiredCards(hand: Card[]): Card[] {
-        let _hand = hand.slice();
-
-        return this.conditions.flatMap(condition => {
-            const cardsUsed = condition.requiredCards(_hand);
-            _hand = _hand.filter(card => !cardsUsed.includes(card));
-            return cardsUsed;
-        });
     }
 
     toString(): string {
@@ -269,19 +158,19 @@ function evaluateSimpleCondition(condition: Condition,
                 break;
         }
 
-        const count = getMatchingCards(condition, cardList).length;
+        const count = matchCards([condition.cardName], cardList).length;
 
         let result = false;
         let usedCards: Card[] = [];
         switch(condition.operator) {
             case '>=': 
                 result = count >= condition.quantity;
-                usedCards = getMatchingCards(condition, cardList).slice(0, condition.quantity);
+                usedCards = matchCards([condition.cardName], cardList).slice(0, condition.quantity);
                 break;
 
             case '=': 
                 result = count === condition.quantity; 
-                usedCards = getMatchingCards(condition, cardList).slice(0, condition.quantity);
+                usedCards = matchCards([condition.cardName], cardList).slice(0, condition.quantity);
                 break;
 
             case '<=': 
@@ -407,4 +296,30 @@ export function evaluateCondition(condition: BaseCondition, hand: Card[], deck: 
     }    
 
     return result;
+}
+
+/**
+ * @brief Returns a map conditions and the cards in the list that satisfy them. Only type Condition is returned as a key
+ *        as realistically the only conditions that matter are the end conditions. This is a design choice since and implies that 
+ * @note This function is recursive.
+ * @param condition 
+ * @param list 
+ * @returns 
+ */
+export function cardsThatSatisfy(condition: BaseCondition, list: Card[]): Map<Condition, Card[]> {
+    const map = new Map<Condition, Card[]>();
+
+    const iterateCondition = (condition: BaseCondition): void => {
+        if (condition instanceof Condition) {
+            map.set(condition, matchCards([condition.cardName], list));
+        } else if (condition instanceof AndCondition
+                   || condition instanceof OrCondition) {
+            condition.conditions.forEach(subCondition => iterateCondition(subCondition));
+        } else {
+            throw new Error(`Unknown condition type: ${condition}`);
+        }
+    }
+
+    iterateCondition(condition);
+    return map;
 }
