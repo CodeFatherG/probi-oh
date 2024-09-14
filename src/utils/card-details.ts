@@ -109,3 +109,16 @@ export interface CardDetails {
      */
     free?: FreeCardDetails;
 }
+
+export interface HandTrapDetails {
+    /**
+     * How many of this card can be activated per turn. Technical issue with Mulcharmy monsters, unresolved.
+     */
+    count?: number;
+
+    /**
+     * If the hand trap requires you to have no cards on field to activate. Therefore, likely only a valid hand trap when going second.
+     */
+    goingSecond: boolean;
+
+}
