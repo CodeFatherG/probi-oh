@@ -1,7 +1,7 @@
 import { Simulation, SimulationBranch } from "./simulation";
-import { Card } from "./card";
+import { Card } from "../data/card";
 import { AndCondition, BaseCondition, OrCondition } from "./condition";
-import { GameState } from './game-state';
+import { GameState } from '../data/game-state';
 
 export class CardStatistics {
     private _cardSeenCount: Map<number, number> = new Map<number, number>();

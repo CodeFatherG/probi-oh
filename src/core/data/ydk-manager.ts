@@ -1,6 +1,6 @@
-import { getCardById, getCardByName } from './card-api';
+import { getCardById, getCardByName } from '../ygo/card-api';
 import { CardDetails } from './card-details';
-import { getCardDetails } from './details-provider';
+import { getCardDetails } from '../ygo/details-provider';
 
 export async function loadFromYdkString(ydkString: string): Promise<Map<string, CardDetails>> {
     // Split content into lines, handling both \n and \r\n

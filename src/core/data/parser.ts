@@ -1,4 +1,4 @@
-import { AndCondition, BaseCondition, Condition, LocationConditionTarget, OrCondition } from "./condition";
+import { AndCondition, BaseCondition, Condition, LocationConditionTarget, OrCondition } from "../sim/condition";
 
 /** Represents a token in the parsed input */
 interface Token {

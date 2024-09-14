@@ -1,8 +1,8 @@
 import React from 'react';
-import { CardStatistics, ConditionStatistics, FreeCardStatistics, Report } from '../../utils/report';
+import { CardStatistics, ConditionStatistics, FreeCardStatistics, Report } from '../../core/sim/report';
 import { Collapse, List, ListItemButton, ListItemText, Typography } from '@mui/material';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
-import { BaseCondition } from '../../utils/condition';
+import { BaseCondition } from '../../core/sim/condition';
 
 interface ReportDisplayProps {
     report: Report;

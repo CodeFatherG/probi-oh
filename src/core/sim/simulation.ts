@@ -1,7 +1,7 @@
-import { FreeCard } from "./card";
+import { FreeCard } from "../data/card";
 import { BaseCondition, evaluateCondition } from "./condition";
 import { freeCardIsUsable, processFreeCard } from "./free-card-processor";
-import { GameState } from "./game-state";
+import { GameState } from "../data/game-state";
 
 export class SimulationBranch {
     private readonly _gameState: GameState;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Paper, Stack, Typography } from '@mui/material';
-import { Report } from '../../utils/report';
+import { Report } from '../../core/sim/report';
 import ReportDisplay from './ReportDisplay';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
 

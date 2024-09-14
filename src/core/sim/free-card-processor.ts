@@ -1,7 +1,7 @@
-import { Card, FreeCard } from "./card";
-import { ConditionType, CostType, RestrictionType } from "./card-details";
+import { Card, FreeCard } from "../data/card";
+import { ConditionType, CostType, RestrictionType } from "../data/card-details";
 import { SimulationBranch } from "./simulation";
-import { GameState } from './game-state';
+import { GameState } from '../data/game-state';
 import { BaseCondition, cardsThatSatisfy, Condition, matchCards } from "./condition";
 
 function cardCanPayCost(gameState: GameState, card: FreeCard): boolean {

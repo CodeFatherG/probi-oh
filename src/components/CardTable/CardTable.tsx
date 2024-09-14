@@ -4,8 +4,8 @@ import {
     TextField, IconButton, TablePagination, Toolbar, Typography,
     Autocomplete,Box,
 } from '@mui/material';
-import { fuzzySearchCard } from '../../utils/card-api';
-import { CardDetails } from '../../utils/card-details';
+import { fuzzySearchCard } from '../../core/ygo/card-api';
+import { CardDetails } from '../../core/data/card-details';
 import { Delete } from '@mui/icons-material';
 import { DragDropContext, Draggable, Droppable, DropResult } from '@hello-pangea/dnd';
 import useLocalStorage from '../../hooks/useLocalStorage';

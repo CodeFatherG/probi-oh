@@ -1,4 +1,4 @@
-import { ConditionType, CostType, FreeCardDetails, RestrictionType } from "./card-details";
+import { ConditionType, CostType, FreeCardDetails, RestrictionType } from "../data/card-details";
 
 export const freeCardMap: Record<string, FreeCardDetails> = {
     'Pot of Desires': {

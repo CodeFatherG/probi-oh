@@ -1,4 +1,4 @@
-import { Card } from './card';
+import { Card } from '../data/card';
 
 /** Base condition interface for card evaluation */
 export interface BaseCondition {

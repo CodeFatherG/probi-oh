@@ -1,5 +1,5 @@
 import yaml from 'js-yaml';
-import { BaseCondition } from './condition';
+import { BaseCondition } from '../sim/condition';
 import { CardDetails } from './card-details';
 import { SimulationInput } from './simulation-input';
 

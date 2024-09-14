@@ -1,4 +1,4 @@
-import { CardDetails } from './card-details';
+import { CardDetails } from '../data/card-details';
 import { CardInformation } from './card-information';
 import { freeCardMap } from './free-card-map';
 

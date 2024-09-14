@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import Button from '@mui/material/Button';
-import { CardDetails } from '../../utils/card-details';
-import { BaseCondition } from '../../utils/condition';
+import { CardDetails } from '../../core/data/card-details';
+import { BaseCondition } from '../../core/sim/condition';
 import { Settings } from '../Settings/SettingsDialog';
-import { Simulation } from '../../utils/simulation';
-import { buildDeck, Deck } from '../../utils/deck';
-import { GameState } from '../../utils/game-state';
+import { Simulation } from '../../core/sim/simulation';
+import { buildDeck, Deck } from '../../core/data/deck';
+import { GameState } from '../../core/data/game-state';
 import ResultDisplay from './ResultDisplay';
-import { Report } from '../../utils/report';
+import { Report } from '../../core/sim/report';
 import { Box, LinearProgress, Stack } from '@mui/material';
-import { parseCondition } from '../../utils/parser';
+import { parseCondition } from '../../core/data/parser';
 
 interface SimulationRunnerProps {
     disabled: boolean;
