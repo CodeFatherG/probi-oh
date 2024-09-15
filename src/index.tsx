@@ -4,6 +4,9 @@ import './styles/index.css';
 import App from './App';
 import { theme } from './styles/theme';
 import { ThemeProvider } from '@emotion/react';
+import { initialiseAnalytics } from './analytics/analytics';
+
+initialiseAnalytics();
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(
