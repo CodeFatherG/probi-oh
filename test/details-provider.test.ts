@@ -15,7 +15,7 @@ describe('getCardDetails', () => {
         };
 
         const expectedDetails: CardDetails = {
-            tags: ['Normal', 'Spell Card'],
+            tags: ['Normal', 'Spell Card', 'Spell'],
             free: {
                 count: 2,
                 oncePerTurn: true,
@@ -65,7 +65,7 @@ describe('getCardDetails', () => {
         };
 
         const expectedDetails: CardDetails = {
-            tags: ['Normal', 'Spell Card'],
+            tags: ['Normal', 'Spell Card', 'Spell'],
             free: {
                 count: 2,
                 oncePerTurn: false,
@@ -92,7 +92,7 @@ describe('getCardDetails', () => {
         };
 
         const expectedDetails: CardDetails = {
-            tags: ['Normal', 'Spell Card'],
+            tags: ['Normal', 'Spell Card', 'Spell'],
             free: {
                 count: 2,
                 oncePerTurn: false,
@@ -139,7 +139,7 @@ describe('getCardDetails', () => {
         };
 
         const expectedDetails: CardDetails = {
-            tags: ['Normal', 'Spell Card']
+            tags: ['Normal', 'Spell Card', 'Spell']
         };
 
         const result = await getCardDetails(cardInfo);
@@ -171,6 +171,138 @@ describe('getCardDetails', () => {
 
         const result = await getCardDetails(cardInfo);
         expect(result.free).toBeDefined();
-        expect(result.tags).toEqual(['Normal', 'Spell Card']);
+        expect(result.tags).toEqual(['Normal', 'Spell Card', 'Spell']);
+    });
+
+    describe('normalise types', () => {
+        it('should normalise types for a Spell card', async () => {
+            const cardInfo: CardInformation = {
+                id: 0,
+                name: 'Card',
+                type: 'Spell Card',
+                desc: '',
+                race: '',
+                card_images: [{ id: 7, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
+            };
+
+            const result = await getCardDetails(cardInfo);
+            expect(result.tags).toContain('Spell');
+            expect(result.tags?.filter(item => item === 'Spell')).toHaveLength(1);
+            expect(result.tags).toContain('Spell Card');
+            expect(result.tags?.filter(item => item === 'Spell Card')).toHaveLength(1);
+            expect(result.tags).not.toContain('Monster');
+            expect(result.tags).not.toContain('Trap');
+        });
+
+        it('should normalise types for a Spell card containing spell', async () => {
+            const cardInfo: CardInformation = {
+                id: 0,
+                name: 'Card',
+                type: 'Spell',
+                desc: '',
+                race: '',
+                card_images: [{ id: 7, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
+            };
+
+            const result = await getCardDetails(cardInfo);
+            expect(result.tags).toContain('Spell');
+            expect(result.tags?.filter(item => item === 'Spell')).toHaveLength(1);
+            expect(result.tags).not.toContain('Spell Card');
+            expect(result.tags).not.toContain('Monster');
+            expect(result.tags).not.toContain('Trap');
+        });
+
+        it('should normalise types for a normal monster card', async () => {
+            const cardInfo: CardInformation = {
+                id: 0,
+                name: 'Card',
+                type: 'Normal Monster',
+                desc: '',
+                race: '',
+                card_images: [{ id: 7, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
+            };
+
+            const result = await getCardDetails(cardInfo);
+            expect(result.tags).toContain('Monster');
+            expect(result.tags?.filter(item => item === 'Monster')).toHaveLength(1);
+            expect(result.tags).toContain('Normal Monster');
+            expect(result.tags?.filter(item => item === 'Normal Monster')).toHaveLength(1);
+            expect(result.tags).not.toContain('Spell');
+            expect(result.tags).not.toContain('Trap');
+        });
+
+        it('should normalise types for a effect monster card', async () => {
+            const cardInfo: CardInformation = {
+                id: 0,
+                name: 'Card',
+                type: 'Effect Monster',
+                desc: '',
+                race: '',
+                card_images: [{ id: 7, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
+            };
+
+            const result = await getCardDetails(cardInfo);
+            expect(result.tags).toContain('Monster');
+            expect(result.tags?.filter(item => item === 'Monster')).toHaveLength(1);
+            expect(result.tags).toContain('Effect Monster');
+            expect(result.tags?.filter(item => item === 'Effect Monster')).toHaveLength(1);
+            expect(result.tags).not.toContain('Spell');
+            expect(result.tags).not.toContain('Trap');
+        });
+
+        it('should normalise types for a monster card', async () => {
+            const cardInfo: CardInformation = {
+                id: 0,
+                name: 'Card',
+                type: 'Monster',
+                desc: '',
+                race: '',
+                card_images: [{ id: 7, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
+            };
+
+            const result = await getCardDetails(cardInfo);
+            expect(result.tags).toContain('Monster');
+            expect(result.tags?.filter(item => item === 'Monster')).toHaveLength(1);
+            expect(result.tags).not.toContain('Normal Monster');
+            expect(result.tags).not.toContain('Spell');
+            expect(result.tags).not.toContain('Trap');
+        });
+
+        it('should normalise types for a Trap card', async () => {
+            const cardInfo: CardInformation = {
+                id: 0,
+                name: 'Card',
+                type: 'Trap Card',
+                desc: '',
+                race: '',
+                card_images: [{ id: 7, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
+            };
+
+            const result = await getCardDetails(cardInfo);
+            expect(result.tags).toContain('Trap');
+            expect(result.tags?.filter(item => item === 'Trap')).toHaveLength(1);
+            expect(result.tags).toContain('Trap Card');
+            expect(result.tags?.filter(item => item === 'Trap Card')).toHaveLength(1);
+            expect(result.tags).not.toContain('Monster');
+            expect(result.tags).not.toContain('Spell');
+        });
+
+        it('should normalise types for a Trap card containing trap', async () => {
+            const cardInfo: CardInformation = {
+                id: 0,
+                name: 'Card',
+                type: 'Trap',
+                desc: '',
+                race: '',
+                card_images: [{ id: 7, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
+            };
+
+            const result = await getCardDetails(cardInfo);
+            expect(result.tags).toContain('Trap');
+            expect(result.tags?.filter(item => item === 'Trap')).toHaveLength(1);
+            expect(result.tags).not.toContain('Trap Card');
+            expect(result.tags).not.toContain('Monster');
+            expect(result.tags).not.toContain('Spell');
+        });
     });
 });

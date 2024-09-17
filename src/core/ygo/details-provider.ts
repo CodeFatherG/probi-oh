@@ -18,5 +18,21 @@ export async function getCardDetails(info: CardInformation): Promise<CardDetails
         details.free = freeDetails;
     }
 
+    // Normalise types
+    if (info.type?.includes('Monster') 
+        && !details.tags?.includes('Monster')) {
+        details.tags?.push('Monster');
+    }
+
+    if (info.type?.includes('Spell') 
+        && !details.tags?.includes('Spell')) {
+        details.tags?.push('Spell');
+    }
+
+    if (info.type?.includes('Trap') 
+        && !details.tags?.includes('Trap')) {
+        details.tags?.push('Trap');
+    }
+
     return details;
 }
