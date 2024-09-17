@@ -1,6 +1,7 @@
 import { CardDetails, CostType, ConditionType, RestrictionType } from '../src/core/data/card-details';
 import {CardInformation} from '../src/core/ygo/card-information';
 import { getCardDetails } from '../src/core/ygo/details-provider';
+import { handTrapMap } from '../src/core/ygo/handtrap-map';
 
 describe('getCardDetails', () => {
     // Test for a card with free details
@@ -303,6 +304,38 @@ describe('getCardDetails', () => {
             expect(result.tags).not.toContain('Trap Card');
             expect(result.tags).not.toContain('Monster');
             expect(result.tags).not.toContain('Spell');
+        });
+    });
+
+    describe('assign hand traps', () => {
+        it ('should assign hand traps', async () => {
+            handTrapMap.forEach(async (cardName) => {
+                const cardInfo: CardInformation = {
+                    id: 0,
+                    name: cardName,
+                    type: 'Monster',
+                    desc: '',
+                    race: '',
+                    card_images: [{ id: 7, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
+                }; 
+
+                const result = await getCardDetails(cardInfo);
+                expect(result.tags).toContain('Hand Trap');
+            });
+        });
+
+        it ('should not assign hand trap to an undefined card', async () => {
+            const cardInfo: CardInformation = {
+                id: 0,
+                name: 'Not a Hand Trap',
+                type: 'Monster',
+                desc: '',
+                race: '',
+                card_images: [{ id: 7, image_url: '...', image_url_small: '...', image_url_cropped: '...' }]
+            }; 
+
+            const result = await getCardDetails(cardInfo);
+            expect(result.tags).not.toContain('Hand Trap');
         });
     });
 });

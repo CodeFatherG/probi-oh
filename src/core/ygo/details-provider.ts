@@ -1,6 +1,26 @@
 import { CardDetails } from '../data/card-details';
 import { CardInformation } from './card-information';
 import { freeCardMap } from './free-card-map';
+import { handTrapMap } from './handtrap-map';
+const normaliseType = (details: CardDetails, type: string) => {
+    if (type.includes('Monster') && !details.tags?.includes('Monster')) {
+        details.tags?.push('Monster');
+    }
+
+    if (type.includes('Spell Card') && !details.tags?.includes('Spell')) {
+        details.tags?.push('Spell');
+    }
+
+    if (type.includes('Trap Card') && !details.tags?.includes('Trap')) {
+        details.tags?.push('Trap');
+    }
+};
+
+const assignHandTraps = (details: CardDetails, name: string) => {
+    if (handTrapMap.includes(name)) {
+        details.tags?.push('Hand Trap');
+    }
+};
 
 export async function getCardDetails(info: CardInformation): Promise<CardDetails> {
     const details: CardDetails = {
@@ -19,20 +39,10 @@ export async function getCardDetails(info: CardInformation): Promise<CardDetails
     }
 
     // Normalise types
-    if (info.type?.includes('Monster') 
-        && !details.tags?.includes('Monster')) {
-        details.tags?.push('Monster');
-    }
+    normaliseType(details, info.type);
 
-    if (info.type?.includes('Spell') 
-        && !details.tags?.includes('Spell')) {
-        details.tags?.push('Spell');
-    }
-
-    if (info.type?.includes('Trap') 
-        && !details.tags?.includes('Trap')) {
-        details.tags?.push('Trap');
-    }
+    // Assign hand traps
+    assignHandTraps(details, info.name);
 
     return details;
 }
