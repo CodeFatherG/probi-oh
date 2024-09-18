@@ -30,7 +30,7 @@ export default function CardTable({
     onReorderCards
 }: CardTableProps) {
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage, ] = useLocalStorage<number>('rowsPerPage', 5);
+    const [rowsPerPage, setRowsPerPage, ] = useLocalStorage<number>('rowsPerPage', 25);
     const [selected, setSelected] = useState<string[]>([]);
     const [newCardName, setNewCardName] = useState<string>('');
     const [selectedCardName, setSelectedCardName] = useState<string>('');
