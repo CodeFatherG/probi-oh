@@ -11,6 +11,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import GitLink from './components/GitLink';
 import ConfigBuilder from './components/ConfigurationView/ConfigView';
 import MobileDialog from './components/MobileDialog';
+import SimulationDrawer from './components/SideBar/SimulationDrawer';
 
 export default function App() {
     const [cardData, setCardData, clearCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
@@ -89,6 +90,7 @@ export default function App() {
             </Box>
             <GitLink link="https://github.com/CodeFatherG/probi-oh" text="Visit us on Github!" />
             <MobileDialog />
+            <SimulationDrawer />
         </ErrorBoundary>
     );
 }
