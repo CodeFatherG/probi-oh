@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
     TextField, IconButton, TablePagination, Toolbar, Typography,
@@ -61,13 +61,13 @@ export default function CardTable({
         return { totalCount, monsterCount, spellCount, trapCount };
     }, [cards]);
 
-    const updateTagOptions = (updatedCards: Map<string, CardDetails>) => {
+    useEffect(() => {
         const allTags = new Set<string>();
-        updatedCards.forEach(card => {
+        cards.forEach(card => {
             card.tags?.forEach(tag => allTags.add(tag));
         });
         setTagOptions(Array.from(allTags));
-    };
+    }, [cards]);
 
     const selectCard = (name: string) => {
         const selectedIndex = selected.indexOf(name);
@@ -117,7 +117,6 @@ export default function CardTable({
 
     const handleDetailsChange = (name: string, details: CardDetails) => {
         onUpdateCard(name, details);
-        updateTagOptions(cards);
     };
 
     const handleCreateCard = (cardName: string) => {
