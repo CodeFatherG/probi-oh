@@ -40,18 +40,35 @@ describe('FreeCardMap', () => {
         expect(simulationBranch.gameState.cardsPlayedThisTurn.length).toBe(1);
     });
 
-    it('should process Pot of Prosperity correctly', () => {
-        const potOfProsperity = CreateCard('Pot of Prosperity', { free: freeCardMap['Pot of Prosperity'] }) as FreeCard;
-        mockGameState.addCardToHand(potOfProsperity);
-        mockGameState.mockDeck.setDeckList([...Array(10)].map((_, i) => CreateCard(`Deck Card ${i}`, {})));
-        const condition = new Condition('Test Card', 1);
-        const simulationBranch = new MockSimulationBranch(mockGameState, condition);
+    describe('Pot of Prosperity', () => {
+        it('should select 1 card from 6', () => {
+            const potOfProsperity = CreateCard('Pot of Prosperity', { free: freeCardMap['Pot of Prosperity'] }) as FreeCard;
+            mockGameState.addCardToHand(potOfProsperity);
+            mockGameState.mockDeck.setDeckList([...Array(10)].map((_, i) => CreateCard(`Deck Card ${i}`, {})));
+            const condition = new Condition('Test Card', 1);
+            const simulationBranch = new MockSimulationBranch(mockGameState, condition);
+    
+            processFreeCard(simulationBranch, potOfProsperity);
+    
+            expect(simulationBranch.gameState.hand.length).toBe(1);
+            expect(simulationBranch.gameState.deck.deckCount).toBe(9);
+            expect(simulationBranch.gameState.cardsPlayedThisTurn.length).toBe(1);
+        });
 
-        processFreeCard(simulationBranch, potOfProsperity);
-
-        expect(simulationBranch.gameState.hand.length).toBe(1);
-        expect(simulationBranch.gameState.deck.deckCount).toBe(9);
-        expect(simulationBranch.gameState.cardsPlayedThisTurn.length).toBe(1);
+        it('should select the right 1 card from 6', () => {
+            const potOfProsperity = CreateCard('Pot of Prosperity', { free: freeCardMap['Pot of Prosperity'] }) as FreeCard;
+            mockGameState.addCardToHand(potOfProsperity);
+            mockGameState.mockDeck.setDeckList([CreateCard('Test Card', {}), ...[...Array(5)].map((_, i) => CreateCard(`Deck Card ${i}`, {}))]);
+            const condition = new Condition('Test Card', 1);
+            const simulationBranch = new MockSimulationBranch(mockGameState, condition);
+    
+            processFreeCard(simulationBranch, potOfProsperity);
+    
+            expect(simulationBranch.gameState.hand.length).toBe(1);
+            expect(simulationBranch.gameState.hand[0].name).toBe('Test Card');
+            expect(simulationBranch.gameState.deck.deckCount).toBe(5);
+            expect(simulationBranch.gameState.cardsPlayedThisTurn.length).toBe(1);
+        });
     });
 
     it('should process Upstart Goblin correctly', () => {
@@ -112,18 +129,35 @@ describe('FreeCardMap', () => {
         expect(simulationBranch.gameState.cardsPlayedThisTurn.length).toBe(1);
     });
 
-    it('should process Pot of Duality correctly', () => {
-        const potOfDuality = CreateCard('Pot of Duality', { free: freeCardMap['Pot of Duality'] }) as FreeCard;
-        mockGameState.addCardToHand(potOfDuality);
-        mockGameState.mockDeck.setDeckList([...Array(5)].map((_, i) => CreateCard(`Deck Card ${i}`, {})));
-        const condition = new Condition('Test Card', 1);
-        const simulationBranch = new MockSimulationBranch(mockGameState, condition);
+    describe ('Pot of Duality', () => {
+        it('should process pull 1 card of 3', () => {
+            const potOfDuality = CreateCard('Pot of Duality', { free: freeCardMap['Pot of Duality'] }) as FreeCard;
+            mockGameState.addCardToHand(potOfDuality);
+            mockGameState.mockDeck.setDeckList([...Array(3)].map((_, i) => CreateCard(`Deck Card ${i}`, {})));
+            const condition = new Condition('Test Card', 1);
+            const simulationBranch = new MockSimulationBranch(mockGameState, condition);
+    
+            processFreeCard(simulationBranch, potOfDuality);
+    
+            expect(simulationBranch.gameState.hand.length).toBe(1);
+            expect(simulationBranch.gameState.deck.deckCount).toBe(2);
+            expect(simulationBranch.gameState.cardsPlayedThisTurn.length).toBe(1);
+        });
 
-        processFreeCard(simulationBranch, potOfDuality);
-
-        expect(simulationBranch.gameState.hand.length).toBe(1);
-        expect(simulationBranch.gameState.deck.deckCount).toBe(4);
-        expect(simulationBranch.gameState.cardsPlayedThisTurn.length).toBe(1);
+        it('should pull the right card of 3', () => {
+            const potOfDuality = CreateCard('Pot of Duality', { free: freeCardMap['Pot of Duality'] }) as FreeCard;
+            mockGameState.addCardToHand(potOfDuality);
+            mockGameState.mockDeck.setDeckList([CreateCard('Test Card', {}), ...[...Array(2)].map((_, i) => CreateCard(`Deck Card ${i}`, {}))]);
+            const condition = new Condition('Test Card', 1);
+            const simulationBranch = new MockSimulationBranch(mockGameState, condition);
+    
+            processFreeCard(simulationBranch, potOfDuality);
+    
+            expect(simulationBranch.gameState.hand.length).toBe(1);
+            expect(simulationBranch.gameState.hand[0].name).toBe('Test Card');
+            expect(simulationBranch.gameState.deck.deckCount).toBe(2);
+            expect(simulationBranch.gameState.cardsPlayedThisTurn.length).toBe(1);
+        });
     });
 
     it('should process Trade-In correctly', () => {

@@ -123,20 +123,20 @@ export function freeCardIsUsable(gameState: GameState, card: FreeCard): boolean 
     return true;
 }
 
-function satisfactoryCardPriority(condition: BaseCondition, list: Card[]): Card[] {
-    const cards = cardsThatSatisfy(condition, list);
-    
-    return list.sort((a, b) => {
-        const priorityA = countCardSatisfactions(a, cards);
-        const priorityB = countCardSatisfactions(b, cards);
-        return priorityA - priorityB;
-    });
-}
-
 function countCardSatisfactions(card: Card, satisfiedConditions: Map<Condition, Card[]>): number {
     return Array.from(satisfiedConditions.values())
         .filter(satisfiedCards => satisfiedCards.includes(card))
         .length;
+}
+
+function satisfactoryCardPriority(condition: BaseCondition, list: Card[]): Card[] {
+    const satisfiedConditions = cardsThatSatisfy(condition, list);
+    
+    return [...list].sort((a, b) => {
+        const priorityB = countCardSatisfactions(b, satisfiedConditions);
+        const priorityA = countCardSatisfactions(a, satisfiedConditions);
+        return priorityB - priorityA; // Sort in descending order
+    });
 }
 
 function payCost(gameState: GameState, card: FreeCard, condition: BaseCondition): void {
