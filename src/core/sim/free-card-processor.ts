@@ -207,7 +207,7 @@ function payPostConditions(gameState: GameState, card: FreeCard, condition: Base
         return true;
     }
 
-    const prioritizedCards = satisfactoryCardPriority(condition, gameState.hand);
+    const ascendingCards = satisfactoryCardPriority(condition, gameState.hand).reverse();
 
     switch (card.condition.type) {
         case ConditionType.BanishFromDeck:
@@ -220,18 +220,18 @@ function payPostConditions(gameState: GameState, card: FreeCard, condition: Base
                 let cardsToRemove: Card[] = [];
     
                 if (typeof card.condition.value === "number") {
-                    cardsToRemove = prioritizedCards.slice(0, card.condition.value as number);
+                    cardsToRemove = ascendingCards.slice(0, card.condition.value as number);
                     
                     if (cardsToRemove.length < (card.condition.value as number)) {
-                        throw new Error("Not enough cards to pay cost");
+                        return false;
                     }
                 } else {
                     const requirements = card.condition.value as string;
-                    cardsToRemove = [matchCards([requirements], prioritizedCards)[0]];
-    
-                    if (cardsToRemove.length === 0) {
-                        throw new Error("Not enough cards to pay cost");
+                    const matchingCards = matchCards([requirements], ascendingCards);
+                    if (matchingCards.length === 0) {
+                        return false;
                     }
+                    cardsToRemove = matchingCards.slice(0, 1);
                 }
     
                 if (card.condition.type === ConditionType.BanishFromHand) {

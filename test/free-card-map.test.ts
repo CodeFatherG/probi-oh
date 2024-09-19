@@ -114,6 +114,39 @@ describe('FreeCardMap', () => {
             expect(simulationBranch.gameState.banishPile.length).toBe(1);
             expect(simulationBranch.gameState.cardsPlayedThisTurn.length).toBe(1);
         });
+
+        it('should discard all if no dark is drawn', () => {
+            const allureOfDarkness = CreateCard('Allure of Darkness', { free: freeCardMap['Allure of Darkness'] }) as FreeCard;
+            mockGameState.setHand([allureOfDarkness]);
+            mockGameState.mockDeck.setDeckList([...Array(2)].map((_, i) => CreateCard(`Deck Card ${i}`, {})));
+            const condition = new Condition('Test Card', 1);
+            const simulationBranch = new MockSimulationBranch(mockGameState, condition);
+    
+            processFreeCard(simulationBranch, allureOfDarkness);
+    
+            expect(simulationBranch.gameState.hand.length).toBe(0);
+            expect(simulationBranch.gameState.banishPile.length).toBe(0);
+            expect(simulationBranch.gameState.graveyard.length).toBe(2);
+            expect(simulationBranch.gameState.cardsPlayedThisTurn.length).toBe(1);
+        });
+
+        it('should pay card not satisfactory', () => {
+            const allureOfDarkness = CreateCard('Allure of Darkness', { free: freeCardMap['Allure of Darkness'] }) as FreeCard;
+            const wrongDarkMonster = CreateCard('Wrong Dark Monster', { tags: ['DARK'] });
+            const rightDarkMonster = CreateCard('Right Dark Monster', { tags: ['DARK'] });
+            mockGameState.setHand([allureOfDarkness, wrongDarkMonster]);
+            mockGameState.mockDeck.setDeckList([CreateCard('Deck Card 1', {}), rightDarkMonster]);
+            const condition = new Condition('Right Dark Monster', 1);
+            const simulationBranch = new MockSimulationBranch(mockGameState, condition);
+    
+            processFreeCard(simulationBranch, allureOfDarkness);
+    
+            expect(simulationBranch.gameState.hand.length).toBe(2);
+            expect(simulationBranch.gameState.hand.some(c => c.name === 'Right Dark Monster')).toBe(true);
+            expect(simulationBranch.gameState.banishPile.length).toBe(1);
+            expect(simulationBranch.gameState.banishPile.some(c => c.name === 'Wrong Dark Monster')).toBe(true);
+            expect(simulationBranch.gameState.cardsPlayedThisTurn.length).toBe(1);
+        });
     });
 
     it('should process Into The Void correctly', () => {
