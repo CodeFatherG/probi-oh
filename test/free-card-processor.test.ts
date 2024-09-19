@@ -263,6 +263,25 @@ describe('Free Card Processor', () => {
             expect(simulationBranch.gameState.cardsPlayedThisTurn.length).toBe(1);
         });
 
+        test('should process card with cost and not spend the satisfactory card', () => {
+            const freeCardDetails: CardDetails = {
+                free: { oncePerTurn: false, count: 1, cost: { type: CostType.BanishFromHand, value: 1 } }
+            };
+            const freeCard = CreateCard('Free Card', freeCardDetails) as FreeCard;
+            const costCard = CreateCard('Cost Card', {});
+            const satisfactoryCard = CreateCard('Test Card', {});
+            mockGameState.setHand([freeCard, costCard, satisfactoryCard]);
+            const condition = new Condition('Test Card', 1);
+            const simulationBranch = new MockSimulationBranch(mockGameState, condition);
+
+            processFreeCard(simulationBranch, freeCard);
+
+            expect(simulationBranch.gameState.hand.length).toBe(2);
+            expect(simulationBranch.gameState.hand.some(c => c.name === 'Test Card')).toBe(true);
+            expect(simulationBranch.gameState.banishPile.length).toBe(1);
+            expect(simulationBranch.gameState.cardsPlayedThisTurn.length).toBe(1);
+        });
+
         test('should process card with excavate', () => {
             const freeCardDetails: CardDetails = {
                 free: { oncePerTurn: false, excavate: { count: 2, pick: 1 } }

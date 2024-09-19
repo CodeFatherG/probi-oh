@@ -144,7 +144,7 @@ function payCost(gameState: GameState, card: FreeCard, condition: BaseCondition)
         return;
     }
 
-    const prioritizedCards = satisfactoryCardPriority(condition, gameState.hand);
+    const prioritizedCards = satisfactoryCardPriority(condition, gameState.hand).reverse();
 
     switch (card.cost.type) {
         case CostType.BanishFromDeck:
