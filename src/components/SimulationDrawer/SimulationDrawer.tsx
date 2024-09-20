@@ -35,8 +35,8 @@ export default function SimulationDrawer({ onApply }: SimulationDrawerProps): JS
             }
         };
 
-        // Update simulations every 5 seconds
-        const intervalId = setInterval(updateSimulations, 5000);
+        // Update simulations every second
+        const intervalId = setInterval(updateSimulations, 1000);
 
         return () => clearInterval(intervalId);
     }, []);
