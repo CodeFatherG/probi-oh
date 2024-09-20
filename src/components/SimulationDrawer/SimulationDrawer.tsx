@@ -47,7 +47,10 @@ export default function SimulationDrawer({ onApply }: SimulationDrawerProps): JS
     };
 
     useEffect(() => {
-        measureDrawerWidth();
+        if (open) {
+            // Delay measurement to ensure drawer is rendered
+            setTimeout(measureDrawerWidth, 0);
+        }
     }, [open, simulations]);
     
     useEffect(() => {
@@ -77,7 +80,7 @@ export default function SimulationDrawer({ onApply }: SimulationDrawerProps): JS
             <Drawer
                 anchor="left"
                 open={open}
-                variant="persistent"
+                variant="temporary"
                 onClose={() => setOpen(false)}
             >
                 <Stack
