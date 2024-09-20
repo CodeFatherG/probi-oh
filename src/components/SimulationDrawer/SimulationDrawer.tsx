@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Box, Drawer, IconButton, Stack, Typography } from "@mui/material";
 import { ChevronLeft, Menu } from "@mui/icons-material";
 import SimulationSummary from "./SimulationSummary";
@@ -11,6 +11,8 @@ interface SimulationDrawerProps {
 export default function SimulationDrawer({ onApply }: SimulationDrawerProps): JSX.Element {
     const [open, setOpen] = useState(false);
     const [simulations, setSimulations] = useState(simulationRepository.getAllRecords());
+    const [drawerWidth, setDrawerWidth] = useState(0);
+    const drawerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const updateSimulations = () => {
@@ -29,16 +31,28 @@ export default function SimulationDrawer({ onApply }: SimulationDrawerProps): JS
                 }
             } catch (error) {
                 console.error("Error loading simulations:", error);
-                // Optionally, you could clear the corrupted data:
-                // simulationRepository.clear();
                 setSimulations([]);
             }
         };
 
         // Update simulations every second
         const intervalId = setInterval(updateSimulations, 1000);
-
         return () => clearInterval(intervalId);
+    }, []);
+
+    const measureDrawerWidth = () => {
+        if (drawerRef.current && open) {
+            setDrawerWidth(drawerRef.current.offsetWidth);
+        }
+    };
+
+    useEffect(() => {
+        measureDrawerWidth();
+    }, [open, simulations]);
+    
+    useEffect(() => {
+        window.addEventListener('resize', measureDrawerWidth);
+        return () => window.removeEventListener('resize', measureDrawerWidth);
     }, []);
 
     return (
@@ -49,12 +63,12 @@ export default function SimulationDrawer({ onApply }: SimulationDrawerProps): JS
                 disabled={simulations.length === 0}
                 sx={{
                     position: 'fixed',
-                    left: 10,
+                    left: open ? `${drawerWidth + 20}px` : '10px',
                     top: 10,
                     zIndex: 1201,
                     transition: theme => theme.transitions.create(['left'], {
                         easing: theme.transitions.easing.sharp,
-                        duration: theme.transitions.duration.enteringScreen,
+                        duration: theme.transitions.duration.shortest,
                     }),
                 }}
             >
@@ -63,15 +77,16 @@ export default function SimulationDrawer({ onApply }: SimulationDrawerProps): JS
             <Drawer
                 anchor="left"
                 open={open}
-                variant="temporary"
+                variant="persistent"
                 onClose={() => setOpen(false)}
             >
                 <Stack
                     p='10px'
                     m='10px'
+                    ref = {drawerRef}
                 >
                     <Typography variant='h4' align="center" mb='2'>History</Typography>
-                    {simulations.reverse().map(record => (
+                    {[...simulations].reverse().map(record => (
                         <SimulationSummary 
                             key={record.id} 
                             record={record} 
