@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import './styles/App.css';
 import SimulationRunner from './components/SimulationView/SimulationRunner';
 import { CardDetails } from './core/data/card-details';
@@ -21,6 +21,10 @@ export default function App() {
         clearCache: false 
     });
     const [settingsOpen, setSettingsOpen] = useState(false);
+
+    useEffect(() => {
+        console.log('Starting App...');
+    }, []);
 
     const handleSaveSettings = useCallback((newSettings: Settings) => {
         setSettingsOpen(false);

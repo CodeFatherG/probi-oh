@@ -8,11 +8,16 @@ import { initialiseAnalytics } from './analytics/analytics';
 
 initialiseAnalytics();
 
+console.log('Logging is enabled', process.env.LOG);
+if (!process.env.LOG) {
+    console.log = () => {};
+}
+
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(
-  <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <App />
-    </ThemeProvider>
-  </React.StrictMode>
+    <React.StrictMode>
+        <ThemeProvider theme={theme}>
+            <App />
+        </ThemeProvider>
+    </React.StrictMode>
 );
