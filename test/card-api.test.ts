@@ -1,6 +1,6 @@
 // card-api.test.ts
 
-import { getCardById, getCardByName, fuzzySearchCard, getCardImage, clearCardDatabase } from '../src/core/ygo/card-api';
+import { getCardById, getCardByName, fuzzySearchCard, getCardImage, clearCardDatabase, getArchetypes } from '../src/core/ygo/card-api';
 import { IDBPDatabase, openDB } from 'idb';
 import { CardInformation } from '../src/core/ygo/card-information';
 
@@ -268,6 +268,63 @@ describe('card-api', () => {
     
             expect(image).toBeNull();
             expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching image:', expect.any(Error));
+        });
+    });
+    
+    describe('getArchetypes', () => {
+        const mockArchetypesResponse = [
+            { archetype_name: "Abc" },
+            { archetype_name: "Xyz" },
+            { archetype_name: "123" }
+        ];
+        const mockArchetypes = ["Abc", "Xyz", "123"];
+    
+        it('should return cached archetypes if available', async () => {
+            (mockDB.get as jest.Mock).mockResolvedValue(mockArchetypes);
+            const archetypes = await getArchetypes(mockFetch, mockDBFactory);
+            expect(archetypes).toEqual(mockArchetypes);
+            expect(mockDB.get).toHaveBeenCalledWith('archetypes', 'all');
+            expect(mockFetch).not.toHaveBeenCalled();
+        });
+    
+        it('should fetch and cache archetypes if not in database', async () => {
+            (mockDB.get as jest.Mock).mockResolvedValue(undefined);
+            mockFetch.mockResolvedValue({
+                ok: true,
+                json: async () => mockArchetypesResponse
+            });
+            
+            const archetypes = await getArchetypes(mockFetch, mockDBFactory);
+    
+            expect(archetypes).toEqual(mockArchetypes);
+            expect(mockFetch).toHaveBeenCalledWith(
+                new URL('https://db.ygoprodeck.com/api/v7/archetypes.php')
+            );
+            expect(mockDB.put).toHaveBeenCalledWith('archetypes', mockArchetypes, 'all');
+        });
+    
+        it('should return an empty array on fetch error', async () => {
+            (mockDB.get as jest.Mock).mockResolvedValue(undefined);
+            mockFetch.mockRejectedValue(new Error('Network error'));
+    
+            const archetypes = await getArchetypes(mockFetch, mockDBFactory);
+    
+            expect(archetypes).toEqual([]);
+            expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching archetypes:', expect.any(Error));
+        });
+    
+        it('should handle HTTP errors', async () => {
+            (mockDB.get as jest.Mock).mockResolvedValue(undefined);
+            mockFetch.mockResolvedValue({
+                ok: false,
+                status: 500,
+                statusText: 'Internal Server Error'
+            });
+    
+            const archetypes = await getArchetypes(mockFetch, mockDBFactory);
+    
+            expect(archetypes).toEqual([]);
+            expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching archetypes:', expect.any(Error));
         });
     });
 });

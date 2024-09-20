@@ -5,21 +5,22 @@ import ReportDisplay from './ReportDisplay';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
 
 interface ResultDisplayProps {
-    report: Report;
+    successRate: number;
+    report: Report | null;
 }
 
-export default function ResultDisplay ({ report }: ResultDisplayProps) {
+export default function ResultDisplay ({ successRate, report }: ResultDisplayProps) {
     const [isReportVisible, setIsReportVisible] = useState<boolean>(false);
 
     return (
         <Stack spacing={2} sx={{ width: '100%' }}>
             <Button onClick={() => setIsReportVisible(!isReportVisible)}>
-                {(isReportVisible ? <ExpandLess /> : <ExpandMore />)}
+                {(report && isReportVisible ? <ExpandLess /> : <ExpandMore />)}
                 <Typography variant="subtitle1">
-                    Probability of success: {(report.successRate * 100).toFixed(2)}%
+                    Probability of success: {(successRate * 100).toFixed(2)}%
                 </Typography>
             </Button>
-            {isReportVisible && (
+            {report && isReportVisible && (
                 <Paper elevation={3} sx={{ p: 2 }}>
                     <ReportDisplay report={report} />
                 </Paper>
