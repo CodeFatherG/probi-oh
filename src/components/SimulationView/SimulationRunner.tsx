@@ -10,6 +10,8 @@ import ResultDisplay from './ResultDisplay';
 import { Report } from '../../core/sim/report';
 import { Box, LinearProgress, Stack } from '@mui/material';
 import { parseCondition } from '../../core/data/parser';
+import { createSimulationRecord } from '../../core/data/simulation-record';
+import { simulationRepository } from '../../core/data/simulation-repository';
 
 interface SimulationRunnerProps {
     disabled: boolean;
@@ -25,6 +27,7 @@ export default function SimulationRunner({ disabled,
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
     const [progress, setProgress] = useState(0);
     const [reportData, setReportData] = useState<Report | null>(null);
+    const [successRate, setSuccessRate] = useState(0);
 
     const simulateDraw = async (deck: Deck, 
                                 conditions: BaseCondition[], 
@@ -69,7 +72,10 @@ export default function SimulationRunner({ disabled,
             const sims = await simulateDraw(deck, conditions.map(parseCondition), settings.simulationHandSize, settings.simulationIterations);
             const report = Report.generateReports(sims);
 
+            simulationRepository.addRecord(createSimulationRecord({deck: cards, conditions: conditions}, report.successRate));
+
             setReportData(report);
+            setSuccessRate(report.successRate);
         } catch (err) {
             console.error('Error running simulation:', err);
         } finally {
@@ -103,9 +109,10 @@ export default function SimulationRunner({ disabled,
                     justifyContent: 'center', 
                     alignItems: 'center' 
                 }}>
-                    <ResultDisplay report={reportData} />
+                    <ResultDisplay successRate={successRate} report={reportData} />
                 </Box>
             )}
         </Stack>
     );
 }
+

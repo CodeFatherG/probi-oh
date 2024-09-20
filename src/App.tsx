@@ -11,12 +11,14 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import GitLink from './components/GitLink';
 import ConfigBuilder from './components/ConfigurationView/ConfigView';
 import MobileDialog from './components/MobileDialog';
-import SimulationDrawer from './components/SideBar/SimulationDrawer';
+import SimulationDrawer from './components/SimulationDrawer/SimulationDrawer';
+import { simulationRepository } from './core/data/simulation-repository';
+import { loadFromYamlString } from './core/data/yaml-manager';
 
 export default function App() {
-    const [cardData, setCardData, clearCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
-    const [conditionData, setConditionData, clearConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
-    const [settings, setSettings, clearSettings] = useLocalStorage<Settings>("settings", { 
+    const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
+    const [conditionData, setConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
+    const [settings, setSettings] = useLocalStorage<Settings>("settings", { 
         simulationIterations: 10000, 
         simulationHandSize: 5, 
         clearCache: false 
@@ -32,9 +34,8 @@ export default function App() {
 
         if (newSettings.clearCache) {
             console.log('Clearing cache...');
-            clearCardData();
-            clearConditionData();
-            clearSettings();
+            localStorage.clear();
+            window.location.reload();
             return;
         }
 
@@ -50,6 +51,22 @@ export default function App() {
     const handleConditionsUpdate = useCallback((conditions: string[]): void => {
         setConditionData(conditions);
     }, [setConditionData]);
+
+    const handleApplySimulation = (simulationId: string) => {
+        console.log('Applying simulation:', simulationId);
+        const record = simulationRepository.getRecord(simulationId);
+        if (record) {
+            try {
+                const input = loadFromYamlString(record.yaml);
+                setCardData(input.deck);
+                setConditionData(input.conditions);
+            } catch (error) {
+                console.error("Error applying simulation:", error);
+            }
+        } else {
+            throw new Error(`Simulation not found ${simulationId}`);
+        }
+    };
 
     return (
         <ErrorBoundary>
@@ -94,7 +111,7 @@ export default function App() {
             </Box>
             <GitLink link="https://github.com/CodeFatherG/probi-oh" text="Visit us on Github!" />
             <MobileDialog />
-            <SimulationDrawer />
+            <SimulationDrawer onApply={handleApplySimulation}/>
         </ErrorBoundary>
     );
 }

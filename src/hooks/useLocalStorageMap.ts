@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function useLocalStorageMap<K, V>(key: string, initialValue: Map<K, V> = new Map()): [Map<K, V>, (value: Map<K, V>) => void, () => void] {
+export default function useLocalStorageMap<K, V>(key: string, initialValue: Map<K, V> = new Map()): [Map<K, V>, (value: Map<K, V>) => void] {
     const readValue = (): Map<K, V> => {
         if (typeof window === 'undefined') {
             return initialValue;
@@ -32,14 +32,5 @@ export default function useLocalStorageMap<K, V>(key: string, initialValue: Map<
         setStoredValue(readValue());
     }, []);
 
-    const clearStorage = () => {
-        try {
-            window.localStorage.removeItem(key);
-            setStoredValue(initialValue);
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    return [storedValue, setValue, clearStorage];
+    return [storedValue, setValue];
 }

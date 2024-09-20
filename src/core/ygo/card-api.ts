@@ -47,6 +47,21 @@ interface CardDataSchema extends DBSchema {
          */
         value: Blob;
     };
+
+    /**
+     * The archetypes stored in the database.
+     */
+    archetypes: {
+        /**
+         * The key of the archetypes.
+         */
+        key: string;
+        
+        /**
+         * The archetypes.
+         */
+        value: string[];
+    };
 }
 
 let dbInstance: IDBPDatabase<CardDataSchema> | null = null;
@@ -57,10 +72,17 @@ let dbInstance: IDBPDatabase<CardDataSchema> | null = null;
  */
 async function initDB(): Promise<IDBPDatabase<CardDataSchema>> {
     if (!dbInstance) {
-        dbInstance = await openDB<CardDataSchema>('YuGiOhDB', 1, {
+        dbInstance = await openDB<CardDataSchema>('YuGiOhDB', 2, {
             upgrade(db) {
-                db.createObjectStore('cards');
-                db.createObjectStore('images');
+                if (!db.objectStoreNames.contains('cards')) {
+                    db.createObjectStore('cards');
+                }
+                if (!db.objectStoreNames.contains('images')) {
+                    db.createObjectStore('images');
+                }
+                if (!db.objectStoreNames.contains('archetypes')) {
+                    db.createObjectStore('archetypes');
+                }
             },
         });
     }
@@ -216,4 +238,27 @@ export async function clearCardDatabase(dbFactory = initDB): Promise<void> {
     const db = await dbFactory();
     await db.clear('cards');
     await db.clear('images');
+}
+
+export async function getArchetypes(fetcher = fetch, dbFactory = initDB): Promise<string[]> {
+    const db = await dbFactory();
+    
+    const cachedArchetypes = await db.get('archetypes', 'all');
+    if (cachedArchetypes) return cachedArchetypes;
+
+    const url = new URL('https://db.ygoprodeck.com/api/v7/archetypes.php');
+
+    try {
+        const response = await fetcher(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data: { archetype_name: string }[] = await response.json();
+        const archetypes = data.map(item => item.archetype_name);
+        await db.put('archetypes', archetypes, 'all');
+        return archetypes;
+    } catch (error) {
+        console.error('Error fetching archetypes:', error);
+        return [];
+    }
 }
