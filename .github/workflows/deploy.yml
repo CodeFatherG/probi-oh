@@ -1,0 +1,26 @@
+name: Deploy to Main
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Are you sure you want to deploy to main?'
+        required: true
+        type: boolean
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.actor == 'CodeFatherG'
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    
+    - name: Merge release to main
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git checkout release
+        git merge origin/main
+        git push origin release
