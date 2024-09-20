@@ -12,9 +12,9 @@ export default function TagBox({tags, tagOptions, onTagsChange, onClick}: TagBox
     const [newTag, setNewTag] = useState('');
     const [selectedValue, setSelectedValue] = useState('');
 
-    const handleNewTag = (event: MouseEvent) => {
-        if (newTag.trim() !== '' && !tags.includes(newTag.trim())) {
-            onTagsChange([...tags, newTag.trim()], event);
+    const handleNewTag = (event: MouseEvent, value: string) => {
+        if (value.trim() !== '' && !tags.includes(value.trim())) {
+            onTagsChange([...tags, value.trim()], event);
         }
 
         setNewTag('');
@@ -30,6 +30,15 @@ export default function TagBox({tags, tagOptions, onTagsChange, onClick}: TagBox
         event.stopPropagation();
         if (onClick) {
             onClick(event);
+        }
+    };
+
+    const handleNewTagChange = (event: React.ChangeEvent<object>, value: string, reason: string) => {
+        if (reason === 'input') {
+            setNewTag(value);
+        } else if (reason === 'clear') {
+            setNewTag('');
+            setSelectedValue('');
         }
     };
 
@@ -52,12 +61,10 @@ export default function TagBox({tags, tagOptions, onTagsChange, onClick}: TagBox
                 options={tagOptions || []}
                 inputValue={newTag}
                 value={selectedValue}
-                onInputChange={(event, value) => setNewTag(value)}
-                onChange={(event, value, reason) => {
-                    if (reason === 'selectOption') {
-                        handleNewTag(event as MouseEvent);
-                    } else {
-                        setNewTag(value || '');
+                onInputChange={handleNewTagChange}
+                onChange={(event, value) => {
+                    if (value) {
+                        handleNewTag(event as unknown as MouseEvent, value);
                     }
                 }}
                 renderInput={(params) => (
@@ -65,7 +72,7 @@ export default function TagBox({tags, tagOptions, onTagsChange, onClick}: TagBox
                         {...params}
                         onKeyPress={(e) => {
                             if (e.key === 'Enter') {
-                                handleNewTag(e as unknown as MouseEvent);
+                                handleNewTag(e as unknown as MouseEvent, newTag);
                                 e.preventDefault();
                             }
                         }}
