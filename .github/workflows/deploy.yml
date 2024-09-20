@@ -1,10 +1,10 @@
-name: Deploy to Main
+name: Deploy to production
 
 on:
   workflow_dispatch:
     inputs:
       confirm:
-        description: 'Are you sure you want to deploy to main?'
+        description: 'Are you sure you want to deploy to production?'
         required: true
         type: boolean
 
@@ -17,7 +17,7 @@ jobs:
       with:
         fetch-depth: 0
     
-    - name: Merge release to main
+    - name: Merge main to release
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
