@@ -311,7 +311,7 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
         setElements(elements.filter((_, i) => i !== index));
     };
 
-    const updateElement = (index: number, field: string, value: string | number) => {
+    const updateElement = (index: number, field: string, value: string | number | Element[]) => {
         const newElements = [...elements];
         newElements[index] = { ...newElements[index], [field]: value };
         setElements(newElements);

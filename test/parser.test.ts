@@ -389,5 +389,49 @@ describe('parseCondition', () => {
                 expect(() => parseCondition(name)).toThrow();
             });
         });
+
+        it('should handle one parentheses', () => {
+            const str = "(Card A OR Card B OR Card C)";
+            const result = parseCondition(str);
+
+            expect(result).toBeInstanceOf(OrCondition);
+
+            const parenCond = result as OrCondition;
+            expect(parenCond.hasParentheses).toBe(true);
+            expect(parenCond.conditions).toHaveLength(2);
+            expect(parenCond.conditions[0]).toBeInstanceOf(OrCondition);
+            expect(parenCond.conditions[1]).toBeInstanceOf(Condition);
+
+            const nestedOr1 = parenCond.conditions[0] as OrCondition;
+            expect(nestedOr1.conditions).toHaveLength(2);
+            expect(nestedOr1.hasParentheses).toBe(false);
+            expect(nestedOr1.conditions[0]).toBeInstanceOf(Condition);
+            expect(nestedOr1.conditions[1]).toBeInstanceOf(Condition);
+        });
+
+        it('should handle nested paren', () => {
+            const str = "(Card A OR Card B OR (Card C AND Card D))";
+            const result = parseCondition(str);
+
+            expect(result).toBeInstanceOf(OrCondition);
+
+            const parenCond = result as OrCondition;
+            expect(parenCond.hasParentheses).toBe(true);
+            expect(parenCond.conditions).toHaveLength(2);
+            expect(parenCond.conditions[0]).toBeInstanceOf(OrCondition);
+            expect(parenCond.conditions[1]).toBeInstanceOf(AndCondition);
+
+            const nestedOr1 = parenCond.conditions[0] as OrCondition;
+            expect(nestedOr1.conditions).toHaveLength(2);
+            expect(nestedOr1.hasParentheses).toBe(false);
+            expect(nestedOr1.conditions[0]).toBeInstanceOf(Condition);
+            expect(nestedOr1.conditions[1]).toBeInstanceOf(Condition);
+
+            const nestedAnd = parenCond.conditions[1] as AndCondition;
+            expect(nestedAnd.conditions).toHaveLength(2);
+            expect(nestedAnd.hasParentheses).toBe(true);
+            expect(nestedAnd.conditions[0]).toBeInstanceOf(Condition);
+            expect(nestedAnd.conditions[1]).toBeInstanceOf(Condition);
+        });
     });
 });

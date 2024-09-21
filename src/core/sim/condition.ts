@@ -62,12 +62,14 @@ export class Condition implements BaseCondition {
 
 /** Logical AND condition composed of multiple base conditions */
 export class AndCondition implements BaseCondition {
+    public hasParentheses: boolean = false;
     private _successes: number = 0;
 
     constructor(
         readonly conditions: BaseCondition[],
-        readonly hasParentheses: boolean = true
+        _hasParentheses: boolean = false
     ) {
+        this.hasParentheses = _hasParentheses;
         if (conditions.some(condition => condition == undefined)) {
             console.error(`Found a dead condition`);
         }
@@ -88,6 +90,7 @@ export class AndCondition implements BaseCondition {
 
 /** Logical OR condition composed of multiple base conditions */
 export class OrCondition implements BaseCondition {
+    public hasParentheses: boolean = false;
     private _successes: number = 0;
 
     /**
@@ -95,7 +98,8 @@ export class OrCondition implements BaseCondition {
      * @param conditions - Array of BaseCondition objects
      */
     constructor(readonly conditions: BaseCondition[],
-                readonly hasParentheses: boolean = true) {
+                _hasParentheses: boolean = false) {
+        this.hasParentheses = _hasParentheses;
         if (conditions.some(condition => condition == undefined)) {
             console.error(`Found a dead condition`);
         }
