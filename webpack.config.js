@@ -50,6 +50,9 @@ module.exports = (env, argv) => {
             }),
             new webpack.DefinePlugin({
                 'process.env.LOG': shouldLog,
+                'process.env.DEVELOPMENT': isDevelopment,
+                'process.env.PREVIEW_BRANCH': isPreviewBranch,
+                'process.env.PRODUCTION_BRANCH': isProductionBranch,
             }),
         ],
         devServer: {
