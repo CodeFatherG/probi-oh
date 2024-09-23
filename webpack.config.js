@@ -51,8 +51,8 @@ module.exports = (env, argv) => {
             new webpack.DefinePlugin({
                 'process.env.LOG': shouldLog,
                 'process.env.DEVELOPMENT': isDevelopment,
-                'process.env.PREVIEW_BRANCH': isPreviewBranch,
-                'process.env.PRODUCTION_BRANCH': isProductionBranch,
+                'process.env.PREVIEW': isPreviewBranch,
+                'process.env.PRODUCTION': isProductionBranch,
             }),
         ],
         devServer: {
