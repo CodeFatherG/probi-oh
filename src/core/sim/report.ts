@@ -1,6 +1,7 @@
 import { Simulation, SimulationBranch } from "./simulation";
 import { Card } from "../data/card";
 import { GameState } from '../data/game-state';
+import { AndCondition, BaseCondition, OrCondition } from "./condition";
 
 export interface CardStats {
     id: string;
@@ -33,6 +34,16 @@ export interface Report {
     discardedCardTagStats: Record<string, CardStats>;
     successWithUnusedFreeCards: number;
     conditionStats: Record<string, ConditionStats>;
+}
+
+function hashString(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+    }
+
+    return hash;
 }
 
 function countCards(list: string[]): Map<string, number> {
@@ -68,23 +79,14 @@ function processInitialHand(report: Report, gameState: GameState): void {
 }
 
 function processFreeCards(report: Report, simulation: Simulation): void {
-    const getDrawnCards = (initialBranch: SimulationBranch, successfulBranch: SimulationBranch): Card[] => {
-        const initialHandSet = new Set(initialBranch.gameState.hand);
-        return successfulBranch.gameState.hand.filter(card => !initialHandSet.has(card));
-    }
-
     simulation.branches.forEach(branch => {
-        const successfulBranch = branch.find(b => b.result);
-        const initialBranch = branch[0];
 
-        // Check if we passed on the initial branch
-        if (successfulBranch == initialBranch) {
-            return;
-        }
+        // Count cards drawn. We can did this by going through each branch and checking if the card is in the last hand
+        let lastHand: Card[] = [];
+        branch.forEach(b => {
+            const drawnCards = b.gameState.hand.filter(card => !lastHand.includes(card));
+            lastHand = b.gameState.hand;
 
-        if (successfulBranch && successfulBranch !== initialBranch) {
-            const drawnCards = getDrawnCards(initialBranch, successfulBranch);
-            
             for (const card of drawnCards) {
                 // check if card is in the report
                 if (!report.cardNameStats[card.name]) {
@@ -97,7 +99,6 @@ function processFreeCards(report: Report, simulation: Simulation): void {
 
                 const cardNameStats = report.cardNameStats[card.name];
                 cardNameStats.drawnCount += 1;
-                
 
                 // check if tag is in the report
                 for (const tag of card.tags || []) {
@@ -113,7 +114,12 @@ function processFreeCards(report: Report, simulation: Simulation): void {
                     tagStats.drawnCount += 1;
                 }
             }
+        });
 
+        
+        const successfulBranch = branch.find(b => b.result);
+        if (successfulBranch) {
+            // If there is a successful branch, then the free cards played helped us win
             const usedFreeCards = successfulBranch.gameState.freeCardsPlayedThisTurn;
             for (const freeCard of usedFreeCards) {
                 // check if card is in the report
@@ -129,6 +135,7 @@ function processFreeCards(report: Report, simulation: Simulation): void {
                 freeCardStats.usedToWinCount += 1;
             }
 
+            // If there are free cards in the successful branch, Then you have won without using them
             const unusedFreeCards = successfulBranch.gameState.freeCardsInHand;
             for (const freeCard of unusedFreeCards) {
                 // check if card is in the report
@@ -243,6 +250,35 @@ function checkUnusedFreeCards(report: Report, simulation: Simulation): void {
     }
 }
 
+function processConditionStats(report: Report, condition: BaseCondition): void {
+    const processCondition = (stats: ConditionStats | undefined, condition: BaseCondition) => {
+        if (stats === undefined) {
+            console.error(`Condition statistics not found for condition: ${condition.toString()}`);
+            return;
+        }
+        
+        if (condition instanceof AndCondition || condition instanceof OrCondition) {
+            for (const subCondition of condition.conditions) {
+                stats.subConditionStats[subCondition.toString()] = {
+                    conditionId: subCondition.toString(),
+                    successCount: subCondition.successes,
+                    totalEvaluations: report.iterations,
+                    subConditionStats: {},
+                };
+                processCondition(stats.subConditionStats[subCondition.toString()], subCondition);
+            }
+        }
+    };
+
+    report.conditionStats[condition.toString()] = {
+        conditionId: condition.toString(),
+        successCount: condition.successes,
+        totalEvaluations: report.iterations,
+        subConditionStats: {},
+    }
+    processCondition(report.conditionStats[condition.toString()], condition);
+}
+
 function processSimulations(simulations: Simulation[]): Report {
     const report: Report = {
         iterations: simulations.length,
@@ -271,6 +307,11 @@ function processSimulations(simulations: Simulation[]): Report {
 
         // Check for unused free cards
         checkUnusedFreeCards(report, simulation);
+    }
+
+    // Process condition statistics. Condition objects are constant so we can use the first simulation
+    if (simulations.length > 0) {
+        simulations[0].conditions.forEach(condition => processConditionStats(report, condition));
     }
 
     return report;

@@ -24,103 +24,102 @@ interface CardReportProps {
 interface FreeCardReportProps {
     cardStats: Record<string, CardStats>;
     freeStats: Record<string, FreeCardStats>;
-    simCount: number;
-}
-
-function ConditionReport({ stats }: ConditionReportProps) {
-    const [open, setOpen] = React.useState(false);
-
-    const subConditionLength = Object.keys(stats.subConditionStats).length;
-    const hasSubConditions = subConditionLength > 0;
-
-    return (
-        <>
-            <ListItemButton onClick={() => hasSubConditions && setOpen(!open)}>
-                <ListItemText 
-                    primary={stats.conditionId} 
-                    secondary={`${((stats.successCount / stats.totalEvaluations) * 100).toFixed(2)}%`} 
-                />
-                {hasSubConditions && (open ? <ExpandLess /> : <ExpandMore />)}
-            </ListItemButton>
-            {hasSubConditions && (
-                <Collapse in={open} timeout="auto" unmountOnExit>
-                    <List component="div" sx={{ pl: 4 }}>
-                        {Array.from(Object.entries(stats.subConditionStats)).map(([, stats], index) => (
-                            <ConditionReport key={index} stats={stats} />
-                        ))}
-                    </List>
-                </Collapse>
-            )}
-        </>
-    );
-}
-
-function ConditionDisplay({ conditionStatistics }: ConditionDisplayProps) {
-    return (
-        <>
-            <Typography variant="h4">Condition Statistics:</Typography>
-            <List>
-                {Array.from(Object.entries(conditionStatistics)).map(([, stats], index) => (
-                    <ConditionReport key={index} stats={stats} />
-                ))}
-            </List>
-        </>
-    );
-}
-
-function CardReport({title, stats, simCount}: CardReportProps) {
-    const listItem = (name: string, stats: CardStats) => {
-        const totalCount = Object.values(stats.seenCount).reduce((acc, count) => acc + count, 0);
-
-        return (
-            <ListItemText>
-                {name}: Seen {((totalCount / simCount) * 100).toFixed(2)}% of the time
-                {stats.drawnCount > 0 && (
-                    <> and drawn {((stats.drawnCount / totalCount) * 100).toFixed(2)}%</>
-                )}
-            </ListItemText>
-        );
-    }
-
-    return (
-        <>
-            <Typography variant="h4">{title}</Typography>
-            <List component="div" sx={{ pl: 4 }}>
-                {Array.from(Object.entries(stats)).map(([name, stats]) => listItem(name, stats))}
-            </List>
-        </>
-    );
-}
-
-function FreeCardReport({ cardStats, freeStats, simCount }: FreeCardReportProps) {
-    const listItem = (name: string, cardStat: CardStats, freeStat: FreeCardStats) => {
-        const totalSeenCount = Object.values(cardStat.seenCount).reduce((acc, count) => acc + count, 0);
-
-        return (
-            <ListItemText>
-                {name}: Seen {((totalSeenCount / simCount) * 100).toFixed(2)}% of the time.
-                <> {((freeStat.usedToWinCount / simCount) * 100).toFixed(2)}% of the time it helped you to win</>
-                <> and {((freeStat.unusedCount / simCount) * 100).toFixed(2)}% of the time you won without using it.</>
-            </ListItemText>
-        );
-    }
-
-    return (
-        <>
-            <Typography variant="h4">Free Card Statistics:</Typography>
-            <List component='div' sx={{ pl: 4 }}>
-                {Object.entries(freeStats).map(([name, stats]) => {
-                    cardStats[name] = cardStats[name] || { seenCount: {}, drawnCount: 0 };
-                    return listItem(name, cardStats[name], stats)
-                })}
-            </List>
-        </>
-    );
 }
 
 export default function ReportDisplay({ report }: ReportDisplayProps) {
 
     const recordLength = (record: Record<never, never>) => Object.keys(record).length;
+
+    function ConditionReport({ stats }: ConditionReportProps) {
+        const [open, setOpen] = React.useState(false);
+    
+        const subConditionLength = Object.keys(stats.subConditionStats).length;
+        const hasSubConditions = subConditionLength > 0;
+    
+        return (
+            <>
+                <ListItemButton onClick={() => hasSubConditions && setOpen(!open)}>
+                    <ListItemText 
+                        primary={stats.conditionId} 
+                        secondary={`${((stats.successCount / stats.totalEvaluations) * 100).toFixed(2)}%`} 
+                    />
+                    {hasSubConditions && (open ? <ExpandLess /> : <ExpandMore />)}
+                </ListItemButton>
+                {hasSubConditions && (
+                    <Collapse in={open} timeout="auto" unmountOnExit>
+                        <List component="div" sx={{ pl: 4 }}>
+                            {Array.from(Object.entries(stats.subConditionStats)).map(([, stats], index) => (
+                                <ConditionReport key={index} stats={stats} />
+                            ))}
+                        </List>
+                    </Collapse>
+                )}
+            </>
+        );
+    }
+    
+    function ConditionDisplay({ conditionStatistics }: ConditionDisplayProps) {
+        return (
+            <>
+                <Typography variant="h4">Condition Statistics:</Typography>
+                <List>
+                    {Array.from(Object.entries(conditionStatistics)).map(([, stats], index) => (
+                        <ConditionReport key={index} stats={stats} />
+                    ))}
+                </List>
+            </>
+        );
+    }
+    
+    function CardReport({title, stats, simCount}: CardReportProps) {
+        const listItem = (name: string, stats: CardStats) => {
+            const totalCount = Object.values(stats.seenCount).reduce((acc, count) => acc + count, 0);
+    
+            return (
+                <ListItemText>
+                    {name}: Seen {((totalCount / simCount) * 100).toFixed(2)}% of the time
+                    {stats.drawnCount > 0 && (
+                        <> and drawn {((stats.drawnCount / totalCount) * 100).toFixed(2)}%</>
+                    )}
+                </ListItemText>
+            );
+        }
+    
+        return (
+            <>
+                <Typography variant="h4">{title}</Typography>
+                <List component="div" sx={{ pl: 4 }}>
+                    {Array.from(Object.entries(stats)).map(([name, stats]) => listItem(name, stats))}
+                </List>
+            </>
+        );
+    }
+    
+    function FreeCardReport({ cardStats, freeStats }: FreeCardReportProps) {
+        const listItem = (name: string, cardStat: CardStats, freeStat: FreeCardStats) => {
+            const totalSeenCount = Object.values(cardStat.seenCount).reduce((acc, count) => acc + count, 0);
+
+            return (
+                <ListItemText>
+                    {name}: Seen {((totalSeenCount / report.iterations) * 100).toFixed(2)}% of the time.
+                    <> {((freeStat.usedToWinCount / totalSeenCount) * 100).toFixed(2)}% of the time it helped you to win</>
+                    <> and {((freeStat.unusedCount / totalSeenCount) * 100).toFixed(2)}% of the time you won without using it.</>
+                </ListItemText>
+            );
+        }
+    
+        return (
+            <>
+                <Typography variant="h4">Free Card Statistics:</Typography>
+                <List component='div' sx={{ pl: 4 }}>
+                    {Object.entries(freeStats).map(([name, stats]) => {
+                        cardStats[name] = cardStats[name] || { seenCount: {}, drawnCount: 0 };
+                        return listItem(name, cardStats[name], stats)
+                    })}
+                </List>
+            </>
+        );
+    }
 
     return (
         <>
@@ -147,7 +146,7 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
             )}
 
             {recordLength(report.freeCardStats) > 0 && (
-                <FreeCardReport cardStats={report.cardNameStats} freeStats={report.freeCardStats} simCount={report.iterations} />
+                <FreeCardReport cardStats={report.cardNameStats} freeStats={report.freeCardStats} />
             )}
             
             <ConditionDisplay conditionStatistics={report.conditionStats} />
