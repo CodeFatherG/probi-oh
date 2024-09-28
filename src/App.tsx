@@ -53,15 +53,10 @@ export default function App() {
 
     const handleApplySimulation = async (simulationId: string) => {
         console.log('Applying simulation:', simulationId);
-        const data = await simulationCache.getSimulationById(simulationId);
-        if (data) {
-            try {
-                const input = JSON.parse(data.data);
-                setCardData(input.deck);
-                setConditionData(input.conditions);
-            } catch (error) {
-                console.error("Error applying simulation:", error);
-            }
+        const input = await simulationCache.getSimulationInputById(simulationId);
+        if (input) {
+            setCardData(input.deck);
+            setConditionData(input.conditions);
         } else {
             throw new Error(`Simulation not found ${simulationId}`);
         }
