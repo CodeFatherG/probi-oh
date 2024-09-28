@@ -1,4 +1,4 @@
-import { Simulation, SimulationBranch } from "./simulation";
+import { Simulation } from "./simulation";
 import { Card } from "../data/card";
 import { GameState } from '../data/game-state';
 import { AndCondition, BaseCondition, OrCondition } from "./condition";
@@ -34,16 +34,6 @@ export interface Report {
     discardedCardTagStats: Record<string, CardStats>;
     successWithUnusedFreeCards: number;
     conditionStats: Record<string, ConditionStats>;
-}
-
-function hashString(str: string): number {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = (hash << 5) - hash + str.charCodeAt(i);
-        hash |= 0;
-    }
-
-    return hash;
 }
 
 function countCards(list: string[]): Map<string, number> {
