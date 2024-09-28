@@ -3,36 +3,140 @@ import { Card } from "../data/card";
 import { GameState } from '../data/game-state';
 import { AndCondition, BaseCondition, OrCondition } from "./condition";
 
+/**
+ * Represents the statistics for a card
+ */
 export interface CardStats {
+    /**
+     * The id of the card. This could be a name or a tag
+     */
     id: string;
+
+    /**
+     * The number of times the card appeared in the hand.
+     * This is a map of the number of times the card appeared 
+     * in the hand to the number of times it appeared that many times.
+     */
     seenCount: Record<number, number>;
+
+    /**
+     * The number of times the card was seen in a concurrent branch that 
+     * is not the initial branch. Meaning that we drew it.
+     */
     drawnCount: number;
 }
 
+/**
+ * Represents the statistics for a free card
+ * @interface
+ */
 export interface FreeCardStats {
+    /**
+     * The id of the free card. This is the name of the card
+     */
     id: string;
+
+    /**
+     * The number of times the free card appeared in the played cards for a successful branch.
+     * This is incremented when the free card is used in a successful branch. This means the
+     * total times this count is evaluated is the number of iterations * the condition count as
+     * if you have 1 iteration and 3 conditions, where 2 conditions used this card to succeed,
+     * then this count will be 2, but techincally it was drawn 3 times (since the hand is the same).
+     */
     usedToWinCount: number;
+
+    /**
+     * The number of times the free card was in the hand of a successful branch.
+     * This is incremented when the free card is in the final hand of a successful branch. 
+     * This means the card was not used to win the game.
+     */
     unusedCount: number;
 }
 
+/**
+ * Represents the statistics for a condition
+ * @interface
+ */
 export interface ConditionStats {
+    /**
+     * The id of the condition
+     */
     conditionId: string;
+
+    /**
+     * The number of successful evaluations of the condition
+     * Whilst the simulation will branch to explore permutations of cards and free card usage, 
+     * this is the number of times the condition was successful which is only counted once 
+     * per simulation regardless of branches.
+     */
     successCount: number;
-    totalEvaluations: number;
+
+    /**
+     * The statistics for the conditions that build this condition
+     */
     subConditionStats: Record<string, ConditionStats>;
 }
 
+/**
+ * Represents the report generated from a set of simulations
+ * @interface
+ */
 export interface Report {
+    /**
+     * The number of iterations that were run
+     */
     iterations: number;
+
+    /**
+     * The number of successful simulations
+     * A successful simulation is a where any condition passed for that simulation.
+     */
     successfulSimulations: number;
+
+    /**
+     * The statistics for the cards drawn
+     */
     cardNameStats: Record<string, CardStats>;
+
+    /**
+     * The statistics for the tags of the cards drawn
+     */
     cardTagStats: Record<string, CardStats>;
+
+    /**
+     * The statistics for the free cards used
+     */
     freeCardStats: Record<string, FreeCardStats>;
+
+    /**
+     * The statistics for the cards banished
+     */
     banishedCardNameStats: Record<string, CardStats>;
+
+    /**
+     * The statistics for the tags of the cards banished
+     */
     banishedCardTagStats: Record<string, CardStats>;
+
+    /**
+     * The statistics for the cards discarded
+     */
     discardedCardNameStats: Record<string, CardStats>;
+
+    /**
+     * The statistics for the tags of the cards discarded
+     */
     discardedCardTagStats: Record<string, CardStats>;
+
+    /**
+     * The number of successful simulations where free cards were not used
+     * This is for all conditions tested of a simulation, how many of them were both successful and had free cards in hand.
+     */
     successWithUnusedFreeCards: number;
+
+    /**
+     * The statistics for the conditions evaluated
+     */
     conditionStats: Record<string, ConditionStats>;
 }
 
@@ -69,11 +173,11 @@ function processInitialHand(report: Report, gameState: GameState): void {
 }
 
 function processFreeCards(report: Report, simulation: Simulation): void {
-    simulation.branches.forEach(branch => {
+    simulation.branches.forEach(conditionBranch => {
 
         // Count cards drawn. We can did this by going through each branch and checking if the card is in the last hand
-        let lastHand: Card[] = [];
-        branch.forEach(b => {
+        let lastHand: Card[] = conditionBranch[0].gameState.hand;
+        conditionBranch.slice(1).forEach(b => {
             const drawnCards = b.gameState.hand.filter(card => !lastHand.includes(card));
             lastHand = b.gameState.hand;
 
@@ -252,7 +356,6 @@ function processConditionStats(report: Report, condition: BaseCondition): void {
                 stats.subConditionStats[subCondition.toString()] = {
                     conditionId: subCondition.toString(),
                     successCount: subCondition.successes,
-                    totalEvaluations: report.iterations,
                     subConditionStats: {},
                 };
                 processCondition(stats.subConditionStats[subCondition.toString()], subCondition);
@@ -263,7 +366,6 @@ function processConditionStats(report: Report, condition: BaseCondition): void {
     report.conditionStats[condition.toString()] = {
         conditionId: condition.toString(),
         successCount: condition.successes,
-        totalEvaluations: report.iterations,
         subConditionStats: {},
     }
     processCondition(report.conditionStats[condition.toString()], condition);
