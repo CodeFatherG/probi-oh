@@ -78,6 +78,7 @@ export default function App() {
         console.log('Applying simulation:', simulationId);
         const input = await simulationCache.getSimulationInputById(simulationId);
         if (input) {
+            navigate(`?id=${simulationId}`, { replace: true });
             setCardData(input.deck);
             setConditionData(input.conditions);
         } else {
