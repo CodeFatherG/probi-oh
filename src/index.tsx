@@ -5,6 +5,7 @@ import App from './App';
 import { theme } from './styles/theme';
 import { ThemeProvider } from '@emotion/react';
 import { initialiseAnalytics } from './analytics/analytics';
+import { BrowserRouter } from 'react-router-dom';
 
 initialiseAnalytics();
 
@@ -17,7 +18,9 @@ const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
     <React.StrictMode>
         <ThemeProvider theme={theme}>
-            <App />
+            <BrowserRouter>
+                <App />
+            </BrowserRouter>
         </ThemeProvider>
     </React.StrictMode>
 );
