@@ -10,8 +10,7 @@ import ResultDisplay from './ResultDisplay';
 import { Report, generateReport } from '../../core/sim/report';
 import { Box, LinearProgress, Stack } from '@mui/material';
 import { parseCondition } from '../../core/data/parser';
-import { createSimulationRecord } from '../../core/data/simulation-record';
-import { simulationRepository } from '../../core/data/simulation-repository';
+import { recordSimulation } from '../../db/simulations/post';
 
 interface SimulationRunnerProps {
     disabled: boolean;
@@ -72,8 +71,7 @@ export default function SimulationRunner({ disabled,
             const sims = await simulateDraw(deck, conditions.map(parseCondition), settings.simulationHandSize, settings.simulationIterations);
             const report = generateReport(sims);
 
-            simulationRepository.addRecord(createSimulationRecord({deck: cards, conditions: conditions}, 
-                                            (report.successfulSimulations / settings.simulationIterations)));
+            recordSimulation({deck: cards, conditions: conditions}, report);
 
             setReportData(report);
             setSuccessRate(report.successfulSimulations / settings.simulationIterations);
