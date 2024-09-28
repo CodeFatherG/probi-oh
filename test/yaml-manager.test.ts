@@ -214,7 +214,7 @@ describe('YAML Manager', () => {
             const parsed = yaml.load(result) as { conditions: string[] };
             expect(parsed.conditions).toHaveLength(2);
             expect(parsed.conditions[0]).toBe('2+ Card1 IN Hand');
-            expect(parsed.conditions[1]).toBe('(1 Card2 IN Hand OR 2+ Card1 IN Hand)');
+            expect(parsed.conditions[1]).toBe('1 Card2 IN Hand OR 2+ Card1 IN Hand');
         });
 
         it('should correctly serialise complex conditions', () => {
@@ -223,11 +223,11 @@ describe('YAML Manager', () => {
                 new OrCondition([
                     new Condition('Card2', 1, '='),
                     new Condition('Card3', 3, '<='),
-                ]),
+                ], true),
             ]);
             const result = serialiseConditionsToYaml([condition]);
             const parsed = yaml.load(result) as { conditions: string[] };
-            expect(parsed.conditions[0]).toBe('(2+ Card1 IN Hand AND (1 Card2 IN Hand OR 3- Card3 IN Hand))');
+            expect(parsed.conditions[0]).toBe('2+ Card1 IN Hand AND (1 Card2 IN Hand OR 3- Card3 IN Hand)');
         });
     });
 

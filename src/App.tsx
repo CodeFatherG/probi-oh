@@ -12,8 +12,7 @@ import GitLink from './components/GitLink';
 import ConfigBuilder from './components/ConfigurationView/ConfigView';
 import MobileDialog from './components/MobileDialog';
 import SimulationDrawer from './components/SimulationDrawer/SimulationDrawer';
-import { simulationRepository } from './core/data/simulation-repository';
-import { loadFromYamlString } from './core/data/yaml-manager';
+import { simulationCache } from './db/simulations/simulation-cache';
 
 export default function App() {
     const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
@@ -52,17 +51,12 @@ export default function App() {
         setConditionData(conditions);
     }, [setConditionData]);
 
-    const handleApplySimulation = (simulationId: string) => {
+    const handleApplySimulation = async (simulationId: string) => {
         console.log('Applying simulation:', simulationId);
-        const record = simulationRepository.getRecord(simulationId);
-        if (record) {
-            try {
-                const input = loadFromYamlString(record.yaml);
-                setCardData(input.deck);
-                setConditionData(input.conditions);
-            } catch (error) {
-                console.error("Error applying simulation:", error);
-            }
+        const input = await simulationCache.getSimulationInputById(simulationId);
+        if (input) {
+            setCardData(input.deck);
+            setConditionData(input.conditions);
         } else {
             throw new Error(`Simulation not found ${simulationId}`);
         }

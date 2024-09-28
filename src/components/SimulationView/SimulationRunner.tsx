@@ -7,11 +7,10 @@ import { Simulation } from '../../core/sim/simulation';
 import { buildDeck, Deck } from '../../core/data/deck';
 import { GameState } from '../../core/data/game-state';
 import ResultDisplay from './ResultDisplay';
-import { Report } from '../../core/sim/report';
+import { Report, generateReport } from '../../core/sim/report';
 import { Box, LinearProgress, Stack } from '@mui/material';
 import { parseCondition } from '../../core/data/parser';
-import { createSimulationRecord } from '../../core/data/simulation-record';
-import { simulationRepository } from '../../core/data/simulation-repository';
+import { recordSimulation } from '../../db/simulations/post';
 
 interface SimulationRunnerProps {
     disabled: boolean;
@@ -70,12 +69,12 @@ export default function SimulationRunner({ disabled,
             const deck = buildDeck(cards);
 
             const sims = await simulateDraw(deck, conditions.map(parseCondition), settings.simulationHandSize, settings.simulationIterations);
-            const report = Report.generateReports(sims);
+            const report = generateReport(sims);
 
-            simulationRepository.addRecord(createSimulationRecord({deck: cards, conditions: conditions}, report.successRate));
+            recordSimulation({deck: cards, conditions: conditions}, report);
 
             setReportData(report);
-            setSuccessRate(report.successRate);
+            setSuccessRate(report.successfulSimulations / settings.simulationIterations);
         } catch (err) {
             console.error('Error running simulation:', err);
         } finally {

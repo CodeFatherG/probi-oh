@@ -10,6 +10,7 @@ module.exports = (env, argv) => {
     const isCloudflarePages = process.env.CF_PAGES === '1';
     const isProductionBranch = isCloudflarePages && (process.env.CF_PAGES_BRANCH === 'release');
     const isPreviewBranch = isCloudflarePages && (process.env.CF_PAGES_BRANCH === 'main');
+    const apiUrl = isDevelopment ? '"http://localhost:8787"' : '"https://probi-oh-api.gdare1.workers.dev"';
 
     // Set LOG based on our conditions
     const shouldLog = isDevelopment || (isPreviewBranch);
@@ -53,6 +54,7 @@ module.exports = (env, argv) => {
                 'process.env.DEVELOPMENT': isDevelopment,
                 'process.env.PREVIEW': isPreviewBranch,
                 'process.env.PRODUCTION': isProductionBranch,
+                'process.env.API_URL': apiUrl,
             }),
         ],
         devServer: {
