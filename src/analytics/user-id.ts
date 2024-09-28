@@ -1,11 +1,22 @@
 import { v4 as uuidv4 } from 'uuid';
 
+let userId: string | null = null;
+
 export const getUserId = (): string => {
-    let userId = localStorage.getItem('userId');
     if (!userId) {
-        userId = uuidv4();
-        localStorage.setItem('userId', userId);
+        userId = localStorage.getItem('userId');
+        if (!userId) {
+            persistUserId();
+        }
     }
 
-    return userId;
+    return userId as string;
 };
+
+export const persistUserId = (): void => {
+    if (!userId) {
+        userId = uuidv4();
+    }
+
+    localStorage.setItem('userId', userId);
+}

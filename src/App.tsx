@@ -15,6 +15,7 @@ import SimulationDrawer from './components/SimulationDrawer/SimulationDrawer';
 import { simulationCache } from './db/simulations/simulation-cache';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { simulationEventManager } from './db/simulations/simulation-event-manager';
+import { persistUserId } from './analytics/user-id';
 
 export default function App() {
     const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
@@ -53,6 +54,7 @@ export default function App() {
             console.log('Clearing cache...');
             localStorage.clear();
             navigate('', { replace: true });
+            persistUserId();
             window.location.reload();
             return;
         }
