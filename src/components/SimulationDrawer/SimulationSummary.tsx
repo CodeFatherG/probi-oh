@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Box, Card, Stack, Typography, CircularProgress, IconButton } from "@mui/material";
+import { Box, Card, Stack, Typography, CircularProgress, IconButton, Snackbar } from "@mui/material";
 import CardImage from './../CardTable/CardImage';
 import { CardDetails } from "../../core/data/card-details";
 import { getArchetypes } from "../../core/ygo/card-api";
-import { ForwardOutlined } from "@mui/icons-material";
+import { ForwardOutlined, Share } from "@mui/icons-material";
 import { simulationCache } from "../../db/simulations/simulation-cache";
 
 interface SimulationSummaryProps {
@@ -16,6 +16,7 @@ export default function SimulationSummary({ simulationId, onApply }: SimulationS
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<number>(0);
+    const [linkShared, setLinkShared] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchSimulation = async () => {
@@ -121,8 +122,28 @@ export default function SimulationSummary({ simulationId, onApply }: SimulationS
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'center',
+                position: 'relative',
             }}
         >
+            <IconButton 
+                    size='small' 
+                    onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/?id=${simulationId}`);
+                        setLinkShared(true);
+                    }}
+                    sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        zIndex: 1,
+                        bgcolor: 'background.paper',
+                        '&:hover': {
+                            bgcolor: 'background.paper',
+                        },
+                    }}
+                >
+                    <Share fontSize="small" />
+            </IconButton>
             <Box
                 sx={{
                     width: '120px',
@@ -152,14 +173,32 @@ export default function SimulationSummary({ simulationId, onApply }: SimulationS
                 )}
             </Box>
             <Stack
-                alignContent={'center'}
-                ml={2}
-            >
-                <Typography variant='body1'>{(result * 100).toFixed(2)}%</Typography>
-                <IconButton size='large' onClick={() => onApply(simulationId)}>
-                    <ForwardOutlined />
-                </IconButton>
+                    alignItems="center"
+                    ml={2}
+                >
+                    <Typography variant='body1'>{(result * 100).toFixed(2)}%</Typography>
+                    <Box display='flex'>
+                        {/* <IconButton size='large' onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/?id=${simulationId}`);
+                            setLinkShared(true);
+                        }}>
+                            <Share />
+                        </IconButton> */}
+                        <IconButton size='large' onClick={() => onApply(simulationId)}>
+                            <ForwardOutlined />
+                        </IconButton>
+                    </Box>
             </Stack>
+            <Snackbar
+                anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                }}
+                open={linkShared}
+                autoHideDuration={3000}
+                onClose={() => setLinkShared(false)}
+                message="Link copied to clipboard"
+            />
         </Card>
     );
 }
