@@ -15,14 +15,20 @@ export default function SimulationDrawer({ onApply }: SimulationDrawerProps): JS
     const drawerRef = useRef<HTMLDivElement>(null);
     const [simulations, setSimulations] = useLocalStorage<string[]>('simulationDrawerArray', []);
 
-
     useEffect(() => {
-        const newSimulationAdded = (simulationId: string) => {
-            const simList = new Set([simulationId, ...simulations.slice(0, 9)]);
-            setSimulations([...simList]);
-        }
-        simulationEventManager.registerCallback(newSimulationAdded);
-    }, []);
+        const callback = (simulationId: string) => {
+            console.log('New simulation added:', simulationId);
+            console.log('Current simulations:', simulations);
+            const updatedSimulations = [simulationId, ...simulations.slice(0, 9)];
+            setSimulations(updatedSimulations);
+        };
+    
+        simulationEventManager.registerCallback(callback);
+    
+        return () => {
+            simulationEventManager.unregisterCallback(callback);
+        };
+    }, [simulations]);
 
     const measureDrawerWidth = () => {
         if (drawerRef.current && open) {
@@ -41,6 +47,9 @@ export default function SimulationDrawer({ onApply }: SimulationDrawerProps): JS
         window.addEventListener('resize', measureDrawerWidth);
         return () => window.removeEventListener('resize', measureDrawerWidth);
     }, []);
+
+
+    console.log('SimulationDrawer render', simulations);
 
     return (
         <Box sx={{ display: 'flex' }}>
