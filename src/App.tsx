@@ -64,10 +64,12 @@ export default function App() {
 
     const handleCardsUpdate = useCallback((cards: Map<string, CardDetails>): void => {
         setCardData(cards);
+        navigate('', { replace: true });
     }, [setCardData]);
 
     const handleConditionsUpdate = useCallback((conditions: string[]): void => {
         setConditionData(conditions);
+        navigate('', { replace: true });
     }, [setConditionData]);
 
     const handleApplySimulation = async (simulationId: string) => {
