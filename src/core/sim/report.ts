@@ -211,7 +211,7 @@ function processFreeCards(report: Report, simulation: Simulation): void {
         });
 
         
-        const successfulBranch = branch.find(b => b.result);
+        const successfulBranch = conditionBranch.find(b => b.result);
         if (successfulBranch) {
             // If there is a successful branch, then the free cards played helped us win
             const usedFreeCards = successfulBranch.gameState.freeCardsPlayedThisTurn;
