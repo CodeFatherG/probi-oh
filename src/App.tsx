@@ -13,6 +13,8 @@ import ConfigBuilder from './components/ConfigurationView/ConfigView';
 import MobileDialog from './components/MobileDialog';
 import SimulationDrawer from './components/SimulationDrawer/SimulationDrawer';
 import { simulationCache } from './db/simulations/simulation-cache';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { simulationEventManager } from './db/simulations/simulation-event-manager';
 
 export default function App() {
     const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
@@ -23,6 +25,22 @@ export default function App() {
         clearCache: false 
     });
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const id = params.get('id');
+        if (id) {
+            handleApplySimulation(id);
+        }
+    }, []);
+
+    useEffect(() => {
+        simulationEventManager.registerCallback((id: string) => {
+            navigate(`?id=${id}`, { replace: true });
+        })
+    }, []);
 
     useEffect(() => {
         console.log('Starting App...');
@@ -34,6 +52,7 @@ export default function App() {
         if (newSettings.clearCache) {
             console.log('Clearing cache...');
             localStorage.clear();
+            navigate('', { replace: true });
             window.location.reload();
             return;
         }
