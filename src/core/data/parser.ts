@@ -13,8 +13,6 @@ interface Token {
  */
 function parse(tokens: Token[]): BaseCondition {
     let current = 0;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    let parenCount = 0;
 
     /** Walks through tokens and constructs conditions */
     function walk(): BaseCondition {
