@@ -41,7 +41,7 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
                 <ListItemButton onClick={() => hasSubConditions && setOpen(!open)}>
                     <ListItemText 
                         primary={stats.conditionId} 
-                        secondary={`${((stats.successCount / stats.totalEvaluations) * 100).toFixed(2)}%`} 
+                        secondary={`${((stats.successCount / report.iterations) * 100).toFixed(2)}%`} 
                     />
                     {hasSubConditions && (open ? <ExpandLess /> : <ExpandMore />)}
                 </ListItemButton>
