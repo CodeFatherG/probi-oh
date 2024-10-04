@@ -1,4 +1,4 @@
-import { Simulation } from "./simulation";
+import { Simulation, SimulationBranch } from "./simulation";
 import { Card } from "../data/card";
 import { GameState } from '../data/game-state';
 import { AndCondition, BaseCondition, OrCondition } from "./condition";
@@ -7,11 +7,6 @@ import { AndCondition, BaseCondition, OrCondition } from "./condition";
  * Represents the statistics for a card
  */
 export interface CardStats {
-    /**
-     * The id of the card. This could be a name or a tag
-     */
-    id: string;
-
     /**
      * The number of times the card appeared in the hand.
      * This is a map of the number of times the card appeared 
@@ -23,7 +18,7 @@ export interface CardStats {
      * The number of times the card was seen in a concurrent branch that 
      * is not the initial branch. Meaning that we drew it.
      */
-    drawnCount: number;
+    drawnCount?: number;
 }
 
 /**
@@ -32,25 +27,47 @@ export interface CardStats {
  */
 export interface FreeCardStats {
     /**
-     * The id of the free card. This is the name of the card
+     * These statistics are aggregated on a per condition basis
      */
-    id: string;
+    conditions: {
+        /**
+         * The number of times the free card appeared in the played cards for a successful branch.
+         * This is incremented when the free card is used in a successful branch. This means the
+         * total times this count is evaluated is the number of iterations * the condition count as
+         * if you have 1 iteration and 3 conditions, where 2 conditions used this card to succeed,
+         * then this count will be 2, but techincally it was drawn 3 times (since the hand is the same).
+         */
+        usedToWinCount?: number;
+
+        /**
+         * The number of times the free card was in the hand of a successful branch.
+         * This is incremented when the free card is in the final hand of a successful branch. 
+         * This means the card was not used to win the game.
+         */
+        unusedCount?: number;
+    };
 
     /**
-     * The number of times the free card appeared in the played cards for a successful branch.
-     * This is incremented when the free card is used in a successful branch. This means the
-     * total times this count is evaluated is the number of iterations * the condition count as
-     * if you have 1 iteration and 3 conditions, where 2 conditions used this card to succeed,
-     * then this count will be 2, but techincally it was drawn 3 times (since the hand is the same).
+     * These statistics are aggregated on a per iteration basis
      */
-    usedToWinCount: number;
+    overall: {
+        /**
+         * The number of times the free card appeared in the played cards for a successful branch of an iteration.
+         * If a condition has already succeeded with an unused count, then this statistic will not increment.
+         * This means that if a iteration has 3 conditions, and 2 of them use the free card to win, then this count
+         * will be 1, even if the third branch also used the free card but failed as it helped you win the overall iteration.
+         * However, if a iteration has both succeeded with a free card and succeeded without one, then this count is not
+         * incremented and unused count is incremented.
+         */
+        usedToWinCount?: number;
 
-    /**
-     * The number of times the free card was in the hand of a successful branch.
-     * This is incremented when the free card is in the final hand of a successful branch. 
-     * This means the card was not used to win the game.
-     */
-    unusedCount: number;
+        /**
+         * The number of times any condition of an iteration passed with the free card in the hand. This means
+         * that if on a iteration, 2/5 conditions passed with the free card in the hand, then this count will be 1,
+         * even if some conditions failed.
+         */
+        unusedCount?: number;
+    };
 }
 
 /**
@@ -59,22 +76,17 @@ export interface FreeCardStats {
  */
 export interface ConditionStats {
     /**
-     * The id of the condition
-     */
-    conditionId: string;
-
-    /**
      * The number of successful evaluations of the condition
      * Whilst the simulation will branch to explore permutations of cards and free card usage, 
      * this is the number of times the condition was successful which is only counted once 
      * per simulation regardless of branches.
      */
-    successCount: number;
+    successCount?: number;
 
     /**
      * The statistics for the conditions that build this condition
      */
-    subConditionStats: Record<string, ConditionStats>;
+    subConditionStats?: Record<string, ConditionStats>;
 }
 
 /**
@@ -106,33 +118,27 @@ export interface Report {
     /**
      * The statistics for the free cards used
      */
-    freeCardStats: Record<string, FreeCardStats>;
+    freeCardStats?: Record<string, FreeCardStats>;
 
     /**
      * The statistics for the cards banished
      */
-    banishedCardNameStats: Record<string, CardStats>;
+    banishedCardNameStats?: Record<string, CardStats>;
 
     /**
      * The statistics for the tags of the cards banished
      */
-    banishedCardTagStats: Record<string, CardStats>;
+    banishedCardTagStats?: Record<string, CardStats>;
 
     /**
      * The statistics for the cards discarded
      */
-    discardedCardNameStats: Record<string, CardStats>;
+    discardedCardNameStats?: Record<string, CardStats>;
 
     /**
      * The statistics for the tags of the cards discarded
      */
-    discardedCardTagStats: Record<string, CardStats>;
-
-    /**
-     * The number of successful simulations where free cards were not used
-     * This is for all conditions tested of a simulation, how many of them were both successful and had free cards in hand.
-     */
-    successWithUnusedFreeCards: number;
+    discardedCardTagStats?: Record<string, CardStats>;
 
     /**
      * The statistics for the conditions evaluated
@@ -157,7 +163,6 @@ function countCardsInList(store: Record<string, CardStats>, list: string[]): voi
     for (const [id, count] of cardCounts) {
         if (!store[id]) {
             store[id] = {
-                id: id,
                 seenCount: {},
                 drawnCount: 0,
             };
@@ -173,11 +178,10 @@ function processInitialHand(report: Report, gameState: GameState): void {
 }
 
 function processFreeCards(report: Report, simulation: Simulation): void {
-    simulation.branches.forEach(conditionBranch => {
-
+    const aggregateDrawnCards = (branches: SimulationBranch[]): void =>{
         // Count cards drawn. We can did this by going through each branch and checking if the card is in the last hand
-        let lastHand: Card[] = conditionBranch[0].gameState.hand;
-        conditionBranch.slice(1).forEach(b => {
+        let lastHand: Card[] = branches[0].gameState.hand;
+        branches.slice(1).forEach(b => {
             const drawnCards = b.gameState.hand.filter(card => !lastHand.includes(card));
             lastHand = b.gameState.hand;
 
@@ -185,67 +189,161 @@ function processFreeCards(report: Report, simulation: Simulation): void {
                 // check if card is in the report
                 if (!report.cardNameStats[card.name]) {
                     report.cardNameStats[card.name] = {
-                        id: card.name,
                         seenCount: {},
                         drawnCount: 0,
                     };
                 }
 
                 const cardNameStats = report.cardNameStats[card.name];
-                cardNameStats.drawnCount += 1;
+                cardNameStats.drawnCount = (cardNameStats.drawnCount || 0) + 1;
 
                 // check if tag is in the report
                 for (const tag of card.tags || []) {
                     if (!report.cardTagStats[tag]) {
                         report.cardTagStats[tag] = {
-                            id: tag,
                             seenCount: {},
                             drawnCount: 0,
                         };
                     }
 
                     const tagStats = report.cardTagStats[tag];
-                    tagStats.drawnCount += 1;
+                    tagStats.drawnCount = (tagStats.drawnCount || 0) + 1;
                 }
             }
         });
+    };
 
-        
+    const aggregateConditionFreeCards = (conditionBranch: SimulationBranch[]): void => {
         const successfulBranch = conditionBranch.find(b => b.result);
         if (successfulBranch) {
             // If there is a successful branch, then the free cards played helped us win
             const usedFreeCards = successfulBranch.gameState.freeCardsPlayedThisTurn;
+
+            // If there are free cards in the successful branch, Then you have won without using them
+            const unusedFreeCards = successfulBranch.gameState.freeCardsInHand;
+
+            if (usedFreeCards.length === 0 && unusedFreeCards.length === 0) {
+                return;
+            }
+
+            report.freeCardStats = report.freeCardStats || {};
+
             for (const freeCard of usedFreeCards) {
                 // check if card is in the report
                 if (!report.freeCardStats[freeCard.name]) {
                     report.freeCardStats[freeCard.name] = {
-                        id: freeCard.name,
-                        usedToWinCount: 0,
-                        unusedCount: 0,
+                        conditions: {
+                            usedToWinCount: 0,
+                            unusedCount: 0,
+                        },
+                        overall: {
+                            usedToWinCount: 0,
+                            unusedCount: 0,
+                        },
                     };
                 }
 
                 const freeCardStats = report.freeCardStats[freeCard.name];
-                freeCardStats.usedToWinCount += 1;
+                freeCardStats.conditions.usedToWinCount = (freeCardStats.conditions.usedToWinCount || 0) + 1;
             }
 
-            // If there are free cards in the successful branch, Then you have won without using them
-            const unusedFreeCards = successfulBranch.gameState.freeCardsInHand;
             for (const freeCard of unusedFreeCards) {
                 // check if card is in the report
                 if (!report.freeCardStats[freeCard.name]) {
                     report.freeCardStats[freeCard.name] = {
-                        id: freeCard.name,
-                        usedToWinCount: 0,
-                        unusedCount: 0,
+                        conditions: {
+                            usedToWinCount: 0,
+                            unusedCount: 0,
+                        },
+                        overall: {
+                            usedToWinCount: 0,
+                            unusedCount: 0,
+                        },
                     };
                 }
 
                 const freeCardStats = report.freeCardStats[freeCard.name];
-                freeCardStats.unusedCount += 1;
+                freeCardStats.conditions.unusedCount = (freeCardStats.conditions.unusedCount || 0) + 1;
             }
         }
+    };
+
+    const aggregateOverallFreeCards = (sim: Simulation): void => {
+        // Get a list of successful branches SimulationBranch[]
+        const successfulBranches = sim.successfulBranches.map(([, branch]) => branch);
+
+        // get a unique list of free cards in the successful branches hands (unused)
+        const freeCardsInHand = new Set<string>();
+        for (const c of successfulBranches.map(b => b?.gameState.freeCardsInHand).flat()) {
+            if (c) {
+                freeCardsInHand.add(c.name);
+            }
+        }
+
+        // If there is a free card in the hand, then you have won without using it
+        if (freeCardsInHand.size !== 0) {
+            for (const freeCard of freeCardsInHand) {
+                report.freeCardStats = report.freeCardStats || {};
+
+                // check if card is in the report
+                if (!report.freeCardStats[freeCard]) {
+                    report.freeCardStats[freeCard] = {
+                        conditions: {
+                            usedToWinCount: 0,
+                            unusedCount: 0,
+                        },
+                        overall: {
+                            usedToWinCount: 0,
+                            unusedCount: 0,
+                        },
+                    };
+                }
+
+                const freeCardStats = report.freeCardStats[freeCard];
+                freeCardStats.overall.unusedCount = (freeCardStats.overall.unusedCount || 0) + 1;
+            }
+        } else {
+            // If there are no free cards in the hand, then the free cards played helped us win
+
+            // get a unique list of free cards played in the successful branches (used)
+            const freeCardsPlayed = new Set<string>();
+            for (const c of successfulBranches.map(b => b?.gameState.freeCardsPlayedThisTurn).flat()) {
+                if (c) {
+                    freeCardsPlayed.add(c.name);
+                }
+            }
+
+            if (freeCardsPlayed.size !== 0) {
+                for (const freeCard of freeCardsPlayed) {
+                    report.freeCardStats = report.freeCardStats || {};
+
+                    // check if card is in the report
+                    if (!report.freeCardStats[freeCard]) {
+                        report.freeCardStats[freeCard] = {
+                            conditions: {
+                                usedToWinCount: 0,
+                                unusedCount: 0,
+                            },
+                            overall: {
+                                usedToWinCount: 0,
+                                unusedCount: 0,
+                            },
+                        };
+                    }
+
+                    const freeCardStats = report.freeCardStats[freeCard];
+                    freeCardStats.overall.usedToWinCount = (freeCardStats.overall.usedToWinCount || 0) + 1;
+                }
+            }
+        }
+    };
+
+    simulation.branches.forEach(conditionBranch => {
+        aggregateDrawnCards(conditionBranch);
+        aggregateConditionFreeCards(conditionBranch);
     });
+
+    aggregateOverallFreeCards(simulation);
 }
 
 function processBanishedCards(report: Report, simulation: Simulation): void {
@@ -253,6 +351,14 @@ function processBanishedCards(report: Report, simulation: Simulation): void {
 
     simulation.successfulBranches.filter(b => b[1]).forEach(branch => {
         const banishPile = branch[1]?.gameState.banishPile || [];
+
+        if (banishPile.length === 0) {
+            return;
+        }
+
+        report.banishedCardNameStats = report.banishedCardNameStats || {};
+        report.banishedCardTagStats = report.banishedCardTagStats || {};
+
         // Count occurrences of each card
         for (const card of banishPile) {
             const count = cardCounts.get(card.name) || 0;
@@ -266,7 +372,6 @@ function processBanishedCards(report: Report, simulation: Simulation): void {
                 // check if card is in the report
                 if (!report.banishedCardNameStats[cardName]) {
                     report.banishedCardNameStats[cardName] = {
-                        id: cardName,
                         seenCount: {},
                         drawnCount: 0,
                     };
@@ -279,7 +384,6 @@ function processBanishedCards(report: Report, simulation: Simulation): void {
                 for (const tag of card.tags || []) {
                     if (!report.banishedCardTagStats[tag]) {
                         report.banishedCardTagStats[tag] = {
-                            id: tag,
                             seenCount: {},
                             drawnCount: 0,
                         };
@@ -298,6 +402,14 @@ function processDiscardedCards(report: Report, simulation: Simulation): void {
 
     simulation.successfulBranches.filter(b => b[1]).forEach(branch => {
         const graveyard = branch[1]?.gameState.graveyard || [];
+
+        if (graveyard.length === 0) {
+            return;
+        }
+
+        report.discardedCardNameStats = report.discardedCardNameStats || {};
+        report.discardedCardTagStats = report.discardedCardTagStats || {};
+
         // Count occurrences of each card
         for (const card of graveyard) {
             const count = cardCounts.get(card.name) || 0;
@@ -311,7 +423,6 @@ function processDiscardedCards(report: Report, simulation: Simulation): void {
                 // check if card is in the report
                 if (!report.discardedCardNameStats[cardName]) {
                     report.discardedCardNameStats[cardName] = {
-                        id: cardName,
                         seenCount: {},
                         drawnCount: 0,
                     };
@@ -324,7 +435,6 @@ function processDiscardedCards(report: Report, simulation: Simulation): void {
                 for (const tag of card.tags || []) {
                     if (!report.discardedCardTagStats[tag]) {
                         report.discardedCardTagStats[tag] = {
-                            id: tag,
                             seenCount: {},
                             drawnCount: 0,
                         };
@@ -338,12 +448,6 @@ function processDiscardedCards(report: Report, simulation: Simulation): void {
     });
 }
 
-function checkUnusedFreeCards(report: Report, simulation: Simulation): void {
-    if (simulation.result) {
-        report.successWithUnusedFreeCards += simulation.successfulBranches.filter(b => b[1] && b[1]?.gameState.freeCardsInHand.length !== 0).length;
-    }
-}
-
 function processConditionStats(report: Report, condition: BaseCondition): void {
     const processCondition = (stats: ConditionStats | undefined, condition: BaseCondition) => {
         if (stats === undefined) {
@@ -352,9 +456,10 @@ function processConditionStats(report: Report, condition: BaseCondition): void {
         }
         
         if (condition instanceof AndCondition || condition instanceof OrCondition) {
+            stats.subConditionStats = {};
+
             for (const subCondition of condition.conditions) {
                 stats.subConditionStats[subCondition.toString()] = {
-                    conditionId: subCondition.toString(),
                     successCount: subCondition.successes,
                     subConditionStats: {},
                 };
@@ -364,7 +469,6 @@ function processConditionStats(report: Report, condition: BaseCondition): void {
     };
 
     report.conditionStats[condition.toString()] = {
-        conditionId: condition.toString(),
         successCount: condition.successes,
         subConditionStats: {},
     }
@@ -377,12 +481,6 @@ function processSimulations(simulations: Simulation[]): Report {
         successfulSimulations: simulations.filter(s => s.result).length,
         cardNameStats: {},
         cardTagStats: {},
-        freeCardStats: {},
-        banishedCardNameStats: {},
-        banishedCardTagStats: {},
-        discardedCardNameStats: {},
-        discardedCardTagStats: {},
-        successWithUnusedFreeCards: 0,
         conditionStats: {},
     };
 
@@ -396,9 +494,6 @@ function processSimulations(simulations: Simulation[]): Report {
         // Check game state statistics
         processBanishedCards(report, simulation);
         processDiscardedCards(report, simulation);
-
-        // Check for unused free cards
-        checkUnusedFreeCards(report, simulation);
     }
 
     // Process condition statistics. Condition objects are constant so we can use the first simulation
