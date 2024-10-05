@@ -459,20 +459,24 @@ function processConditionStats(report: Report, condition: BaseCondition): void {
             stats.subConditionStats = {};
 
             for (const subCondition of condition.conditions) {
-                stats.subConditionStats[subCondition.toString()] = {
-                    successCount: subCondition.successes,
-                    subConditionStats: {},
-                };
-                processCondition(stats.subConditionStats[subCondition.toString()], subCondition);
+                if (stats.subConditionStats[subCondition.toString()] === undefined) {
+                    stats.subConditionStats[subCondition.toString()] = {
+                        successCount: subCondition.successes,
+                    };
+                    processCondition(stats.subConditionStats[subCondition.toString()], subCondition);
+                }
             }
         }
     };
 
+    console.log(`Processing condition: ${condition.toString()}`);
+
     report.conditionStats[condition.toString()] = {
         successCount: condition.successes,
-        subConditionStats: {},
     }
     processCondition(report.conditionStats[condition.toString()], condition);
+
+    console.log(report.conditionStats[condition.toString()]);
 }
 
 function processSimulations(simulations: Simulation[]): Report {
