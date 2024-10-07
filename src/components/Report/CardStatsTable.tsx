@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Box, Checkbox, Collapse, FormControlLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, Toolbar, Typography } from '@mui/material';
 import { CardStats, Report } from '../../core/sim/report';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
+import { getSettings } from '../Settings/settings';
 
 const getTotalDrawnCount = (stats: Record<string, CardStats>) => Object.values(stats).reduce((acc, stats) => acc + (stats.drawnCount || 0), 0);
 const getTotalSeenCount = (stats: CardStats) => Object.entries(stats.seenCount).reduce((acc, [copies, count]) => acc + (Number(copies) * count), 0);
@@ -105,6 +106,8 @@ export default function CardStatsTable({ report }: CardStatsTableProps) {
         return Array.from(counts).sort((a, b) => a - b);
     }, [report.cardNameStats]);
 
+    const settings = getSettings();
+
     const headers: SortableHeaderCell[] = useMemo(() => [
         { id: 'id', label: 'Card Name', numeric: false },
         { id: 'opened', label: 'Opened', numeric: true },
@@ -124,6 +127,20 @@ export default function CardStatsTable({ report }: CardStatsTableProps) {
         setOrder(isAsc ? 'desc' : 'asc');
         setOrderBy(property);
     };
+
+    const getPreciseNumber = (value: number): string => {
+        if (value === 0) return '0.0';
+        
+        let s: string = '0';
+        for (let i = 1; i < settings.statisticMaxPrecision; i++) {
+            // Find the minimum number of decimal places that is not zero
+            s = value.toFixed(i);
+            if (Number(s) !== 0) return s;
+        }
+
+        // If we didn't break early then we are still 0, return that.
+        return '0.0';
+    }
 
     const sortedRows: CardRowData[] = useMemo(() => {
         const rows = Object.entries(report.cardNameStats).map(([id, stats]) => {
@@ -203,8 +220,8 @@ export default function CardStatsTable({ report }: CardStatsTableProps) {
                                     <TableCell align='center'>
                                         {data.free.usedToWin.toFixed(1)}%
                                     </TableCell>
-                                    <TableCell align='center'>{data.free.lost.toFixed(1)}%</TableCell>
-                                    <TableCell align='center'>{data.free.unused.toFixed(1)}%</TableCell>
+                                    <TableCell align='center'>{getPreciseNumber(data.free.lost)}%</TableCell>
+                                    <TableCell align='center'>{getPreciseNumber(data.free.unused)}%</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
@@ -233,14 +250,14 @@ export default function CardStatsTable({ report }: CardStatsTableProps) {
                         </TableCell>
                     }
                     <TableCell>{data.id}</TableCell>
-                    <TableCell>{data.opened.toFixed(1)}%</TableCell>
-                    <TableCell>{data.averageOpened.toFixed(1)}</TableCell>
+                    <TableCell>{getPreciseNumber(data.opened)}%</TableCell>
+                    <TableCell>{getPreciseNumber(data.averageOpened)}</TableCell>
                     {data.openedCounts.map(([count, value]) => (
-                        <TableCell key={count}>{value.toFixed(1)}%</TableCell>
+                        <TableCell key={count}>{getPreciseNumber(value)}%</TableCell>
                     ))}
-                    {data.drawn !== undefined && <TableCell>{data.drawn.toFixed(1)}%</TableCell>}
-                    {data.banished !== undefined && <TableCell>{data.banished.toFixed(1)}%</TableCell>}
-                    {data.discarded !== undefined && <TableCell>{data.discarded.toFixed(1)}%</TableCell>}
+                    {data.drawn !== undefined && <TableCell>{getPreciseNumber(data.drawn)}%</TableCell>}
+                    {data.banished !== undefined && <TableCell>{getPreciseNumber(data.banished)}%</TableCell>}
+                    {data.discarded !== undefined && <TableCell>{getPreciseNumber(data.discarded)}%</TableCell>}
                 </TableRow>
                 {data.free && (
                     <TableRow>

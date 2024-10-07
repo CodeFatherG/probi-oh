@@ -3,21 +3,30 @@ const key = 'settings';
 export interface Settings {
     simulationIterations: number;
     simulationHandSize: number;
+    statisticMaxPrecision: number;
 }
 
 function defaultSettings(): Settings {
     return {
         simulationIterations: 10000,
-        simulationHandSize: 5
+        simulationHandSize: 5,
+        statisticMaxPrecision: 5,
     };
 }
 
 function loadSettings(): Settings {
-    const settings = localStorage.getItem(key);
-    if (settings) {
-        return JSON.parse(settings);
+    const defaultSettingsObj = defaultSettings();
+    const storedSettings = localStorage.getItem(key);
+    
+    if (storedSettings) {
+        const parsedSettings = JSON.parse(storedSettings) as Partial<Settings>;
+        return {
+            ...defaultSettingsObj,
+            ...parsedSettings
+        };
     }
-    return defaultSettings();
+    
+    return defaultSettingsObj;
 }
 
 let _settings: Settings = loadSettings();

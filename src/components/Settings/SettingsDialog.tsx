@@ -72,6 +72,21 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                             }
                         }}
                     />
+                    <TextField
+                        fullWidth
+                        label="Precision (Max Decimal Places)"
+                        type="number"
+                        name="statisticMaxPrecision"
+                        value={settings.statisticMaxPrecision}
+                        onChange={handleChange}
+                        margin="normal"
+                        onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault(); // Prevent form submission on Enter
+                                handleSave();
+                            }
+                        }}
+                    />
                     <Button 
                         onClick={() => {
                             console.log('Clearing cache...');
