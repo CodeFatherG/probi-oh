@@ -6,7 +6,7 @@ import useLocalStorage from './hooks/useLocalStorage';
 import useLocalStorageMap from './hooks/useLocalStorageMap';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Box, IconButton, Stack, Typography } from '@mui/material';
-import SettingsDialog, { Settings } from './components/Settings/SettingsDialog';
+import SettingsDialog from './components/Settings/SettingsDialog';
 import SettingsIcon from '@mui/icons-material/Settings';
 import GitLink from './components/GitLink';
 import ConfigBuilder from './components/ConfigurationView/ConfigView';
@@ -15,16 +15,10 @@ import SimulationDrawer from './components/SimulationDrawer/SimulationDrawer';
 import { simulationCache } from './db/simulations/simulation-cache';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { simulationEventManager } from './db/simulations/simulation-event-manager';
-import { persistUserId } from './analytics/user-id';
 
 export default function App() {
     const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
     const [conditionData, setConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
-    const [settings, setSettings] = useLocalStorage<Settings>("settings", { 
-        simulationIterations: 10000, 
-        simulationHandSize: 5, 
-        clearCache: false 
-    });
     const [settingsOpen, setSettingsOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
@@ -46,23 +40,6 @@ export default function App() {
     useEffect(() => {
         console.log('Starting App...');
     }, []);
-
-    const handleSaveSettings = useCallback((newSettings: Settings) => {
-        setSettingsOpen(false);
-
-        if (newSettings.clearCache) {
-            console.log('Clearing cache...');
-            localStorage.clear();
-            navigate('', { replace: true });
-            persistUserId();
-            window.location.reload();
-            return;
-        }
-
-        setSettings(newSettings);
-        console.log('New settings:', newSettings);
-
-    }, [setSettings]);
 
     const handleCardsUpdate = useCallback((cards: Map<string, CardDetails>): void => {
         setCardData(cards);
@@ -102,7 +79,6 @@ export default function App() {
                         disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0}
                         cards={cardData}
                         conditions={conditionData}
-                        settings={settings}
                     />
                 </Stack>
                 <IconButton
@@ -122,9 +98,7 @@ export default function App() {
                 </IconButton>
                 <SettingsDialog
                     open={settingsOpen}
-                    settings={settings}
                     onClose={() => setSettingsOpen(false)}
-                    onSave={handleSaveSettings}
                 />
             </Box>
             <GitLink link="https://github.com/CodeFatherG/probi-oh" text="Visit us on Github!" />

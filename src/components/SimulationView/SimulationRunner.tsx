@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Button from '@mui/material/Button';
 import { CardDetails } from '../../core/data/card-details';
 import { BaseCondition } from '../../core/sim/condition';
-import { Settings } from '../Settings/SettingsDialog';
 import { Simulation } from '../../core/sim/simulation';
 import { buildDeck, Deck } from '../../core/data/deck';
 import { GameState } from '../../core/data/game-state';
@@ -11,22 +10,23 @@ import { Report, generateReport } from '../../core/sim/report';
 import { Box, LinearProgress, Stack } from '@mui/material';
 import { parseCondition } from '../../core/data/parser';
 import { recordSimulation } from '../../db/simulations/post';
+import { getSettings } from '../Settings/settings';
 
 interface SimulationRunnerProps {
     disabled: boolean;
     cards: Map<string, CardDetails>;
     conditions: string[];
-    settings: Settings;
 }
 
 export default function SimulationRunner({ disabled, 
                                            cards, 
-                                           conditions, 
-                                           settings }: SimulationRunnerProps) {
+                                           conditions}: SimulationRunnerProps) {
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
     const [progress, setProgress] = useState(0);
     const [reportData, setReportData] = useState<Report | null>(null);
     const [successRate, setSuccessRate] = useState(0);
+
+    const settings = getSettings();
 
     const simulateDraw = async (deck: Deck, 
                                 conditions: BaseCondition[], 
