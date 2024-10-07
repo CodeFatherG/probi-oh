@@ -1,51 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogTitle, TextField, Button, Box, IconButton } from '@mui/material';
 import InfoDialog from './InfoDialog';
 import { Info } from '@mui/icons-material';
-
-export interface Settings {
-    simulationIterations: number;
-    simulationHandSize: number;
-    clearCache: boolean;
-}
+import { getSettings, saveSettings, Settings } from './settings';
+import { useNavigate } from 'react-router-dom';
+import { persistUserId } from '../../analytics/user-id';
 
 interface SettingsDialogProps {
     open: boolean;
-    settings: Settings;
     onClose: () => void;
-    onSave: (settings: Settings) => void;
 }
 
-export default function SettingsDialog({ open, settings, onClose, onSave }: SettingsDialogProps) {
-    const [localSettings, setLocalSettings] = useState<Settings>(settings);
+export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     const [infoOpen, setInfoOpen] = useState(false);
-
-    useEffect(() => {
-        if (open) {
-            setLocalSettings(settings);
-        }
-    }, [open, settings]);
+    const [settings, setSettings] = useState<Settings>(getSettings());
+    const navigate = useNavigate();
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
-        setLocalSettings(prev => ({
+        setSettings(prev => ({
             ...prev,
             [name]: parseInt(value, 10)
         }));
     };
 
     const handleSave = () => {
-        onSave(localSettings);
-        onClose();
-    };
-
-    const handleClose = () => {
-        setLocalSettings(settings); // Reset to original settings
+        saveSettings(settings);
         onClose();
     };
 
     return (
-        <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 2 }}>
                 <DialogTitle sx={{ padding: 0 }}>Settings</DialogTitle>
                 <IconButton
@@ -62,7 +47,7 @@ export default function SettingsDialog({ open, settings, onClose, onSave }: Sett
                         label="Simulation Iterations"
                         type="number"
                         name="simulationIterations"
-                        value={localSettings.simulationIterations}
+                        value={settings.simulationIterations}
                         onChange={handleChange}
                         margin="normal"
                         onKeyPress={(e) => {
@@ -77,7 +62,22 @@ export default function SettingsDialog({ open, settings, onClose, onSave }: Sett
                         label="Hand Size"
                         type="number"
                         name="simulationHandSize"
-                        value={localSettings.simulationHandSize}
+                        value={settings.simulationHandSize}
+                        onChange={handleChange}
+                        margin="normal"
+                        onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault(); // Prevent form submission on Enter
+                                handleSave();
+                            }
+                        }}
+                    />
+                    <TextField
+                        fullWidth
+                        label="Precision (Max Decimal Places)"
+                        type="number"
+                        name="statisticMaxPrecision"
+                        value={settings.statisticMaxPrecision}
                         onChange={handleChange}
                         margin="normal"
                         onKeyPress={(e) => {
@@ -89,14 +89,18 @@ export default function SettingsDialog({ open, settings, onClose, onSave }: Sett
                     />
                     <Button 
                         onClick={() => {
-                            localSettings.clearCache = true; 
-                            handleSave();
+                            console.log('Clearing cache...');
+                            localStorage.clear();
+                            navigate('', { replace: true });
+                            persistUserId();
+                            window.location.reload();
+                            return;
                         }}
                     >
                         Clear Cache
                     </Button>
                     <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                        <Button onClick={handleClose} sx={{ mr: 1 }}>
+                        <Button onClick={onClose} sx={{ mr: 1 }}>
                             Cancel
                         </Button>
                         <Button onClick={handleSave} variant="contained" color="primary">
