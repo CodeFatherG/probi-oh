@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Box, Collapse, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, Typography } from '@mui/material';
+import { Box, Checkbox, Collapse, FormControlLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, Toolbar, Typography } from '@mui/material';
 import { CardStats, Report } from '../../core/sim/report';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 
@@ -117,6 +117,7 @@ export default function CardStatsTable({ report }: CardStatsTableProps) {
 
     const [order, setOrder] = useState<Order>('asc');
     const [orderBy, setOrderBy] = useState<string>('id');
+    const [relative, setRelative] = useState<boolean>(false);
 
     const handleRequestSort = (property: string) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -136,11 +137,15 @@ export default function CardStatsTable({ report }: CardStatsTableProps) {
             const banishedCount: number = banishedStats ? getTotalSeenCount(banishedStats) : 0;
             const discardedCount: number = discardedStats ? getTotalSeenCount(discardedStats) : 0;
             
+            const getRelativeDivisor = (count: number) => relative ? count : iterations;
+
             const row: CardRowData = {
                 id,
                 opened: ((getTotalHandsSeen(stats) / iterations) * 100),
-                averageOpened: (getTotalSeenCount(stats) / getTotalHandsSeen(stats)),
-                openedCounts: Array.from(cardSeenCounts).map(count => [count, ((stats.seenCount[count] || 0) / getTotalHandsSeen(stats)) * 100]),
+                averageOpened: (getTotalSeenCount(stats) / getRelativeDivisor(getTotalHandsSeen(stats))),
+                openedCounts: Array.from(cardSeenCounts).map(count => 
+                    [count, ((stats.seenCount[count] || 0) / getRelativeDivisor(getTotalHandsSeen(stats))) * 100]
+                )
             };
 
             if (drawnSupported) {
@@ -159,10 +164,12 @@ export default function CardStatsTable({ report }: CardStatsTableProps) {
                 const seenCount = getTotalHandsSeen(stats);
                 const lostCount = seenCount - usedToWinCount - unusedCount;
 
+                const divisor = relative ? seenCount : iterations;
+
                 row.free = {
-                    usedToWin: (usedToWinCount / seenCount) * 100,
-                    unused: (unusedCount / seenCount) * 100,
-                    lost: (lostCount / seenCount) * 100,
+                    usedToWin: (usedToWinCount / divisor) * 100,
+                    unused: (unusedCount / divisor) * 100,
+                    lost: (lostCount / divisor) * 100,
                 };
             }
 
@@ -170,7 +177,7 @@ export default function CardStatsTable({ report }: CardStatsTableProps) {
         });
 
         return stableSort(rows, getComparator(order, orderBy));
-    }, [report, order, orderBy, cardSeenCounts, drawnSupported, banishedSupported, discardedSupported, totalDrawnCount, totalBanishedCount, totalDiscardedCount]);
+    }, [report, order, orderBy, relative]);
 
 
     const CardStatsRow = ({ data }: CardStatsRowProps) => {
@@ -186,18 +193,18 @@ export default function CardStatsTable({ report }: CardStatsTableProps) {
                         <Table size="small">
                             <TableHead>
                                 <TableRow>
-                                    <TableCell>Helped win</TableCell>
-                                    <TableCell>Couldn't win</TableCell>
-                                    <TableCell>Unneeded</TableCell>
+                                    <TableCell align='center'>Helped win</TableCell>
+                                    <TableCell align='center'>Couldn't win</TableCell>
+                                    <TableCell align='center'>Unneeded</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 <TableRow>
-                                    <TableCell component="th" scope="row">
+                                    <TableCell align='center'>
                                         {data.free.usedToWin.toFixed(1)}%
                                     </TableCell>
-                                    <TableCell>{data.free.lost.toFixed(1)}%</TableCell>
-                                    <TableCell>{data.free.unused.toFixed(1)}%</TableCell>
+                                    <TableCell align='center'>{data.free.lost.toFixed(1)}%</TableCell>
+                                    <TableCell align='center'>{data.free.unused.toFixed(1)}%</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
@@ -237,7 +244,7 @@ export default function CardStatsTable({ report }: CardStatsTableProps) {
                 </TableRow>
                 {data.free && (
                     <TableRow>
-                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7 + cardSeenCounts.size}>
+                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={(freeCardSupported ? 1 : 0) + headers.length}>
                             <FreeCardSummary open={openCollapsible} />
                         </TableCell>
                     </TableRow>
@@ -247,35 +254,48 @@ export default function CardStatsTable({ report }: CardStatsTableProps) {
     };
 
     return (
-        <TableContainer sx={{ overflowX: 'scroll' }}>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        {freeCardSupported && (
-                            <TableCell sx={{ width: 'fit-content', padding: 0, textAlign: 'center' }} />
-                        )}
-                        {headers.map((header) => (
-                            <TableCell
-                                key={header.id}
-                                sortDirection={orderBy === header.id ? order : false}
-                            >
-                                <TableSortLabel
-                                    active={orderBy === header.id}
-                                    direction={orderBy === header.id ? order : 'asc'}
-                                    onClick={() => handleRequestSort(header.id)}
+        <Box>
+            <Toolbar>
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={relative}
+                            onChange={(e) => setRelative(e.target.checked)}
+                        />
+                    }
+                    label='Relative Statistics'
+                />
+            </Toolbar>
+            <TableContainer sx={{ overflowX: 'scroll' }}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            {freeCardSupported && (
+                                <TableCell sx={{ width: 'fit-content', padding: 0, textAlign: 'center' }} />
+                            )}
+                            {headers.map((header) => (
+                                <TableCell
+                                    key={header.id}
+                                    sortDirection={orderBy === header.id ? order : false}
                                 >
-                                    {header.label}
-                                </TableSortLabel>
-                            </TableCell>
+                                    <TableSortLabel
+                                        active={orderBy === header.id}
+                                        direction={orderBy === header.id ? order : 'asc'}
+                                        onClick={() => handleRequestSort(header.id)}
+                                    >
+                                        {header.label}
+                                    </TableSortLabel>
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {sortedRows.map((row) => (
+                            <CardStatsRow key={row.id} data={row} />
                         ))}
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {sortedRows.map((row) => (
-                        <CardStatsRow key={row.id} data={row} />
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Box>
     );
 }
