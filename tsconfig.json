@@ -21,9 +21,9 @@
       "paths": {
           "@/*": ["src/*"],
           "@components/*": ["src/components/*"],
-          "@server/*": ["src/core/*"]
+          "@server/*": ["core/*"]
       }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "core"],
   "exclude": ["node_modules"]
 }

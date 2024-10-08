@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import Button from '@mui/material/Button';
-import { CardDetails } from '../../core/data/card-details';
-import { BaseCondition } from '../../core/sim/condition';
-import { Simulation } from '../../core/sim/simulation';
-import { buildDeck, Deck } from '../../core/data/deck';
-import { GameState } from '../../core/data/game-state';
+import { CardDetails } from '../../../core/data/card-details';
+import { BaseCondition } from '../../../core/sim/condition';
+import { Simulation } from '../../../core/sim/simulation';
+import { buildDeck, Deck } from '../../../core/data/deck';
+import { GameState } from '../../../core/data/game-state';
 import ResultDisplay from './ResultDisplay';
-import { Report, generateReport } from '../../core/sim/report';
+import { Report, generateReport } from '../../../core/sim/report';
 import { Box, LinearProgress, Stack } from '@mui/material';
-import { parseCondition } from '../../core/data/parser';
+import { parseCondition } from '../../../core/data/parser';
 import { recordSimulation } from '../../db/simulations/post';
 import { getSettings } from '../Settings/settings';
 

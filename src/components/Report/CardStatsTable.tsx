@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Box, Checkbox, Collapse, FormControlLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, Toolbar, Typography } from '@mui/material';
-import { CardStats, Report } from '../../core/sim/report';
+import { CardStats, Report } from '../../../core/sim/report';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import { getSettings } from '../Settings/settings';
 

@@ -3,7 +3,7 @@ import { Box, Card, Stack, Typography, CircularProgress, IconButton, Snackbar } 
 import CardImage from './../CardTable/CardImage';
 import { ForwardOutlined, Share } from "@mui/icons-material";
 import { simulationCache } from "../../db/simulations/simulation-cache";
-import { getDeckArchetypes, getDeckName } from "../../core/ygo/archetype";
+import { getDeckArchetypes, getDeckName } from "../../../core/ygo/archetype";
 
 interface SimulationSummaryProps {
     simulationId: string;

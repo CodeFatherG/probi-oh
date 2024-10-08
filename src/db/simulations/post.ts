@@ -1,6 +1,6 @@
 import { getUserId } from "../../analytics/user-id";
-import { SimulationInput } from "../../core/data/simulation-input";
-import { Report } from "../../core/sim/report";
+import { SimulationInput } from "../../../core/data/simulation-input";
+import { Report } from "../../../core/sim/report";
 import { v4 as uuid } from 'uuid';
 import { simulationEventManager } from './simulation-event-manager';
 

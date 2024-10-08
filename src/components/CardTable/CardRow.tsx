@@ -3,7 +3,7 @@ import { Box, IconButton, TableCell, TableRow, TableRowProps, TextField, Typogra
 import TagBox from "./TagBox";
 import CardImage from "./CardImage";
 import { DragIndicator } from "@mui/icons-material";
-import { CardDetails } from '../../core/data/card-details';
+import { CardDetails } from '../../../core/data/card-details';
 import { DraggableProvided } from "@hello-pangea/dnd";
 
 interface CardRowProps extends TableRowProps {

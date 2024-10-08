@@ -1,5 +1,5 @@
-import { CardDetails } from "../../core/data/card-details";
-import { SimulationInput } from "../../core/data/simulation-input";
+import { CardDetails } from "../../../core/data/card-details";
+import { SimulationInput } from "../../../core/data/simulation-input";
 import { getSimulationData, SimulationData } from "./get";
 
 interface CacheEntry {

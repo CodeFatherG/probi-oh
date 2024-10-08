@@ -1,5 +1,5 @@
 import React from 'react';
-import { Report, ConditionStats } from '../../core/sim/report';
+import { Report, ConditionStats } from '../../../core/sim/report';
 import { Collapse, List, ListItemButton, ListItemText, Typography } from '@mui/material';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
 

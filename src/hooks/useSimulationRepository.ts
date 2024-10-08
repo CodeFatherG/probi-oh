@@ -1,7 +1,7 @@
 // useSimulationRepository.ts
 
 import { useState, useEffect, useCallback } from 'react';
-import { SimulationRecord } from "../core/data/simulation-record";
+import { SimulationRecord } from "../../core/data/simulation-record";
 
 class LimitedSizeMap<K, V> extends Map<K, V> {
     private hashes: K[] = [];
