@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Box, Card, Stack, Typography, CircularProgress, IconButton, Snackbar } from "@mui/material";
 import CardImage from './../CardTable/CardImage';
-import { CardDetails } from "../../core/data/card-details";
-import { getArchetypes } from "../../core/ygo/card-api";
 import { ForwardOutlined, Share } from "@mui/icons-material";
 import { simulationCache } from "../../db/simulations/simulation-cache";
+import { getDeckArchetypes, getDeckName } from "../../core/ygo/archetype";
 
 interface SimulationSummaryProps {
     simulationId: string;
@@ -17,6 +16,7 @@ export default function SimulationSummary({ simulationId, onApply }: SimulationS
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<number>(0);
     const [linkShared, setLinkShared] = useState<boolean>(false);
+    const [deckName, setDeckName] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchSimulation = async () => {
@@ -24,17 +24,37 @@ export default function SimulationSummary({ simulationId, onApply }: SimulationS
             const data = await simulationCache.getSimulationById(simulationId);
             if (data) {
                 fetchEntryImage();
+                fetchDeckName();
                 setResult(data.result);
             } else {
                 console.error(`Failed to get simulation ${simulationId}`);
             }
         };
 
+        const fetchDeckName = async () => {
+            const input = await simulationCache.getSimulationInputById(simulationId);
+                
+            if (!input) {
+                console.error('Failed to get simulation input');
+                return null;
+            }
+
+            const cards = input.deck;
+
+            let deckName = await getDeckName(cards);
+
+            console.log(`Deck name: ${deckName}`);
+
+            const sim = await simulationCache.getSimulationById(simulationId);
+            if (sim) {
+                deckName = `${deckName} - ${sim.data_hash.substring(sim.data_hash.length - 4)}`;
+            }
+
+            setDeckName(deckName);
+        };
+
         const fetchEntryImage = async () => {
             const entryImage = async (): Promise<string | null> => {
-                const archetypeMap = new Map<string, [string, CardDetails][]>();
-                const archetypes = await getArchetypes();
-        
                 const input = await simulationCache.getSimulationInputById(simulationId);
                 
                 if (!input) {
@@ -43,36 +63,14 @@ export default function SimulationSummary({ simulationId, onApply }: SimulationS
                 }
     
                 const cards = input.deck;
-    
-                // Count how many cards of each archetype are in the deck
-                for (const [cardName, cardDetails] of cards) {
-                    if (cardDetails.tags) {
-                        for (const tag of cardDetails.tags) {
-                            if (archetypes.includes(tag)) {
-                                if (!archetypeMap.has(tag)) {
-                                    archetypeMap.set(tag, []);
-                                }
-                                archetypeMap.get(tag)!.push([cardName, cardDetails]);
-                            }
-                        }
-                    }
-                }
-            
-                // Find the archetype with the most entries
-                let maxArchetype: string | null = null;
-                let maxCount = 0;
-            
-                for (const [archetype, cards] of archetypeMap.entries()) {
-                    if (cards.length > maxCount) {
-                        maxArchetype = archetype;
-                        maxCount = cards.length;
-                    }
-                }
+
+                const archetypeList = await getDeckArchetypes(cards);
+                const maxArchetype = Object.keys(archetypeList).reduce((a, b) => archetypeList[a].length > archetypeList[b].length ? a : b);
             
                 // If we found an archetype, randomly select a card from it
                 if (maxArchetype) {
-                    console.log(`Found archetype: ${maxArchetype} with ${maxCount} cards`);
-                    const cardsInArchetype = archetypeMap.get(maxArchetype)!;
+                    console.log(`Found archetype: ${maxArchetype} with ${archetypeList[maxArchetype]} cards`);
+                    const cardsInArchetype = archetypeList[maxArchetype]!;
                     const randomIndex = Math.floor(Math.random() * cardsInArchetype.length);
                     const [selectedCardName, ] = cardsInArchetype[randomIndex];
     
