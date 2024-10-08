@@ -142,50 +142,60 @@ export default function SimulationSummary({ simulationId, onApply }: SimulationS
                 >
                     <Share fontSize="small" />
             </IconButton>
-            <Box
-                sx={{
-                    width: '120px',
-                    height: '120px',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    overflow: 'hidden',
-                }}
-            >
-                {loading ? (
-                    <CircularProgress />
-                ) : error ? (
-                    <Typography color="error">{error}</Typography>
-                ) : selectedCardName ? (
-                    <CardImage
-                        name={selectedCardName}
-                        type="cropped"
-                        sx={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain',
-                        }}
-                    />
-                ) : (
-                    <Typography>No card available</Typography>
-                )}
-            </Box>
             <Stack
-                    alignItems="center"
-                    ml={2}
+                alignItems='center'
+            >
+                <Box
+                    display='flex'
                 >
-                    <Typography variant='body1'>{(result * 100).toFixed(2)}%</Typography>
-                    <Box display='flex'>
-                        {/* <IconButton size='large' onClick={() => {
-                            navigator.clipboard.writeText(`${window.location.origin}/?id=${simulationId}`);
-                            setLinkShared(true);
-                        }}>
-                            <Share />
-                        </IconButton> */}
-                        <IconButton size='large' onClick={() => onApply(simulationId)}>
-                            <ForwardOutlined />
-                        </IconButton>
+                    <Box
+                        sx={{
+                            width: '120px',
+                            height: '120px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            overflow: 'hidden',
+                        }}
+                    >
+                        {loading ? (
+                            <CircularProgress />
+                        ) : error ? (
+                            <Typography color="error">{error}</Typography>
+                        ) : selectedCardName ? (
+                            <CardImage
+                                name={selectedCardName}
+                                type="cropped"
+                                sx={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'contain',
+                                }}
+                            />
+                        ) : (
+                            <Typography>No card available</Typography>
+                        )}
                     </Box>
+                    <Stack
+                        justifyContent='center'
+                        alignItems='center'
+                        ml={2}
+                    >
+                            <Typography variant='body1'>{(result * 100).toFixed(2)}%</Typography>
+                            <IconButton size='large' onClick={() => onApply(simulationId)}>
+                                <ForwardOutlined />
+                            </IconButton>
+                    </Stack>
+                </Box>
+                <Typography 
+                    variant='body1' 
+                    mt={1} 
+                    sx={{
+                        textOverflow:'ellipsis'
+                    }}
+                >
+                    {deckName}
+                </Typography>
             </Stack>
             <Snackbar
                 anchorOrigin={{
