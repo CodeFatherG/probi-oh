@@ -24,15 +24,21 @@ export async function getDeckArchetypes(cards: Map<string, CardDetails>): Promis
 
 export async function getDeckName(deck: Map<string, CardDetails>): Promise<string> {
     const archetypeList = await getDeckArchetypes(deck);
-    const maxArchetype = Object.keys(archetypeList).reduce((a, b) => archetypeList[a].length > archetypeList[b].length ? a : b);
     console.log(`Deck archetypes: ${JSON.stringify(archetypeList)}`);
-    // if the second most common archetype is at least 50% as common as the most common archetype, then return Second Most First Most
-    const secondMaxArchetype = Object.keys(archetypeList).reduce((a, b) => archetypeList[a].length > archetypeList[b].length && a !== maxArchetype ? a : b);
 
+    if (Object.keys(archetypeList).length === 0) {
+        return 'Unknown';
+    }
+
+    const maxArchetype = Object.keys(archetypeList).reduce((a, b) => archetypeList[a].length > archetypeList[b].length ? a : b);
     console.log(`Max archetype: ${maxArchetype} with ${archetypeList[maxArchetype].length} cards`);
 
-    if (archetypeList[secondMaxArchetype].length >= archetypeList[maxArchetype].length / 2) {
-        return `${secondMaxArchetype} ${maxArchetype}`;
+    if (Object.keys(archetypeList).length !== 1) {
+        // if the second most common archetype is at least 50% as common as the most common archetype, then return Second Most First Most
+        const secondMaxArchetype = Object.keys(archetypeList).reduce((a, b) => archetypeList[a].length > archetypeList[b].length && a !== maxArchetype ? a : b);
+        if (archetypeList[secondMaxArchetype].length >= archetypeList[maxArchetype].length / 2) {
+            return `${secondMaxArchetype} ${maxArchetype}`;
+        }
     }
 
     return maxArchetype;
