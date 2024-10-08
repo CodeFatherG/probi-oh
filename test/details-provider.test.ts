@@ -1,7 +1,7 @@
-import { CardDetails, CostType, ConditionType, RestrictionType } from '../src/core/data/card-details';
-import {CardInformation} from '../src/core/ygo/card-information';
-import { getCardDetails } from '../src/core/ygo/details-provider';
-import { handTrapMap } from '../src/core/ygo/handtrap-map';
+import { CardDetails, CostType, ConditionType, RestrictionType } from '@server/card-details';
+import {CardInformation} from '@ygo/card-information';
+import { getCardDetails } from '@ygo/details-provider';
+import { handTrapMap } from '@ygo/handtrap-map';
 
 describe('getCardDetails', () => {
     // Test for a card with free details

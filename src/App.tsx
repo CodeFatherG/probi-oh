@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import './styles/App.css';
 import SimulationRunner from '@components/SimulationView/SimulationRunner';
-import { CardDetails } from '@server/data/card-details';
+import { CardDetails } from '@server/card-details';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import useLocalStorageMap from '@/hooks/useLocalStorageMap';
 import ErrorBoundary from '@components/ErrorBoundary';

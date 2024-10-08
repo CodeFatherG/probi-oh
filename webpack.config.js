@@ -27,7 +27,8 @@ module.exports = (env, argv) => {
             alias: {
                 '@': path.resolve(__dirname, 'src'),
                 '@components': path.resolve(__dirname, 'src/components'),
-                '@server': path.resolve(__dirname, 'core'),
+                '@server': path.resolve(__dirname, 'server/src'),
+                '@ygo': path.resolve(__dirname, 'src/ygo'),
             },
         },
         devtool: isDevelopment || isPreviewBranch ? 'eval-source-map' : false,

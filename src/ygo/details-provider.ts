@@ -1,4 +1,4 @@
-import { CardDetails } from '../data/card-details';
+import { CardDetails } from '@server/card-details';
 import { CardInformation } from './card-information';
 import { freeCardMap } from './free-card-map';
 import { handTrapMap } from './handtrap-map';

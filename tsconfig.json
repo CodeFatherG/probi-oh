@@ -18,12 +18,13 @@
     "sourceMap": true,
     "rootDir": ".",
     "baseUrl": ".",
-      "paths": {
-          "@/*": ["src/*"],
-          "@components/*": ["src/components/*"],
-          "@server/*": ["core/*"]
-      }
+    "paths": {
+        "@/*": ["src/*"],
+        "@components/*": ["src/components/*"],
+        "@server/*": ["server/src/*"],
+        "@ygo/*": ["src/ygo/*"]
+    }
   },
-  "include": ["src/**/*", "core"],
+  "include": ["src/**/*", "server/src/*"],
   "exclude": ["node_modules"]
 }
