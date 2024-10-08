@@ -130,9 +130,11 @@ export default function CardStatsTable({ report }: CardStatsTableProps) {
 
     const getPreciseNumber = (value: number): string => {
         if (value === 0) return '0.0';
+
+        const maxPrecision = settings.statisticMaxPrecision <= 1 ? 1 : settings.statisticMaxPrecision;
         
         let s: string = '0';
-        for (let i = 1; i < settings.statisticMaxPrecision; i++) {
+        for (let i = 1; i <= maxPrecision; i++) {
             // Find the minimum number of decimal places that is not zero
             s = value.toFixed(i);
             if (Number(s) !== 0) return s;

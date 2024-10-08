@@ -46,6 +46,9 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                         fullWidth
                         label="Simulation Iterations"
                         type="number"
+                        inputProps={{
+                            min: 1
+                        }}
                         name="simulationIterations"
                         value={settings.simulationIterations}
                         onChange={handleChange}
@@ -61,6 +64,9 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                         fullWidth
                         label="Hand Size"
                         type="number"
+                        inputProps={{
+                            min: 1
+                        }}
                         name="simulationHandSize"
                         value={settings.simulationHandSize}
                         onChange={handleChange}
@@ -76,6 +82,10 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                         fullWidth
                         label="Precision (Max Decimal Places)"
                         type="number"
+                        inputProps={{
+                            min: 1,
+                            max: 10
+                        }}
                         name="statisticMaxPrecision"
                         value={settings.statisticMaxPrecision}
                         onChange={handleChange}
