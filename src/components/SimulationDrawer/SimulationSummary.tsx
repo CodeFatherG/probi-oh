@@ -170,6 +170,7 @@ export default function SimulationSummary({ simulationId, onApply }: SimulationS
                                     width: '100%',
                                     height: '100%',
                                     objectFit: 'contain',
+                                    borderRadius: '8px',
                                 }}
                             />
                         ) : (

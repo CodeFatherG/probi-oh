@@ -54,6 +54,7 @@ export default function CardRow({ cardName, cardDetails, tagOptions, draggablePr
                             maxWidth: '60px', 
                             maxHeight: '60px', 
                             objectFit: 'fill',
+                            borderRadius: '8px',
                             mr: 3
                         }} 
                     />
