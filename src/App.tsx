@@ -1,20 +1,20 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import './styles/App.css';
-import SimulationRunner from './components/SimulationView/SimulationRunner';
-import { CardDetails } from './core/data/card-details';
-import useLocalStorage from './hooks/useLocalStorage';
-import useLocalStorageMap from './hooks/useLocalStorageMap';
-import ErrorBoundary from './components/ErrorBoundary';
+import SimulationRunner from '@components/SimulationView/SimulationRunner';
+import { CardDetails } from '@server/data/card-details';
+import useLocalStorage from '@/hooks/useLocalStorage';
+import useLocalStorageMap from '@/hooks/useLocalStorageMap';
+import ErrorBoundary from '@components/ErrorBoundary';
 import { Box, IconButton, Stack, Typography } from '@mui/material';
-import SettingsDialog from './components/Settings/SettingsDialog';
+import SettingsDialog from '@components/Settings/SettingsDialog';
 import SettingsIcon from '@mui/icons-material/Settings';
-import GitLink from './components/GitLink';
-import ConfigBuilder from './components/ConfigurationView/ConfigView';
-import MobileDialog from './components/MobileDialog';
-import SimulationDrawer from './components/SimulationDrawer/SimulationDrawer';
-import { simulationCache } from './db/simulations/simulation-cache';
+import GitLink from '@components/GitLink';
+import ConfigBuilder from '@components/ConfigurationView/ConfigView';
+import MobileDialog from '@components/MobileDialog';
+import SimulationDrawer from '@components/SimulationDrawer/SimulationDrawer';
+import { simulationCache } from '@/db/simulations/simulation-cache';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { simulationEventManager } from './db/simulations/simulation-event-manager';
+import { simulationEventManager } from '@/db/simulations/simulation-event-manager';
 
 export default function App() {
     const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());

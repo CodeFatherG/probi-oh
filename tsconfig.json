@@ -16,7 +16,13 @@
     "jsx": "react-jsx",
     "outDir": "./dist",
     "sourceMap": true,
-    "rootDir": "src"
+    "rootDir": ".",
+    "baseUrl": ".",
+      "paths": {
+          "@/*": ["src/*"],
+          "@components/*": ["src/components/*"],
+          "@server/*": ["src/core/*"]
+      }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]

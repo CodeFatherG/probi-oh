@@ -24,6 +24,11 @@ module.exports = (env, argv) => {
         },
         resolve: {
             extensions: ['.ts', '.tsx', '.js', '.jsx'],
+            alias: {
+                '@': path.resolve(__dirname, 'src'),
+                '@components': path.resolve(__dirname, 'src/components'),
+                '@server': path.resolve(__dirname, 'src/core'),
+            },
         },
         devtool: isDevelopment || isPreviewBranch ? 'eval-source-map' : false,
         module: {
