@@ -1,7 +1,8 @@
 import { CardDetails } from '@server/card-details';
-import { CardInformation } from './card-information';
-import { freeCardMap } from './free-card-map';
-import { handTrapMap } from './handtrap-map';
+import { CardInformation } from '@ygo/card-information';
+import { freeCardMap } from '@ygo/free-card-map';
+import { handTrapMap } from '@ygo/handtrap-map';
+
 const normaliseType = (details: CardDetails, type: string) => {
     if (type.includes('Monster') && !details.tags?.includes('Monster')) {
         details.tags?.push('Monster');

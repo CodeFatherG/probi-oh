@@ -1,4 +1,5 @@
 {
+  "extends": "./tsconfig.aliases.json",
   "compilerOptions": {
     "target": "es6",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -17,13 +18,6 @@
     "outDir": "./dist",
     "sourceMap": true,
     "rootDir": ".",
-    "baseUrl": ".",
-    "paths": {
-        "@/*": ["src/*"],
-        "@components/*": ["src/components/*"],
-        "@server/*": ["server/src/*"],
-        "@ygo/*": ["src/ygo/*"]
-    }
   },
   "include": ["src/**/*", "server/src/*"],
   "exclude": ["node_modules"]

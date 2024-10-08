@@ -1,5 +1,5 @@
 import React from 'react';
-import { Report } from '../../../core/sim/report';
+import { Report } from '@server/report';
 import CardStatsTable from './CardStatsTable';
 import ConditionDisplay from './ConditionReport';
 
