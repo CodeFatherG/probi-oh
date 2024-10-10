@@ -1,4 +1,4 @@
-import { CardDetails } from "../data/card-details";
+import { CardDetails } from "@server/card-details";
 import { getArchetypes } from "./card-api";
 
 export async function getDeckArchetypes(cards: Map<string, CardDetails>): Promise<Record<string, [string, CardDetails][]>> {

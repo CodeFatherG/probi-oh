@@ -1,6 +1,6 @@
 # probi-oh - The Simply Complex Yu-Gi-Oh! Probability Simulator
 
-Served by Github Pages at https://codefatherg.github.io/probi-oh/.
+You have hit the client code... Well kind of. For the moment this is entirely client side but the distinction is made for when the code will change to server side. To view the server side, please visit [probi-oh](https://github.com/CodeFatherG/probi-oh-server).
 
 ## Overview
 

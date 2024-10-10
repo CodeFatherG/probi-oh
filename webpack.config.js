@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
+const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 module.exports = (env, argv) => {
     // Determine if we're in development mode
@@ -24,6 +25,7 @@ module.exports = (env, argv) => {
         },
         resolve: {
             extensions: ['.ts', '.tsx', '.js', '.jsx'],
+            plugins: [new TsconfigPathsPlugin({ configFile: "./tsconfig.aliases.json" })]
         },
         devtool: isDevelopment || isPreviewBranch ? 'eval-source-map' : false,
         module: {

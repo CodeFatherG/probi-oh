@@ -5,14 +5,14 @@ import SaveFileComponent from "./SaveFile";
 import CopyButton from "./CopyButton";
 import CardTable from "../CardTable/CardTable";
 import ConditionList from "../ConditionList/ConditionList";
-import { CardDetails } from "../../core/data/card-details";
-import { loadFromYamlFile, serialiseSimulationInputToYaml } from "../../core/data/yaml-manager";
-import { loadFromYdkFile } from "../../core/data/ydk-manager";
+import { CardDetails } from "@server/card-details";
+import { loadFromYamlFile, serialiseSimulationInputToYaml } from "@server/yaml-manager";
+import { loadFromYdkFile } from "@ygo/ydk-manager";
 import LoadingOverlay from "./LoadingOverlay";
-import { getCardByName } from "../../core/ygo/card-api";
-import { getCardDetails } from "../../core/ygo/details-provider";
-import { parseCondition } from "../../core/data/parser";
-import { SimulationInput } from "../../core/data/simulation-input";
+import { getCardByName } from "@ygo/card-api";
+import { getCardDetails } from "@ygo/details-provider";
+import { parseCondition } from "@server/parser";
+import { SimulationInput } from "@server/simulation-input";
 
 interface ConfigBuilderProps {
     cardData: Map<string, CardDetails>;

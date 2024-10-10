@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, BoxProps, CircularProgress } from '@mui/material';
-import { getCardImage } from '../../core/ygo/card-api';
+import { getCardImage } from '@ygo/card-api';
 
 interface CardImageProps extends Omit<BoxProps, 'component'> {
     name: string;

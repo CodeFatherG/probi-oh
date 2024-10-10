@@ -1,10 +1,10 @@
-import { CreateCard, FreeCard } from "../src/core/data/card";
-import { Condition } from "../src/core/sim/condition";
-import { MockSimulationBranch } from "./mock/simulation-branch.mock";
-import { freeCardMap } from "../src/core/ygo/free-card-map";
-import { MockGameState } from "./mock/game-state.mock";
-import { MockDeck } from "./mock/deck.mock";
-import { processFreeCard } from "../src/core/sim/free-card-processor";
+import { CreateCard, FreeCard } from "@server/card";
+import { Condition } from "@server/condition";
+import { MockSimulationBranch } from "../mock/simulation-branch.mock";
+import { freeCardMap } from "@ygo/free-card-map";
+import { MockGameState } from "../mock/game-state.mock";
+import { MockDeck } from "../mock/deck.mock";
+import { processFreeCard } from "@server/free-card-processor";
 
 describe('FreeCardMap', () => {
     let mockGameState: MockGameState;

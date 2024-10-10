@@ -1,6 +1,6 @@
-import { CreateCard } from "../src/core/data/card";
-import { MockDeck } from "./mock/deck.mock";
-import { MockGameState } from "./mock/game-state.mock";
+import { CreateCard } from "@server/card";
+import { MockDeck } from "../mock/deck.mock";
+import { MockGameState } from "../mock/game-state.mock";
 
 describe("Game State Tests", () => {
     let mockDeck: MockDeck;

@@ -1,4 +1,5 @@
 {
+  "extends": "./tsconfig.aliases.json",
   "compilerOptions": {
     "target": "es6",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -16,8 +17,8 @@
     "jsx": "react-jsx",
     "outDir": "./dist",
     "sourceMap": true,
-    "rootDir": "src"
+    "rootDir": ".",
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "server/**/*", "test/**/*"],
   "exclude": ["node_modules"]
 }

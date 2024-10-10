@@ -1,8 +1,8 @@
-import { Condition } from "../../src/core/sim/condition";
-import { Simulation } from "../../src/core/sim/simulation";
+import { Condition } from "@server/condition";
+import { Simulation } from "@server/simulation";
 import { MockGameState } from "./game-state.mock";
-import { BaseCondition } from '../../src/core/sim/condition';
-import { SimulationBranch } from "../../src/core/sim/simulation";
+import { BaseCondition } from '@server/condition';
+import { SimulationBranch } from "@server/simulation";
 
 export class MockSimulation extends Simulation {
     private mockBranches: Map<BaseCondition, SimulationBranch[]> = new Map();

@@ -1,8 +1,8 @@
 // card-api.test.ts
 
-import { getCardById, getCardByName, fuzzySearchCard, getCardImage, clearCardDatabase, getArchetypes } from '../src/core/ygo/card-api';
+import { getCardById, getCardByName, fuzzySearchCard, getCardImage, clearCardDatabase, getArchetypes } from '@ygo/card-api';
 import { IDBPDatabase, openDB } from 'idb';
-import { CardInformation } from '../src/core/ygo/card-information';
+import { CardInformation } from '@ygo/card-information';
 
 jest.mock('idb');
 
@@ -80,8 +80,9 @@ describe('card-api', () => {
             const card = await getCardById(63176202, mockFetch, mockDBFactory);
 
             expect(card).toEqual(mockCardData);
-            expect(mockFetch).toHaveBeenCalledWith(
-                new URL('https://db.ygoprodeck.com/api/v7/cardinfo.php?id=63176202')
+            expect(mockFetch).toHaveBeenCalledWith(expect.any(URL));
+            expect(mockFetch.mock.calls[0][0].toString()).toBe(
+                'https://db.ygoprodeck.com/api/v7/cardinfo.php?id=63176202'
             );
             expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, '63176202');
             expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, 'Great Shogun Shien');
@@ -143,8 +144,9 @@ describe('card-api', () => {
             const card = await getCardByName('Great Shogun Shien', mockFetch, mockDBFactory);
 
             expect(card).toEqual(mockCardData);
-            expect(mockFetch).toHaveBeenCalledWith(
-                new URL('https://db.ygoprodeck.com/api/v7/cardinfo.php?name=Great%20Shogun%20Shien')
+            expect(mockFetch).toHaveBeenCalledWith(expect.any(URL));
+            expect(mockFetch.mock.calls[0][0].toString()).toBe(
+                'https://db.ygoprodeck.com/api/v7/cardinfo.php?name=Great+Shogun+Shien'
             );
             expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, '63176202');
             expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, 'Great Shogun Shien');
@@ -187,8 +189,9 @@ describe('card-api', () => {
             const cards = await fuzzySearchCard('Shogun', mockFetch, mockDBFactory);
 
             expect(cards).toEqual([mockCardData]);
-            expect(mockFetch).toHaveBeenCalledWith(
-                new URL('https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=Shogun')
+            expect(mockFetch).toHaveBeenCalledWith(expect.any(URL));
+            expect(mockFetch.mock.calls[0][0].toString()).toBe(
+                'https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=Shogun'
             );
             expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, '63176202');
             expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, 'Great Shogun Shien');

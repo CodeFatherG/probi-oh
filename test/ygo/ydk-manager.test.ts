@@ -1,12 +1,12 @@
-import { loadFromYdkFile, loadFromYdkString, serialiseCardsToYdk } from '../src/core/data/ydk-manager';
-import { getCardById, getCardByName } from '../src/core/ygo/card-api';
-import { getCardDetails } from '../src/core/ygo/details-provider';
-import { CardDetails } from '../src/core/data/card-details';
-import { CardInformation } from '../src/core/ygo/card-information';
+import { loadFromYdkFile, loadFromYdkString, serialiseCardsToYdk } from '@ygo/ydk-manager';
+import { getCardById, getCardByName } from '@ygo/card-api';
+import { getCardDetails } from '@ygo/details-provider';
+import { CardDetails } from '@server/card-details';
+import { CardInformation } from '@ygo/card-information';
 
 // Mock the imported functions
-jest.mock('../src/core/ygo/card-api');
-jest.mock('../src/core/ygo/details-provider');
+jest.mock('@ygo/card-api');
+jest.mock('@ygo/details-provider');
 
 // Mock ProgressEvent
 class MockProgressEvent {
