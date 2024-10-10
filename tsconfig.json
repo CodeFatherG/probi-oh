@@ -19,6 +19,6 @@
     "sourceMap": true,
     "rootDir": ".",
   },
-  "include": ["src/**/*", "server/src/*"],
+  "include": ["src/**/*", "server/**/*", "test/**/*"],
   "exclude": ["node_modules"]
 }
