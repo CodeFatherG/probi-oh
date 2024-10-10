@@ -22,5 +22,32 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Print TypeScript version
+      run: npx tsc --version
+
+    - name: Print project structure
+      run: |
+        echo "Project structure:"
+        tree -L 3 -I 'node_modules'
+
+    - name: Print tsconfig.json
+      run: |
+        echo "Contents of tsconfig.json:"
+        cat tsconfig.json
+
+    - name: Print jest.config.js
+      run: |
+        echo "Contents of jest.config.js:"
+        cat jest.config.js
+
     - name: Run Jest tests
       run: npm test
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: test-results
+        path: |
+          test-results
+          coverage
