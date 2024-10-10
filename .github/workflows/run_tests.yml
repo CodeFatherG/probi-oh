@@ -35,10 +35,10 @@ jobs:
         echo "Contents of tsconfig.json:"
         cat tsconfig.json
 
-    - name: Print jest.config.js
+    - name: Print jest.config.ts
       run: |
-        echo "Contents of jest.config.js:"
-        cat jest.config.js
+        echo "Contents of jest.config.ts:"
+        cat jest.config.ts
 
     - name: Run Jest tests
       run: npm test
