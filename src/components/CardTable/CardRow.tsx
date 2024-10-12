@@ -2,7 +2,7 @@ import React, { MouseEvent } from "react";
 import { Box, IconButton, TableCell, TableRow, TableRowProps, TextField, Typography } from "@mui/material";
 import TagBox from "./TagBox";
 import CardImage from "./CardImage";
-import { DragIndicator } from "@mui/icons-material";
+import { Delete, DragIndicator } from "@mui/icons-material";
 import { CardDetails } from '@server/card-details';
 import { DraggableProvided } from "@hello-pangea/dnd";
 
@@ -11,10 +11,11 @@ interface CardRowProps extends TableRowProps {
     cardDetails: CardDetails;
     tagOptions?: string[];
     draggableProvided: DraggableProvided | null;
+    onDelete: () => void;
     onDetailsChange: (name: string, details: CardDetails) => void;
 }
 
-export default function CardRow({ cardName, cardDetails, tagOptions, draggableProvided, onDetailsChange, ...props }: CardRowProps) {
+export default function CardRow({ cardName, cardDetails, tagOptions, draggableProvided, onDelete, onDetailsChange, ...props }: CardRowProps) {
 
     const handleQuantityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         event.stopPropagation();
@@ -38,14 +39,19 @@ export default function CardRow({ cardName, cardDetails, tagOptions, draggablePr
             }}
             {...props}
         >
-            <TableCell padding="none" width="48px">
-                {draggableProvided &&
-                    <IconButton {...draggableProvided?.dragHandleProps} size="small">
-                        <DragIndicator />
-                    </IconButton>
-                }
+            <TableCell padding="none">
+                <Box display="flex" justifyContent="center">
+                    {draggableProvided &&
+                        <IconButton 
+                            {...draggableProvided?.dragHandleProps} 
+                            size="small"
+                        >
+                            <DragIndicator />
+                        </IconButton>
+                    }
+                </Box>
             </TableCell>
-            <TableCell width="45%">
+            <TableCell>
                 <Box display="flex" alignContent='center'>
                     <CardImage 
                         name={cardName} 
@@ -61,7 +67,7 @@ export default function CardRow({ cardName, cardDetails, tagOptions, draggablePr
                     <Typography variant='body1'>{cardName}</Typography>
                 </Box>
             </TableCell>
-            <TableCell width="10%">
+            <TableCell>
                 <TextField
                     type="number"
                     value={cardDetails.qty || 0}
@@ -70,13 +76,20 @@ export default function CardRow({ cardName, cardDetails, tagOptions, draggablePr
                     inputProps={{ min: 0, style: { width: '50px' } }}
                 />
             </TableCell>
-            <TableCell width="45%">
+            <TableCell>
                 <TagBox
                     tags={cardDetails.tags || []}
                     onTagsChange={handleTagsChange}
                     tagOptions={tagOptions}
                     onClick={(e) => e.stopPropagation()}
                 />
+            </TableCell>
+            <TableCell>
+                <Box display="flex" justifyContent="center">
+                    <IconButton size="small" onClick={onDelete}>
+                        <Delete />
+                    </IconButton>
+                </Box>
             </TableCell>
         </TableRow>
     )

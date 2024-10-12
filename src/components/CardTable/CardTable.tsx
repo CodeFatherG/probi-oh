@@ -130,8 +130,6 @@ export default function CardTable({
             // Highlight existing card
             const index = Array.from(cards.keys()).indexOf(cardName);
             setPage(Math.floor(index / rowsPerPage));
-            // Select the card
-            selectCard(cardName);
         } else {
             onCreateCard(cardName);
         }
@@ -141,13 +139,8 @@ export default function CardTable({
     };
 
     const handleDelete = () => {
-        if (selected.length > 0) {
-            onDeleteCards(selected);
-            setSelected([]);
-        } else {
-            setDeleteDialogPrompt('Are you sure you want to delete all cards?');
-            setDeleteDialogOpen(true);
-        }
+        setDeleteDialogPrompt('Are you sure you want to delete all cards?');
+        setDeleteDialogOpen(true);
     };
 
     const handleDragEnd = (result: DropResult) => {
@@ -200,10 +193,11 @@ export default function CardTable({
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell padding="none" width="48px"></TableCell>
-                                <TableCell width="40%" sx={{textAlign:'center', margin:'auto'}}>Name</TableCell>
-                                <TableCell width="15%" sx={{textAlign:'center', margin:'auto'}}>Qty</TableCell>
-                                <TableCell width="40%" sx={{textAlign:'center', margin:'auto'}}>Tags</TableCell>
+                                <TableCell padding="none"></TableCell>
+                                <TableCell sx={{textAlign:'center', margin:'auto'}}>Name</TableCell>
+                                <TableCell sx={{textAlign:'center', margin:'auto'}}>Qty</TableCell>
+                                <TableCell sx={{textAlign:'center', margin:'auto'}}>Tags</TableCell>
+                                <TableCell padding="none"></TableCell>
                             </TableRow>
                         </TableHead>
                         <Droppable droppableId="card-list">
@@ -224,7 +218,8 @@ export default function CardTable({
                                                         hover
                                                         tabIndex={-1}
                                                         selected={isSelected(name)}
-                                                        onClick={() => selectCard(name)}
+                                                        onDelete={() => onDeleteCards([name])}
+                                                        onClick={() => /* Do nothing */ {}}
                                                     />
                                                 )}
                                             </Draggable>
