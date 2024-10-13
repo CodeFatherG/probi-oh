@@ -152,6 +152,8 @@ export default function CardTable({
             return;
         }
 
+        console.log('handleDragEnd', result);
+
         const items = Array.from(cards);
         const [reorderedItem] = items.splice(result.source.index, 1);
         items.splice(result.destination.index, 0, reorderedItem);
@@ -161,6 +163,12 @@ export default function CardTable({
     };
 
     const filteredAndSortedCards = useMemo(() => {
+        console.log('filteredAndSortedCards', nameSearch, tagSearch);
+
+        if (nameSearch === '' && tagSearch === '') {
+            return Array.from(cards.entries());
+        }
+
         return Array.from(cards.entries())
             .filter(([name, details]) => {
                 const nameMatch = name.toLowerCase().includes(nameSearch.toLowerCase());
