@@ -186,6 +186,8 @@ export default function CardTable({
 
     const isSelected = (name: string) => selected.indexOf(name) !== -1;
 
+    const searchActive = nameSearch !== '' || tagSearch !== '';
+
     return (
         <Paper sx={{ position: 'relative' }}>
             <Toolbar
@@ -311,7 +313,7 @@ export default function CardTable({
                                                             cardName={name}
                                                             cardDetails={details}
                                                             tagOptions={tagOptions}
-                                                            draggableProvided={provided}
+                                                            draggableProvided={(searchActive) ? null : provided}
                                                             onDetailsChange={handleDetailsChange}
                                                             hover
                                                             tabIndex={-1}

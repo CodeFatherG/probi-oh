@@ -41,14 +41,22 @@ export default function CardRow({ cardName, cardDetails, tagOptions, draggablePr
         >
             <TableCell padding="none">
                 <Box display="flex" justifyContent="center">
-                    {draggableProvided &&
+                    {draggableProvided !== null ? (
                         <IconButton 
                             {...draggableProvided?.dragHandleProps} 
+                            disabled={false}
                             size="small"
                         >
                             <DragIndicator />
                         </IconButton>
-                    }
+                    ) : (
+                        <IconButton 
+                            disabled={true}
+                            size="small"
+                        >
+                            <DragIndicator />
+                        </IconButton>
+                    )}
                 </Box>
             </TableCell>
             <TableCell>
