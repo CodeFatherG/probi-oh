@@ -189,7 +189,7 @@ export default function CardTable({
     return (
         <Paper sx={{ position: 'relative' }}>
             <Toolbar
-                sx={{
+                sx = {{
                     position: 'sticky',
                     top: 0,
                     zIndex: 1,
@@ -201,7 +201,20 @@ export default function CardTable({
                     borderColor: 'divider'
                 }}
             >
-                {/* ... (keep existing Toolbar content) */}
+                <Box sx={{ display: 'flex', alignItems: 'baseline', flex: '1 1 100%' }}>
+                    <Typography variant="h6" component="div" sx={{ mr: 2 }}>
+                        Deck
+                    </Typography>
+                    <Typography variant="subtitle1" component="div">
+                        {calculateCardSummary().totalCount} Total
+                    </Typography>
+                    <Typography variant="subtitle2" component="div" sx={{paddingLeft: 2}}>
+                        M: {calculateCardSummary().monsterCount} • S: {calculateCardSummary().spellCount} • T: {calculateCardSummary().trapCount}
+                    </Typography>
+                </Box>
+                <IconButton onClick={handleDelete} disabled={cards.size === 0}>
+                    <Delete />
+                </IconButton>
             </Toolbar>
             <TableContainer>
                 <DragDropContext onDragEnd={handleDragEnd}>
