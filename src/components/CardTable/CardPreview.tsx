@@ -6,6 +6,19 @@ interface CardPreviewProps {
     cardInformation: CardInformation | null;
 }
 
+const CardDescription = ({ description }: { description: string }) => {
+    return (
+        <>
+            {description.split('\n').map((line, index) => (
+                <React.Fragment key={index}>
+                    {line}
+                    {index < description.split('\n').length - 1 && <br />}
+                </React.Fragment>
+            ))}
+        </>
+    );
+};
+
 const SpellSummary = ({ cardInformation }: {cardInformation: CardInformation}) => (
     <Card 
         sx={{ 
@@ -23,8 +36,8 @@ const SpellSummary = ({ cardInformation }: {cardInformation: CardInformation}) =
                     [ Spell Card ]
                 </Typography>
             </Box>
-            <Typography variant="body2" sx={{ fontStyle: 'italic', color: '#000', mt: 3 }}>
-                {cardInformation.desc}
+            <Typography variant="body2" sx={{ color: '#000', mt: 3 }}>
+                <CardDescription description={cardInformation.desc}/>
             </Typography>
         </CardContent>
     </Card>
@@ -47,8 +60,8 @@ const TrapSummary = ({ cardInformation }: {cardInformation: CardInformation}) =>
                     [ Trap Card ]
                 </Typography>
             </Box>
-            <Typography variant="body2" sx={{ fontStyle: 'italic', color: '#000', mt: 3 }}>
-                {cardInformation.desc}
+            <Typography variant="body2" sx={{ color: '#000', mt: 3 }}>
+                <CardDescription description={cardInformation.desc}/>
             </Typography>
         </CardContent>
     </Card>
@@ -92,12 +105,7 @@ const MonsterSummary = ({ cardInformation }: { cardInformation: CardInformation 
                         mt: 1 
                     }}
                 >
-                    {cardInformation.desc.split('\n').map((line, index) => (
-                        <React.Fragment key={index}>
-                            {line}
-                            {index < cardInformation.desc.split('\n').length - 1 && <br />}
-                        </React.Fragment>
-                    ))}
+                    <CardDescription description={cardInformation.desc}/>
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#000' }}>
