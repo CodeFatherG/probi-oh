@@ -1,10 +1,13 @@
-import React, { MouseEvent } from "react";
-import { Box, IconButton, TableCell, TableRow, TableRowProps, TextField, Typography } from "@mui/material";
+import React, { MouseEvent, useEffect, useMemo, useState } from "react";
+import { Box, CircularProgress, IconButton, TableCell, TableRow, TableRowProps, TextField, Tooltip, Typography } from "@mui/material";
 import TagBox from "./TagBox";
 import CardImage from "./CardImage";
 import { Delete, DragIndicator } from "@mui/icons-material";
 import { CardDetails } from '@server/card-details';
 import { DraggableProvided } from "@hello-pangea/dnd";
+import CardPreview from "./CardPreview";
+import { getCardByName } from "@/ygo/card-api";
+import { CardInformation } from "@/ygo/card-information";
 
 interface CardRowProps extends TableRowProps {
     cardName: string;
@@ -16,6 +19,25 @@ interface CardRowProps extends TableRowProps {
 }
 
 export default function CardRow({ cardName, cardDetails, tagOptions, draggableProvided, onDelete, onDetailsChange, ...props }: CardRowProps) {
+    const [information, setInformation] = useState<CardInformation | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchCard = async () => {
+            try {
+                setLoading(true);
+                const data = await getCardByName(cardName);
+                setInformation(data);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : String(err));
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCard();
+    }, [cardName]);
 
     const handleQuantityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         event.stopPropagation();
@@ -26,6 +48,22 @@ export default function CardRow({ cardName, cardDetails, tagOptions, draggablePr
     const handleTagsChange = (tags: string[], event: MouseEvent) => {
         event.stopPropagation();
         onDetailsChange(cardName, { ...cardDetails, tags });
+    };
+
+    const renderTooltipContent = () => {
+        if (loading) {
+            return <CircularProgress size={24} />;
+        }
+
+        if (error) {
+            return <Typography color="error">Error loading card info</Typography>;
+        }
+
+        if (information) {
+            return <CardPreview cardInformation={information} />;
+        }
+        
+        return <Typography>No card information available</Typography>;
     };
 
     return (
@@ -61,17 +99,33 @@ export default function CardRow({ cardName, cardDetails, tagOptions, draggablePr
             </TableCell>
             <TableCell>
                 <Box display="flex" alignContent='center'>
-                    <CardImage 
-                        name={cardName} 
-                        type="cropped" 
-                        sx={{ 
-                            maxWidth: '60px', 
-                            maxHeight: '60px', 
-                            objectFit: 'fill',
-                            borderRadius: '8px',
-                            mr: 3
-                        }} 
-                    />
+                    <Tooltip 
+                        title={
+                            <CardPreview cardInformation={information}/>
+                        }
+                        PopperProps={{
+                            sx: {
+                                '& .MuiTooltip-tooltip': {
+                                    maxWidth: 'none',
+                                    width: '500px',
+                                },
+                            },
+                        }}
+                    >
+                        <Box>
+                            <CardImage 
+                                name={cardName} 
+                                type="cropped" 
+                                sx={{ 
+                                    maxWidth: '60px', 
+                                    maxHeight: '60px', 
+                                    objectFit: 'fill',
+                                    borderRadius: '8px',
+                                    mr: 3
+                                }} 
+                            />
+                        </Box>
+                    </Tooltip>
                     <Typography variant='body1'>{cardName}</Typography>
                 </Box>
             </TableCell>
