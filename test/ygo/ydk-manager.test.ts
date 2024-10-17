@@ -188,8 +188,8 @@ describe('YDK Manager', () => {
     describe('serialiseCardsToYdk', () => {
         it('should serialise cards to YDK string format', async () => {
             const mockCards = new Map<string, CardDetails>([
-                ['Card 1', { tags: ['Monster'] }],
-                ['Card 2', { tags: ['Spell'] }],
+                ['Card 1', { qty: 1, tags: ['Monster'] }],
+                ['Card 2', { qty: 1, tags: ['Spell'] }],
             ]);
 
             mockGetCardByName
@@ -216,10 +216,40 @@ describe('YDK Manager', () => {
             expect(mockGetCardByName).toHaveBeenCalledTimes(2);
         });
 
+        it('should serialise cards with multiple qty to YDK string format', async () => {
+            const mockCards = new Map<string, CardDetails>([
+                ['Card 1', { qty: 2, tags: ['Monster'] }],
+                ['Card 2', { qty: 1, tags: ['Spell'] }],
+            ]);
+
+            mockGetCardByName
+                .mockResolvedValueOnce({
+                    id: 12345,
+                    name: 'Card 1',
+                    type: 'Monster',
+                    desc: 'Description 1',
+                    race: 'Warrior',
+                    card_images: [{ id: 12345, image_url: 'url1', image_url_small: 'url1_small', image_url_cropped: 'url1_cropped' }]
+                })
+                .mockResolvedValueOnce({
+                    id: 67890,
+                    name: 'Card 2',
+                    type: 'Spell',
+                    desc: 'Description 2',
+                    race: 'Normal',
+                    card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small', image_url_cropped: 'url2_cropped' }]
+                });
+
+            const result = await serialiseCardsToYdk(mockCards);
+
+            expect(result).toBe('#Created by Probi-Oh\n#tags=\n#main\n12345\n12345\n67890\n#extra\n!side\n');
+            expect(mockGetCardByName).toHaveBeenCalledTimes(2);
+        });
+
         it('should handle errors when fetching card information', async () => {
             const mockCards = new Map<string, CardDetails>([
-                ['Card 1', { tags: ['Monster'] }],
-                ['Card 2', { tags: ['Spell'] }],
+                ['Card 1', { qty:1, tags: ['Monster'] }],
+                ['Card 2', { qty:1, tags: ['Spell'] }],
             ]);
 
             mockGetCardByName

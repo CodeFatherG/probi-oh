@@ -39,6 +39,7 @@ export async function loadFromYdkString(ydkString: string): Promise<Map<string, 
             const details = cards.get(cardInfo.name);
             if (details) {
                 details.qty = (details.qty || 0) + 1;
+                cards.set(cardInfo.name, details);
             }
         } catch (error) {
             console.error(`Error fetching card with ID ${id}:`, error);
@@ -81,7 +82,12 @@ export async function serialiseCardsToYdk(cards: Map<string, CardDetails>): Prom
             continue;
         }
 
-        ydkString += `${info.id}\n`;
+        const details = cards.get(cardName);
+        if (details) {
+            for (let i = 0; i < (details.qty || 0); i++) {
+                ydkString += `${info.id}\n`;
+            }
+        }
     }
 
     ydkString += "#extra\n!side\n";
