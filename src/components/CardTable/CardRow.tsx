@@ -106,8 +106,7 @@ export default function CardRow({ cardName, cardDetails, tagOptions, draggablePr
                         PopperProps={{
                             sx: {
                                 '& .MuiTooltip-tooltip': {
-                                    maxWidth: 'none',
-                                    width: '500px',
+                                    maxWidth: '500px'
                                 },
                             },
                         }}
