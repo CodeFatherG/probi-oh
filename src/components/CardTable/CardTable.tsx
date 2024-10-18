@@ -73,6 +73,7 @@ export default function CardTable({
         setTagOptions(Array.from(allTags));
     }, [cards]);
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const selectCard = (name: string) => {
         const selectedIndex = selected.indexOf(name);
         let newSelected: string[] = [];
