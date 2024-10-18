@@ -1,4 +1,4 @@
-import { loadFromYdkFile, loadFromYdkString, serialiseCardsToYdk } from '@ygo/ydk-manager';
+import ydkManager from '@ygo/ydk-manager';
 import { getCardById, getCardByName } from '@ygo/card-api';
 import { getCardDetails } from '@ygo/details-provider';
 import { CardDetails } from '@server/card-details';
@@ -74,7 +74,7 @@ describe('YDK Manager', () => {
         jest.resetAllMocks();
     });
 
-    describe('loadFromYdkString', () => {
+    describe('ydkManager.importFromString', () => {
         it('should load cards from a valid YDK string', async () => {
             const validYdkString = '#created by...\n#main\n12345\n67890\n#extra\n!side\n';
             const mockCardInfo1: CardInformation = {
@@ -103,11 +103,11 @@ describe('YDK Manager', () => {
                 .mockResolvedValueOnce(mockCardDetails1)
                 .mockResolvedValueOnce(mockCardDetails2);
 
-            const result = await loadFromYdkString(validYdkString);
+            const result = await ydkManager.importFromString(validYdkString);
 
-            expect(result.size).toBe(2);
-            expect(result.get('Card 1')).toEqual({qty: 1, tags: ['Monster']});
-            expect(result.get('Card 2')).toEqual({qty: 1, tags: ['Spell']});
+            expect(result.deck.size).toBe(2);
+            expect(result.deck.get('Card 1')).toEqual({qty: 1, tags: ['Monster']});
+            expect(result.deck.get('Card 2')).toEqual({qty: 1, tags: ['Spell']});
             expect(mockGetCardById).toHaveBeenCalledTimes(2);
             expect(mockGetCardDetails).toHaveBeenCalledTimes(2);
         });
@@ -115,15 +115,15 @@ describe('YDK Manager', () => {
         it('should throw an error for invalid YDK string', async () => {
             const invalidYdkString = 'Invalid YDK string';
 
-            await expect(loadFromYdkString(invalidYdkString)).rejects.toThrow('Invalid YDK file: #main section not found');
+            await expect(ydkManager.importFromString(invalidYdkString)).rejects.toThrow('Invalid YDK file: #main section not found');
         });
 
         it('should handle empty main deck', async () => {
             const emptyMainDeckYdk = '#created by...\n#main\n#extra\n!side\n';
 
-            const result = await loadFromYdkString(emptyMainDeckYdk);
+            const result = await ydkManager.importFromString(emptyMainDeckYdk);
 
-            expect(result.size).toBe(0);
+            expect(result.deck.size).toBe(0);
             expect(mockGetCardById).not.toHaveBeenCalled();
             expect(mockGetCardDetails).not.toHaveBeenCalled();
         });
@@ -153,9 +153,9 @@ describe('YDK Manager', () => {
                 .mockResolvedValueOnce(mockCardInfo2);
             mockGetCardDetails.mockResolvedValue(mockCardDetails);
 
-            const result = await loadFromYdkString(ydkWithInvalidId);
+            const result = await ydkManager.importFromString(ydkWithInvalidId);
 
-            expect(result.size).toBe(2);
+            expect(result.deck.size).toBe(2);
             expect(mockGetCardById).toHaveBeenCalledTimes(2);
             expect(mockGetCardDetails).toHaveBeenCalledTimes(2);
         });
@@ -175,17 +175,17 @@ describe('YDK Manager', () => {
 
             const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-            const result = await loadFromYdkString(validYdkString);
+            const result = await ydkManager.importFromString(validYdkString);
 
-            expect(result.size).toBe(1);
-            expect(result.get('Card 2')).toEqual({ qty: 1, tags: ['Spell'] });
+            expect(result.deck.size).toBe(1);
+            expect(result.deck.get('Card 2')).toEqual({ qty: 1, tags: ['Spell'] });
             expect(consoleSpy).toHaveBeenCalledWith('Error fetching card with ID 12345:', expect.any(Error));
             
             consoleSpy.mockRestore();
         });
     });
 
-    describe('serialiseCardsToYdk', () => {
+    describe('ydkManager.exportDeckToString', () => {
         it('should serialise cards to YDK string format', async () => {
             const mockCards = new Map<string, CardDetails>([
                 ['Card 1', { qty: 1, tags: ['Monster'] }],
@@ -210,7 +210,7 @@ describe('YDK Manager', () => {
                     card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small', image_url_cropped: 'url2_cropped' }]
                 });
 
-            const result = await serialiseCardsToYdk(mockCards);
+            const result = await ydkManager.exportDeckToString(mockCards);
 
             expect(result).toBe('#Created by Probi-Oh\n#tags=\n#main\n12345\n67890\n#extra\n!side\n');
             expect(mockGetCardByName).toHaveBeenCalledTimes(2);
@@ -240,7 +240,7 @@ describe('YDK Manager', () => {
                     card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small', image_url_cropped: 'url2_cropped' }]
                 });
 
-            const result = await serialiseCardsToYdk(mockCards);
+            const result = await ydkManager.exportDeckToString(mockCards);
 
             expect(result).toBe('#Created by Probi-Oh\n#tags=\n#main\n12345\n12345\n67890\n#extra\n!side\n');
             expect(mockGetCardByName).toHaveBeenCalledTimes(2);
@@ -265,7 +265,7 @@ describe('YDK Manager', () => {
 
             const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-            const result = await serialiseCardsToYdk(mockCards);
+            const result = await ydkManager.exportDeckToString(mockCards);
 
             expect(result).toBe('#Created by Probi-Oh\n#tags=\n#main\n12345\n#extra\n!side\n');
             expect(consoleSpy).toHaveBeenCalledWith('No card found for Card 2');
@@ -276,121 +276,10 @@ describe('YDK Manager', () => {
         it('should return a valid YDK string for an empty deck', async () => {
             const emptyCards = new Map<string, CardDetails>();
 
-            const result = await serialiseCardsToYdk(emptyCards);
+            const result = await ydkManager.exportDeckToString(emptyCards);
 
             expect(result).toBe('#Created by Probi-Oh\n#tags=\n#main\n#extra\n!side\n');
             expect(mockGetCardByName).not.toHaveBeenCalled();
-        });
-    });
-    
-    describe('loadFromYdkFile', () => {
-        it('should load cards from a valid YDK file', async () => {
-            const validYdkContent = '#created by...\n#main\n12345\n67890\n#extra\n!side\n';
-            const mockFile = new MockFile([validYdkContent], 'test.ydk', { type: 'application/x-ydk' });
-            
-            const mockCardInfo1: CardInformation = {
-                id: 12345,
-                name: 'Card 1',
-                type: 'Monster',
-                desc: 'Description 1',
-                race: 'Warrior',
-                card_images: [{ id: 12345, image_url: 'url1', image_url_small: 'url1_small', image_url_cropped: 'url1_cropped' }]
-            };
-            const mockCardInfo2: CardInformation = {
-                id: 67890,
-                name: 'Card 2',
-                type: 'Spell',
-                desc: 'Description 2',
-                race: 'Normal',
-                card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small', image_url_cropped: 'url2_cropped' }]
-            };
-            const mockCardDetails1: CardDetails = { tags: ['Monster'] };
-            const mockCardDetails2: CardDetails = { tags: ['Spell'] };
-
-            mockGetCardById
-                .mockResolvedValueOnce(mockCardInfo1)
-                .mockResolvedValueOnce(mockCardInfo2);
-            mockGetCardDetails
-                .mockResolvedValueOnce(mockCardDetails1)
-                .mockResolvedValueOnce(mockCardDetails2);
-
-            const result = await loadFromYdkFile(mockFile as unknown as File);
-
-            expect(result.size).toBe(2);
-            expect(result.get('Card 1')).toEqual(mockCardDetails1);
-            expect(result.get('Card 2')).toEqual(mockCardDetails2);
-            expect(mockGetCardById).toHaveBeenCalledTimes(2);
-            expect(mockGetCardDetails).toHaveBeenCalledTimes(2);
-        });
-
-        it('should throw an error for invalid YDK file content', async () => {
-            const invalidYdkContent = 'Invalid YDK content';
-            const mockFile = new MockFile([invalidYdkContent], 'invalid.ydk', { type: 'application/x-ydk' });
-
-            await expect(loadFromYdkFile(mockFile as unknown as File)).rejects.toThrow('Invalid YDK file: #main section not found');
-        });
-
-        it('should handle file read errors', async () => {
-            const mockFile = new File([], 'test.ydk');
-            const mockFileReader = {
-                readAsText: jest.fn().mockImplementation(function(this: any) {
-                    setTimeout(() => {
-                        if (this.onerror) {
-                            this.onerror(new Error('Read error'));
-                        }
-                    }, 0);
-                }),
-                onload: null as any,
-                onerror: null as any,
-            };
-            (global as any).FileReader = jest.fn(() => mockFileReader);
-            
-            await expect(loadFromYdkFile(mockFile)).rejects.toThrow('Read error');
-        });
-
-        it('should handle empty main deck', async () => {
-            const emptyMainDeckYdk = '#created by...\n#main\n#extra\n!side\n';
-            const mockFile = new MockFile([emptyMainDeckYdk], 'empty.ydk', { type: 'application/x-ydk' });
-
-            const result = await loadFromYdkFile(mockFile as unknown as File);
-
-            expect(result.size).toBe(0);
-            expect(mockGetCardById).not.toHaveBeenCalled();
-            expect(mockGetCardDetails).not.toHaveBeenCalled();
-        });
-
-        it('should skip invalid card IDs', async () => {
-            const ydkWithInvalidId = '#created by...\n#main\n12345\ninvalid\n67890\n#extra\n!side\n';
-            const mockFile = new MockFile([ydkWithInvalidId], 'invalid_id.ydk', { type: 'application/x-ydk' });
-            
-            const mockCardInfo1: CardInformation = {
-                id: 12345,
-                name: 'Card 1',
-                type: 'Monster',
-                desc: 'Description 1',
-                race: 'Warrior',
-                card_images: [{ id: 12345, image_url: 'url1', image_url_small: 'url1_small', image_url_cropped: 'url1_cropped' }]
-            };
-            const mockCardInfo2: CardInformation = {
-                id: 67890,
-                name: 'Card 2',
-                type: 'Spell',
-                desc: 'Description 2',
-                race: 'Normal',
-                card_images: [{ id: 67890, image_url: 'url2', image_url_small: 'url2_small', image_url_cropped: 'url2_cropped' }]
-            };
-            const mockCardDetails: CardDetails = { tags: ['Monster'] };
-
-            mockGetCardById
-                .mockResolvedValueOnce(mockCardInfo1)
-                .mockResolvedValueOnce(mockCardInfo2);
-            mockGetCardDetails.mockResolvedValue(mockCardDetails);
-
-            const result = await loadFromYdkFile(mockFile as unknown as File);
-
-            expect(result.size).toBe(2);
-            expect(mockGetCardById).toHaveBeenCalledTimes(2);
-            expect(mockGetCardDetails).toHaveBeenCalledTimes(2);
         });
     });
 });
