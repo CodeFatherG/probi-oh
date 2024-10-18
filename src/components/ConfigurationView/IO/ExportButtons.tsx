@@ -79,21 +79,24 @@ function ExportTypeDialog({ onClose, open, extensions }: ExportTypeDialogProps) 
 }
 
 interface CopyButtonProps {
-    onClick: (extension: string) => void;
+    getContent: (extension: string) => Promise<string>;
     acceptedExtensions: string[];
 }
 
-export function ClipboardOutput({ onClick, acceptedExtensions }: CopyButtonProps) {
+export function ClipboardOutput({ getContent, acceptedExtensions }: CopyButtonProps) {
     const [copied, setCopied] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
 
     const handleDialogClose = async (value?: string) => {
         setDialogOpen(false);
 
-        if (value && value in acceptedExtensions) {
-            onClick(value);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+        if (value) { 
+            if (acceptedExtensions.includes(value)) {
+                const content = await getContent(value);
+                await navigator.clipboard.writeText(content);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            }
         }
     };
 

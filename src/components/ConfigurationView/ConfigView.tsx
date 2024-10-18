@@ -90,15 +90,16 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
         }
     };
 
-    const handleClipboardCopy = async (extension: string) => {
+    const handleClipboardCopy = async (extension: string): Promise<string> =>  {
         const input: SimulationInput = {
             deck: cardData,
             conditions: conditionData,
         };
 
         if (extension in fileManagerDict) {
-            const content = await fileManagerDict[extension].exportSimulationToString(input);
-            await navigator.clipboard.writeText(content);
+            return await fileManagerDict[extension].exportSimulationToString(input);
+        } else {
+            throw new Error(`Unsupported file type ${extension}`);
         }
     };
 
@@ -177,7 +178,7 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
                             acceptedExtensions={acceptedExtensions}
                         />
                         <ClipboardOutput 
-                            onClick={handleClipboardCopy}
+                            getContent={handleClipboardCopy}
                             acceptedExtensions={acceptedExtensions}
                         />
                     </Box>
