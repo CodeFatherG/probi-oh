@@ -1,18 +1,21 @@
 import { Box, Stack } from "@mui/material";
 import React, { useMemo, useState } from "react";
-import FileInput from "./FileInput";
-import SaveFileComponent from "./SaveFile";
-import CopyButton from "./CopyButton";
 import CardTable from "../CardTable/CardTable";
 import ConditionList from "../ConditionList/ConditionList";
 import { CardDetails } from "@server/card-details";
-import { loadFromYamlFile, serialiseSimulationInputToYaml } from "@server/yaml-manager";
-import { loadFromYdkFile } from "@ygo/ydk-manager";
 import LoadingOverlay from "./LoadingOverlay";
 import { getCardByName } from "@ygo/card-api";
 import { getCardDetails } from "@ygo/details-provider";
 import { parseCondition } from "@server/parser";
 import { SimulationInput } from "@server/simulation-input";
+import { DataFileManager } from "@server/data-file";
+import ydkManager from "@/ygo/ydk-manager";
+import yamlManager from "@server/yaml-manager";
+import ydkeManager from "@/ygo/ydke-manager";
+import { ClipboardInput, FileInput } from "./IO/ImportButtons";
+import {ClipboardOutput, FileOutput} from "./IO/ExportButtons";
+import { getDeckName } from "@/ygo/archetype";
+import { saveAs } from "file-saver";
 
 interface ConfigBuilderProps {
     cardData: Map<string, CardDetails>;
@@ -20,6 +23,13 @@ interface ConfigBuilderProps {
     onCardsUpdate: (cards: Map<string, CardDetails>) => void;
     onConditionsUpdate: (conditions: string[]) => void;
 }
+
+const fileManagerDict: { [key: string]: DataFileManager } = {
+    '.yml':     yamlManager,
+    '.yaml':    yamlManager,
+    '.ydk':     ydkManager,
+    '.ydke':    ydkeManager,
+};
 
 export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, onConditionsUpdate }: ConfigBuilderProps) {
     const [isLoading, setIsLoading] = useState(false);
@@ -33,22 +43,62 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
         return Array.from(options);
     }, [cardData]);
 
-    const handleFileUpload = async (file: File) => {
+    const handleFileUpload = async (content: string, extension: string) => {
         setIsLoading(true);
         try {
-            if (file.name.endsWith('.yaml') || file.name.endsWith('.yml')) {
-                const input = await loadFromYamlFile(file);
-                onCardsUpdate(input.deck);
-                onConditionsUpdate(input.conditions);
+            if (!fileManagerDict[extension]) {
+                throw new Error(`Unsupported file type ${extension}`);
             }
-            else if (file.name.endsWith('.ydk')) {
-                onCardsUpdate(await loadFromYdkFile(file));
-                onConditionsUpdate([]);
-            }
-            
-            console.log('File loaded successfully:', file.name);
+
+            const simInput = await fileManagerDict[extension].importFromString(content);
+            onCardsUpdate(simInput.deck);
+            onConditionsUpdate(simInput.conditions);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleClipboardUpload = async (content: string) => {
+        setIsLoading(true);
+
+        // Try to import as each supported file type
+        for (const extension in fileManagerDict) {
+            try {
+                const simInput = await fileManagerDict[extension].importFromString(content);
+                onCardsUpdate(simInput.deck);
+                onConditionsUpdate(simInput.conditions);
+                break;
+            } catch (err) {
+                console.error(`Failed to import from clipboard as ${extension}:`, err);
+            }
+        }
+
+        setIsLoading(false);
+    }
+
+    const handleFileDownload = async (extension: string) => {
+        if (extension in fileManagerDict) {
+            const input: SimulationInput = {
+                deck: cardData,
+                conditions: conditionData,
+            };
+
+            const content = await fileManagerDict[extension].exportSimulationToString(input);
+            const filename = `${await getDeckName(cardData)}${extension}$`
+
+            saveAs(new Blob([content], {type: 'text/plain;charset=utf-8'}), filename);
+        }
+    };
+
+    const handleClipboardCopy = async (extension: string) => {
+        const input: SimulationInput = {
+            deck: cardData,
+            conditions: conditionData,
+        };
+
+        if (extension in fileManagerDict) {
+            const content = await fileManagerDict[extension].exportSimulationToString(input);
+            await navigator.clipboard.writeText(content);
         }
     };
 
@@ -102,32 +152,35 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
         onConditionsUpdate(conditions);
     };
 
+    const acceptedExtensions = Object.keys(fileManagerDict);
+    if (acceptedExtensions.includes('.yaml') && acceptedExtensions.includes('.yml')) {
+        acceptedExtensions.splice(acceptedExtensions.indexOf('.yml'), 1);
+    }
+
     return (
         <>
             <LoadingOverlay isLoading={isLoading} />
             <Stack spacing={2}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Box display="flex" gap={2}>
+                    <Box display="flex">
                         <FileInput 
-                            onFileUpload={handleFileUpload} 
-                            acceptedExtensions={[".yaml", ".yml", ".ydk"]} 
-                            importPrompt="Import File" 
+                            onClick={handleFileUpload} 
+                            acceptedExtensions={acceptedExtensions}
                         />
-                        <SaveFileComponent 
-                            cardData={cardData} 
-                            conditionData={conditionData} 
+                        <ClipboardInput
+                            onClick={handleClipboardUpload}
                         />
                     </Box>
-                    <CopyButton 
-                        getText={() => {
-                            const input: SimulationInput = {
-                                deck: cardData,
-                                conditions: conditionData,
-                            };
-            
-                            return serialiseSimulationInputToYaml(input);
-                        }}
-                    />
+                    <Box display='flex'>
+                        <FileOutput
+                            onClick={handleFileDownload}
+                            acceptedExtensions={acceptedExtensions}
+                        />
+                        <ClipboardOutput 
+                            onClick={handleClipboardCopy}
+                            acceptedExtensions={acceptedExtensions}
+                        />
+                    </Box>
                 </Box>
                 <CardTable
                     cards={cardData}
