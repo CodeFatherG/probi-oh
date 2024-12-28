@@ -152,6 +152,7 @@ export class CurrencyApi {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handleError(error: any): CurrencyApiError {
     if (error instanceof CurrencyApiError) {
       return error;
