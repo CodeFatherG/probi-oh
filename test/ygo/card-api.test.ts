@@ -1,6 +1,6 @@
 // card-api.test.ts
 
-import { getCardById, getCardByName, fuzzySearchCard, getCardImage, clearCardDatabase, getArchetypes } from '@ygo/card-api';
+import { getCard, fuzzySearchCard, getCardImage, clearCardDatabase, getArchetypes } from '@ygo/card-api';
 import { IDBPDatabase, openDB } from 'idb';
 import { CardInformation } from '@ygo/card-information';
 
@@ -60,14 +60,14 @@ describe('card-api', () => {
         });
     });
 
-    describe('getCardById', () => {
+    describe('getCard', () => {
         it('should fetch card', async () => {
             mockFetch.mockResolvedValue({
                 ok: true,
                 json: async () => ({ data: [mockCardData] })
             });
             
-            const card = await getCardById(63176202, mockFetch, mockDBFactory);
+            const card = await getCard(63176202, mockFetch, mockDBFactory);
 
             expect(card).toEqual(mockCardData);
             expect(mockFetch).toHaveBeenCalledWith(expect.any(URL));
@@ -83,7 +83,7 @@ describe('card-api', () => {
                 json: async () => ({ data: [] })
             });
 
-            const card = await getCardById(99999999, mockFetch, mockDBFactory);
+            const card = await getCard(99999999, mockFetch, mockDBFactory);
 
             expect(card).toBeNull();
         });
@@ -92,7 +92,7 @@ describe('card-api', () => {
             (mockDB.get as jest.Mock).mockResolvedValue(undefined);
             mockFetch.mockRejectedValue(new Error('Network error'));
     
-            const card = await getCardById(63176202, mockFetch, mockDBFactory);
+            const card = await getCard(63176202, mockFetch, mockDBFactory);
     
             expect(card).toBeNull();
             expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching card data:', expect.any(Error));
@@ -106,7 +106,7 @@ describe('card-api', () => {
                 statusText: 'Not Found'
             });
     
-            const card = await getCardById(12345, mockFetch, mockDBFactory);
+            const card = await getCard(12345, mockFetch, mockDBFactory);
     
             expect(card).toBeNull();
             expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching card data:', expect.any(Error));
@@ -121,7 +121,7 @@ describe('card-api', () => {
                 json: async () => ({ data: [mockCardData] })
             });
             
-            const card = await getCardByName('Great Shogun Shien', mockFetch, mockDBFactory);
+            const card = await getCard('Great Shogun Shien', mockFetch, mockDBFactory);
 
             expect(card).toEqual(mockCardData);
             expect(mockFetch).toHaveBeenCalledWith(expect.any(URL));
@@ -137,7 +137,7 @@ describe('card-api', () => {
                 json: async () => ({ data: [] })
             });
 
-            const card = await getCardByName('Non-existent Card', mockFetch, mockDBFactory);
+            const card = await getCard('Non-existent Card', mockFetch, mockDBFactory);
 
             expect(card).toBeNull();
         });
@@ -150,7 +150,7 @@ describe('card-api', () => {
                 statusText: 'Internal Server Error'
             });
     
-            const card = await getCardByName('Error Card', mockFetch, mockDBFactory);
+            const card = await getCard('Error Card', mockFetch, mockDBFactory);
     
             expect(card).toBeNull();
             expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching card data:', expect.any(Error));
