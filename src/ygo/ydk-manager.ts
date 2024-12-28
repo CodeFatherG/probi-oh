@@ -1,9 +1,9 @@
-import { getCardById, getCardByName } from '@ygo/card-api';
 import { CardDetails } from '@server/card-details';
 import { getCardDetails } from '@ygo/details-provider';
 import { DataFileManager } from '@server/data-file';
 import { SimulationInput } from '@server/simulation-input';
 import { BaseCondition } from '@server/condition';
+import { getCard } from './card-api';
 
 class YdkManager implements DataFileManager {
     private static instance: YdkManager;
@@ -38,7 +38,7 @@ class YdkManager implements DataFileManager {
         // Fetch card details and build the deck object
         for (const id of mainDeckIds) {
             try {
-                const cardInfo = await getCardById(id);
+                const cardInfo = await getCard(id);
 
                 if (!cardInfo) {
                     console.error(`No card found for ID ${id}`);
@@ -69,7 +69,7 @@ class YdkManager implements DataFileManager {
         let ydkString = "#Created by Probi-Oh\n#tags=\n#main\n";
 
         for (const [cardName] of cards) {
-            const info = await getCardByName(cardName);
+            const info = await getCard(cardName);
 
             if (!info) {
                 console.error(`No card found for ${cardName}`);

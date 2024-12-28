@@ -4,6 +4,7 @@ export interface Settings {
     simulationIterations: number;
     simulationHandSize: number;
     statisticMaxPrecision: number;
+    selectedCurrency: string;
 }
 
 function defaultSettings(): Settings {
@@ -11,6 +12,7 @@ function defaultSettings(): Settings {
         simulationIterations: 10000,
         simulationHandSize: 5,
         statisticMaxPrecision: 5,
+        selectedCurrency: 'USD'
     };
 }
 
