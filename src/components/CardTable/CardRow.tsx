@@ -11,6 +11,7 @@ import { getAverageCardPrice, getCardPrice, getHighestCardPrice, getLowestCardPr
 import { getSettings } from "../Settings/settings";
 import { getCard } from "@/ygo/card-api";
 import { getCurrencySymbol } from "@/currency/currency";
+import PriceSummary from "./PriceSummary";
 
 interface CardRowProps extends TableRowProps {
     cardName: string;
@@ -21,15 +22,7 @@ interface CardRowProps extends TableRowProps {
     onDetailsChange: (name: string, details: CardDetails) => void;
 }
 
-const CardPriceSummary = ({ prices }: { prices: Record<string, number> }) => {
-    return (
-        <Stack>
-            {Object.entries(prices).map(([source, price]) => (
-                <Typography key={source} variant='caption'>{`${source}: ${getCurrencySymbol(getSettings().selectedCurrency)}${price.toFixed(2)}`}</Typography>
-            ))}
-        </Stack>
-    );
-}
+
 
 export default function CardRow({ cardName, cardDetails, tagOptions, draggableProvided, onDelete, onDetailsChange, ...props }: CardRowProps) {
     const [information, setInformation] = useState<CardInformation | null>(null);
@@ -139,15 +132,15 @@ export default function CardRow({ cardName, cardDetails, tagOptions, draggablePr
                         <Typography variant='body1'>{cardName}</Typography>
                         <Tooltip 
                             title={
-                                <CardPriceSummary prices={cardPrices}/>
+                                <PriceSummary prices={cardPrices}/>
                             }
-                            PopperProps={{
-                                sx: {
-                                    '& .MuiTooltip-tooltip': {
-                                        maxWidth: '150px'
-                                    },
-                                },
-                            }}
+                            // PopperProps={{
+                            //     sx: {
+                            //         '& .MuiTooltip-tooltip': {
+                            //             maxWidth: '150px'
+                            //         },
+                            //     },
+                            // }}
                         >
                             <Box display='flex'>
                                 <Typography m='2px' color='#73a657' variant='caption'>{`${getCurrencySymbol(getSettings().selectedCurrency)}${minPrice.toFixed(2)}`}</Typography>

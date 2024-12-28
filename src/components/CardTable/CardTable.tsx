@@ -5,6 +5,7 @@ import {
     Autocomplete,Box,
     Stack,
     InputAdornment,
+    Tooltip,
 } from '@mui/material';
 import { fuzzySearchCard } from '@ygo/card-api';
 import { CardDetails } from '@server/card-details';
@@ -13,6 +14,10 @@ import { DragDropContext, Draggable, Droppable, DropResult } from '@hello-pangea
 import useLocalStorage from '../../hooks/useLocalStorage';
 import CardRow from './CardRow';
 import DeleteDialog from './DeleteDialog';
+import { getAverageCardPrice, getCardPrice, getHighestCardPrice, getLowestCardPrice } from '@/ygo/prices';
+import { getCurrencySymbol } from '@/currency/currency';
+import { getSettings } from '../Settings/settings';
+import PriceSummary from './PriceSummary';
 
 
 
@@ -42,7 +47,12 @@ export default function CardTable({
     const [deleteDialogPrompt, setDeleteDialogPrompt] = useState('');
     const [nameSearch, setNameSearch] = useState('');
     const [tagSearch, setTagSearch] = useState('');
-    
+
+    const [minCost, setMinCost] = useState<number>(0);
+    const [maxCost, setMaxCost] = useState<number>(0);
+    const [averageCost, setAverageCost] = useState<number>(0);
+    const [costBySource, setCostBySource] = useState<Record<string, number>>({});
+
     const calculateCardSummary = useCallback(() => {
         let totalCount = 0;
         let monsterCount = 0;
@@ -64,6 +74,33 @@ export default function CardTable({
 
         return { totalCount, monsterCount, spellCount, trapCount };
     }, [cards]);
+
+    useEffect(() => {
+        const calculateCosts = async () => {
+            let minCost = 0;
+            let maxCost = 0;
+            let averageCost = 0;
+            const sourceCost: Record<string, number> = {};
+
+            for (const [name, details] of cards) {
+                minCost += await getLowestCardPrice(name) * (details.qty || 0);
+                maxCost += await getHighestCardPrice(name) * (details.qty || 0);
+                averageCost += await getAverageCardPrice(name) * (details.qty || 0);
+                const prices = await getCardPrice(name);
+                for (const [source, price] of Object.entries(prices)) {
+                    sourceCost[source] = (sourceCost[source] || 0) + (price * (details.qty || 0));
+                }
+            }
+
+            setMinCost(minCost);
+            setMaxCost(maxCost);
+            setAverageCost(averageCost);
+            setCostBySource(sourceCost);
+        };
+
+        calculateCosts();
+    }, [cards]);
+
 
     useEffect(() => {
         const allTags = new Set<string>();
@@ -204,16 +241,36 @@ export default function CardTable({
                     borderColor: 'divider'
                 }}
             >
-                <Box sx={{ display: 'flex', alignItems: 'baseline', flex: '1 1 100%' }}>
-                    <Typography variant="h6" component="div" sx={{ mr: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', flex: '1 1 100%' }}>
+                    <Typography variant="h6" sx={{ mr: 2 }}>
                         Deck
                     </Typography>
-                    <Typography variant="subtitle1" component="div">
+                    <Typography variant="subtitle1">
                         {calculateCardSummary().totalCount} Total
                     </Typography>
-                    <Typography variant="subtitle2" component="div" sx={{paddingLeft: 2}}>
-                        M: {calculateCardSummary().monsterCount} • S: {calculateCardSummary().spellCount} • T: {calculateCardSummary().trapCount}
-                    </Typography>
+                    <Stack sx={{paddingLeft: 2}}>
+                        <Typography variant="subtitle2">
+                            M: {calculateCardSummary().monsterCount} • S: {calculateCardSummary().spellCount} • T: {calculateCardSummary().trapCount}
+                        </Typography>
+                        <Tooltip 
+                            title={
+                                <PriceSummary prices={costBySource}/>
+                            }
+                            // PopperProps={{
+                            //     sx: {
+                            //         '& .MuiTooltip-tooltip': {
+                            //             maxWidth: '150px'
+                            //         },
+                            //     },
+                            // }}
+                        >
+                            <Box display='flex'>
+                                <Typography m='2px' color='#73a657' variant='caption'>{`${getCurrencySymbol(getSettings().selectedCurrency)}${minCost.toFixed(2)}`}</Typography>
+                                <Typography m='2px' color='#b3ebf2' variant='caption'>{`${getCurrencySymbol(getSettings().selectedCurrency)}${averageCost.toFixed(2)}`}</Typography>
+                                <Typography m='2px' color='#ff6961' variant='caption'>{`${getCurrencySymbol(getSettings().selectedCurrency)}${maxCost.toFixed(2)}`}</Typography>
+                            </Box>
+                        </Tooltip>
+                    </Stack>
                 </Box>
                 <IconButton onClick={handleDelete} disabled={cards.size === 0}>
                     <Delete />
