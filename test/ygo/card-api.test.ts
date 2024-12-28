@@ -1,6 +1,6 @@
 // card-api.test.ts
 
-import { getCardById, getCardByName, fuzzySearchCard, getCardImage, clearCardDatabase, getArchetypes } from '@ygo/card-api';
+import { getCard, fuzzySearchCard, getCardImage, clearCardDatabase, getArchetypes } from '@ygo/card-api';
 import { IDBPDatabase, openDB } from 'idb';
 import { CardInformation } from '@ygo/card-information';
 
@@ -55,37 +55,25 @@ describe('card-api', () => {
         it('should clear both cards and images stores', async () => {
             await clearCardDatabase(mockDBFactory);
             
-            expect(mockDB.clear).toHaveBeenCalledTimes(2);
-            expect(mockDB.clear).toHaveBeenCalledWith('cards');
+            expect(mockDB.clear).toHaveBeenCalledTimes(1);
             expect(mockDB.clear).toHaveBeenCalledWith('images');
         });
     });
 
-    describe('getCardById', () => {
-        it('should return cached card if available', async () => {
-            (mockDB.get as jest.Mock).mockResolvedValue(mockCardData);
-            const card = await getCardById(63176202, mockFetch, mockDBFactory);
-            expect(card).toEqual(mockCardData);
-            expect(mockDB.get).toHaveBeenCalledWith('cards', '63176202');
-            expect(mockFetch).not.toHaveBeenCalled();
-        });
-
-        it('should fetch and cache card if not in database', async () => {
-            (mockDB.get as jest.Mock).mockResolvedValue(undefined);
+    describe('getCard', () => {
+        it('should fetch card', async () => {
             mockFetch.mockResolvedValue({
                 ok: true,
                 json: async () => ({ data: [mockCardData] })
             });
             
-            const card = await getCardById(63176202, mockFetch, mockDBFactory);
+            const card = await getCard(63176202, mockFetch, mockDBFactory);
 
             expect(card).toEqual(mockCardData);
             expect(mockFetch).toHaveBeenCalledWith(expect.any(URL));
             expect(mockFetch.mock.calls[0][0].toString()).toBe(
                 'https://db.ygoprodeck.com/api/v7/cardinfo.php?id=63176202'
             );
-            expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, '63176202');
-            expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, 'Great Shogun Shien');
         });
 
         it('should return null for a non-existent card ID', async () => {
@@ -95,7 +83,7 @@ describe('card-api', () => {
                 json: async () => ({ data: [] })
             });
 
-            const card = await getCardById(99999999, mockFetch, mockDBFactory);
+            const card = await getCard(99999999, mockFetch, mockDBFactory);
 
             expect(card).toBeNull();
         });
@@ -104,7 +92,7 @@ describe('card-api', () => {
             (mockDB.get as jest.Mock).mockResolvedValue(undefined);
             mockFetch.mockRejectedValue(new Error('Network error'));
     
-            const card = await getCardById(63176202, mockFetch, mockDBFactory);
+            const card = await getCard(63176202, mockFetch, mockDBFactory);
     
             expect(card).toBeNull();
             expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching card data:', expect.any(Error));
@@ -118,7 +106,7 @@ describe('card-api', () => {
                 statusText: 'Not Found'
             });
     
-            const card = await getCardById(12345, mockFetch, mockDBFactory);
+            const card = await getCard(12345, mockFetch, mockDBFactory);
     
             expect(card).toBeNull();
             expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching card data:', expect.any(Error));
@@ -126,30 +114,20 @@ describe('card-api', () => {
     });
 
     describe('getCardByName', () => {
-        it('should return cached card if available', async () => {
-            (mockDB.get as jest.Mock).mockResolvedValue(mockCardData);
-            const card = await getCardByName('Great Shogun Shien', mockFetch, mockDBFactory);
-            expect(card).toEqual(mockCardData);
-            expect(mockDB.get).toHaveBeenCalledWith('cards', 'Great Shogun Shien');
-            expect(mockFetch).not.toHaveBeenCalled();
-        });
-
-        it('should fetch and cache card if not in database', async () => {
+        it('should fetch card if not in database', async () => {
             (mockDB.get as jest.Mock).mockResolvedValue(undefined);
             mockFetch.mockResolvedValue({
                 ok: true,
                 json: async () => ({ data: [mockCardData] })
             });
             
-            const card = await getCardByName('Great Shogun Shien', mockFetch, mockDBFactory);
+            const card = await getCard('Great Shogun Shien', mockFetch, mockDBFactory);
 
             expect(card).toEqual(mockCardData);
             expect(mockFetch).toHaveBeenCalledWith(expect.any(URL));
             expect(mockFetch.mock.calls[0][0].toString()).toBe(
                 'https://db.ygoprodeck.com/api/v7/cardinfo.php?name=Great+Shogun+Shien'
             );
-            expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, '63176202');
-            expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, 'Great Shogun Shien');
         });
 
         it('should return null for a non-existent card name', async () => {
@@ -159,7 +137,7 @@ describe('card-api', () => {
                 json: async () => ({ data: [] })
             });
 
-            const card = await getCardByName('Non-existent Card', mockFetch, mockDBFactory);
+            const card = await getCard('Non-existent Card', mockFetch, mockDBFactory);
 
             expect(card).toBeNull();
         });
@@ -172,7 +150,7 @@ describe('card-api', () => {
                 statusText: 'Internal Server Error'
             });
     
-            const card = await getCardByName('Error Card', mockFetch, mockDBFactory);
+            const card = await getCard('Error Card', mockFetch, mockDBFactory);
     
             expect(card).toBeNull();
             expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching card data:', expect.any(Error));
@@ -180,21 +158,19 @@ describe('card-api', () => {
     });
 
     describe('fuzzySearchCard', () => {
-        it('should fetch and cache cards matching the query', async () => {
+        it('should fetch cards matching the query', async () => {
             mockFetch.mockResolvedValue({
                 ok: true,
                 json: async () => ({ data: [mockCardData] })
             });
             
-            const cards = await fuzzySearchCard('Shogun', mockFetch, mockDBFactory);
+            const cards = await fuzzySearchCard('Shogun', mockFetch);
 
             expect(cards).toEqual([mockCardData]);
             expect(mockFetch).toHaveBeenCalledWith(expect.any(URL));
             expect(mockFetch.mock.calls[0][0].toString()).toBe(
                 'https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=Shogun'
             );
-            expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, '63176202');
-            expect(mockDB.put).toHaveBeenCalledWith('cards', mockCardData, 'Great Shogun Shien');
         });
 
         it('should return an empty array for no matches', async () => {
@@ -203,7 +179,7 @@ describe('card-api', () => {
                 json: async () => ({ data: [] })
             });
 
-            const cards = await fuzzySearchCard('Non-existent', mockFetch, mockDBFactory);
+            const cards = await fuzzySearchCard('Non-existent', mockFetch);
 
             expect(cards).toEqual([]);
         });
@@ -215,7 +191,7 @@ describe('card-api', () => {
                 statusText: 'Service Unavailable'
             });
     
-            const cards = await fuzzySearchCard('Error', mockFetch, mockDBFactory);
+            const cards = await fuzzySearchCard('Error', mockFetch);
     
             expect(cards).toEqual([]);
             expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching card data:', expect.any(Error));
@@ -226,8 +202,11 @@ describe('card-api', () => {
         const mockBlob = new Blob(['mock image data'], { type: 'image/jpeg' });
 
         it('should return cached image if available', async () => {
-            (mockDB.get as jest.Mock).mockResolvedValueOnce(mockCardData)
-                                     .mockResolvedValueOnce(mockBlob);
+            (mockDB.get as jest.Mock).mockResolvedValueOnce(mockBlob);
+            mockFetch.mockResolvedValue({
+                ok: true,
+                json: async () => ({ data: [mockCardData] })
+            });
             
             const image = await getCardImage(63176202, 'full', mockFetch, mockDBFactory);
 
@@ -236,9 +215,12 @@ describe('card-api', () => {
         });
 
         it('should fetch and cache image if not in database', async () => {
-            (mockDB.get as jest.Mock).mockResolvedValueOnce(mockCardData)
-                                     .mockResolvedValueOnce(undefined);
-            mockFetch.mockResolvedValue({
+            (mockDB.get as jest.Mock).mockResolvedValueOnce(undefined);
+            mockFetch.mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({ data: [mockCardData] })
+            })
+            .mockResolvedValueOnce({
                 ok: true,
                 blob: async () => mockBlob
             });
@@ -259,9 +241,12 @@ describe('card-api', () => {
         });
 
         it('should handle HTTP errors when fetching image', async () => {
-            (mockDB.get as jest.Mock).mockResolvedValueOnce(mockCardData)
-                                     .mockResolvedValueOnce(undefined);
-            mockFetch.mockResolvedValue({
+            (mockDB.get as jest.Mock).mockResolvedValueOnce(undefined);
+            mockFetch.mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({ data: [mockCardData] })
+            })
+            .mockResolvedValueOnce({
                 ok: false,
                 status: 404,
                 statusText: 'Not Found'
@@ -282,35 +267,25 @@ describe('card-api', () => {
         ];
         const mockArchetypes = ["Abc", "Xyz", "123"];
     
-        it('should return cached archetypes if available', async () => {
-            (mockDB.get as jest.Mock).mockResolvedValue(mockArchetypes);
-            const archetypes = await getArchetypes(mockFetch, mockDBFactory);
-            expect(archetypes).toEqual(mockArchetypes);
-            expect(mockDB.get).toHaveBeenCalledWith('archetypes', 'all');
-            expect(mockFetch).not.toHaveBeenCalled();
-        });
-    
-        it('should fetch and cache archetypes if not in database', async () => {
-            (mockDB.get as jest.Mock).mockResolvedValue(undefined);
+        it('should fetch archetypes', async () => {
             mockFetch.mockResolvedValue({
                 ok: true,
                 json: async () => mockArchetypesResponse
             });
             
-            const archetypes = await getArchetypes(mockFetch, mockDBFactory);
+            const archetypes = await getArchetypes(mockFetch);
     
             expect(archetypes).toEqual(mockArchetypes);
             expect(mockFetch).toHaveBeenCalledWith(
                 new URL('https://db.ygoprodeck.com/api/v7/archetypes.php')
             );
-            expect(mockDB.put).toHaveBeenCalledWith('archetypes', mockArchetypes, 'all');
-        });
+        }); 
     
         it('should return an empty array on fetch error', async () => {
             (mockDB.get as jest.Mock).mockResolvedValue(undefined);
             mockFetch.mockRejectedValue(new Error('Network error'));
     
-            const archetypes = await getArchetypes(mockFetch, mockDBFactory);
+            const archetypes = await getArchetypes(mockFetch);
     
             expect(archetypes).toEqual([]);
             expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching archetypes:', expect.any(Error));
@@ -324,7 +299,7 @@ describe('card-api', () => {
                 statusText: 'Internal Server Error'
             });
     
-            const archetypes = await getArchetypes(mockFetch, mockDBFactory);
+            const archetypes = await getArchetypes(mockFetch);
     
             expect(archetypes).toEqual([]);
             expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching archetypes:', expect.any(Error));

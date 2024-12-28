@@ -35,12 +35,7 @@ export default function InfoDialog({open, onClose}: InfoDialogProps) {
                         site at {' '}
                         <Link href="https://staging.duel.tools" target="_blank" rel="noopener">
                             staging.duel.tools
-                        </Link>.
-                        <br/><br/>
-                        I am a Mechatronic engineer and have always had a passion for yugioh. I found that a lot of simulators in the yugioh community
-                        just did not support the complexity that is yugioh. I wanted to make a simulator that could support the complexity of yugioh and
-                        present it in a simple way. This project was a learning experience for me in developing a client side web application using React and
-                        Typescript. If you have any suggestions or encounter any bugs, please feel free to reach out to me on {' '}
+                        </Link>. If you have any suggestions or encounter any bugs, please feel free to reach out to me on {' '}
                         <Link href="https://github.com/CodeFatherG/probi-oh" target="_blank" rel="noopener">
                             Github
                         </Link>.

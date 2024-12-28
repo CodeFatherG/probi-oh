@@ -1,4 +1,3 @@
-// Define the structure of a card
 export interface CardInformation {
     readonly id: number;
     readonly name: string;
@@ -10,6 +9,7 @@ export interface CardInformation {
     readonly race: string;
     readonly attribute?: string;
     readonly archetype?: string;
+    readonly card_prices?: Record<string, string>[];
     readonly card_images: {
         readonly id: number;
         readonly image_url: string;

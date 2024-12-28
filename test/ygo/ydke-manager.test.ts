@@ -1,5 +1,5 @@
 import ydkeManager from '@ygo/ydke-manager'; // Adjust the import path as needed
-import { getCardById, getCardByName } from '@ygo/card-api';
+import { getCard } from '@ygo/card-api';
 import { getCardDetails } from '@ygo/details-provider';
 import { CardInformation } from '@ygo/card-information';
 import { CardDetails } from '@server/card-details';
@@ -12,8 +12,7 @@ jest.mock('@ygo/details-provider');
 
 describe('YDKE Manager', () => {
     // Mock implementations
-    const mockGetCardById = getCardById as jest.MockedFunction<typeof getCardById>;
-    const mockGetCardByName = getCardByName as jest.MockedFunction<typeof getCardByName>;
+    const mockGetCard = getCard as jest.MockedFunction<typeof getCard>;
     const mockGetCardDetails = getCardDetails as jest.MockedFunction<typeof getCardDetails>;
 
     beforeEach(() => {
@@ -33,7 +32,7 @@ describe('YDKE Manager', () => {
             };
             const mockCardDetails1: CardDetails = { tags: ['Monster', 'Normal'] };
 
-            mockGetCardById
+            mockGetCard
                 .mockResolvedValueOnce(mockCardInfo1)
             mockGetCardDetails
                 .mockResolvedValueOnce(mockCardDetails1)
@@ -42,7 +41,7 @@ describe('YDKE Manager', () => {
 
             expect(result.deck.size).toBe(1);
             expect(result.deck.get('Blue-Eyes White Dragon')).toEqual({ qty: 1, tags: ['Monster', 'Normal'] });
-            expect(mockGetCardById).toHaveBeenCalledTimes(1);
+            expect(mockGetCard).toHaveBeenCalledTimes(1);
             expect(mockGetCardDetails).toHaveBeenCalledTimes(1);
         });
 
@@ -68,7 +67,7 @@ describe('YDKE Manager', () => {
             const mockCardDetails2: CardDetails = { tags: ['Monster', 'Normal'] };
 
             // 2x Blue eyes, 1x Dark Magician
-            mockGetCardById
+            mockGetCard
                 .mockResolvedValueOnce(mockCardInfo1)
                 .mockResolvedValueOnce(mockCardInfo1)
                 .mockResolvedValueOnce(mockCardInfo2)
@@ -83,7 +82,7 @@ describe('YDKE Manager', () => {
             expect(result.deck.size).toBe(2);
             expect(result.deck.get('Blue-Eyes White Dragon')?.qty).toEqual(2);
             expect(result.deck.get('Dark Magician')?.qty).toEqual(1);
-            expect(mockGetCardById).toHaveBeenCalledTimes(3);
+            expect(mockGetCard).toHaveBeenCalledTimes(3);
             expect(mockGetCardDetails).toHaveBeenCalledTimes(2);
         });
 
@@ -99,7 +98,7 @@ describe('YDKE Manager', () => {
             };
             const mockCardDetails1: CardDetails = { tags: ['Monster', 'Normal'] };
 
-            mockGetCardById
+            mockGetCard
                 .mockResolvedValueOnce(mockCardInfo1)
             mockGetCardDetails
                 .mockResolvedValueOnce(mockCardDetails1)
@@ -108,7 +107,7 @@ describe('YDKE Manager', () => {
 
             expect(result.deck.size).toBe(1);
             expect(result.deck.get('Blue-Eyes White Dragon')).toEqual({ qty: 1, tags: ['Monster', 'Normal'] });
-            expect(mockGetCardById).toHaveBeenCalledTimes(1);
+            expect(mockGetCard).toHaveBeenCalledTimes(1);
             expect(mockGetCardDetails).toHaveBeenCalledTimes(1);
         });
 
@@ -137,13 +136,13 @@ describe('YDKE Manager', () => {
                 ['Blue-Eyes White Dragon', { qty: 1, tags: ['Monster', 'Normal'] }],
             ]);
 
-            mockGetCardByName
+            mockGetCard
                 .mockResolvedValueOnce({ id: 89631139, name: 'Blue-Eyes White Dragon' } as CardInformation)
 
             const result = await ydkeManager.exportDeckToString(mockDeck);
 
             expect(result).toBe('ydke://o6lXBQ==!!!');
-            expect(mockGetCardByName).toHaveBeenCalledTimes(1);
+            expect(mockGetCard).toHaveBeenCalledTimes(1);
         });
 
         it('should export a deck to a valid YDKE string', async () => {
@@ -152,14 +151,14 @@ describe('YDKE Manager', () => {
                 ['Dark Magician', { qty: 1, tags: ['Monster', 'Normal'] }]
             ]);
 
-            mockGetCardByName
+            mockGetCard
                 .mockResolvedValueOnce({ id: 89631139, name: 'Blue-Eyes White Dragon' } as CardInformation)
                 .mockResolvedValueOnce({ id: 46986414, name: 'Dark Magician' } as CardInformation);
 
             const result = await ydkeManager.exportDeckToString(mockDeck);
 
             expect(result).toBe('ydke://o6lXBaOpVwWu9MwC!!!');
-            expect(mockGetCardByName).toHaveBeenCalledTimes(2);
+            expect(mockGetCard).toHaveBeenCalledTimes(2);
         });
 
         it('should handle errors when fetching card information', async () => {
@@ -168,7 +167,7 @@ describe('YDKE Manager', () => {
                 ['Nonexistent Card', { qty: 1, tags: ['Monster'] }]
             ]);
 
-            mockGetCardByName
+            mockGetCard
                 .mockResolvedValueOnce({ id: 89631139, name: 'Blue-Eyes White Dragon' } as CardInformation)
                 .mockResolvedValueOnce(null);
 
@@ -178,7 +177,7 @@ describe('YDKE Manager', () => {
 
             expect(result).toBe('ydke://o6lXBQ==!!!');
             expect(consoleSpy).toHaveBeenCalledWith('No card found for name Nonexistent Card');
-            expect(mockGetCardByName).toHaveBeenCalledTimes(2);
+            expect(mockGetCard).toHaveBeenCalledTimes(2);
 
             consoleSpy.mockRestore();
         });
@@ -205,13 +204,13 @@ describe('YDKE Manager', () => {
                 conditions: []
             };
 
-            mockGetCardByName
+            mockGetCard
                 .mockResolvedValueOnce({ id: 89631139, name: 'Blue-Eyes White Dragon' } as CardInformation);
 
             const result = await ydkeManager.exportSimulationToString(mockSimulation);
 
             expect(result).toBe('ydke://o6lXBQ==!!!');
-            expect(mockGetCardByName).toHaveBeenCalledTimes(1);
+            expect(mockGetCard).toHaveBeenCalledTimes(1);
         });
 
         it('should handle empty deck', async () => {
@@ -223,7 +222,7 @@ describe('YDKE Manager', () => {
             const result = await ydkeManager.exportSimulationToString(mockSimulation);
 
             expect(result).toBe('ydke://!!!');
-            expect(mockGetCardByName).not.toHaveBeenCalled();
+            expect(mockGetCard).not.toHaveBeenCalled();
         });
     });
 });

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogTitle, TextField, Button, Box, IconButton } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Dialog, DialogContent, DialogTitle, TextField, Button, Box, IconButton, Autocomplete } from '@mui/material';
 import InfoDialog from './InfoDialog';
 import { Info } from '@mui/icons-material';
 import { getSettings, saveSettings, Settings } from './settings';
 import { useNavigate } from 'react-router-dom';
 import { persistUserId } from '../../analytics/user-id';
+import { getCurrencies } from '@/currency/currency';
 
 interface SettingsDialogProps {
     open: boolean;
@@ -14,7 +15,16 @@ interface SettingsDialogProps {
 export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     const [infoOpen, setInfoOpen] = useState(false);
     const [settings, setSettings] = useState<Settings>(getSettings());
+    const [currencies, setCurrencies] = useState<string[]>([]);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchCurrencies = async () => {
+            const currencies = await getCurrencies();
+            setCurrencies(currencies);
+        }
+        fetchCurrencies();
+    }, [open]);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
@@ -96,6 +106,16 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                                 handleSave();
                             }
                         }}
+                    />
+                    <Autocomplete
+                        options={currencies}
+                        value={settings.selectedCurrency}
+                        onChange={(event, value) => {
+                            if (value) {
+                                settings.selectedCurrency = value;
+                            }
+                        }}
+                        renderInput={(params) => <TextField {...params} label="Currency" />}
                     />
                     <Button 
                         onClick={() => {

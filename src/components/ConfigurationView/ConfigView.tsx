@@ -4,7 +4,6 @@ import CardTable from "../CardTable/CardTable";
 import ConditionList from "../ConditionList/ConditionList";
 import { CardDetails } from "@server/card-details";
 import LoadingOverlay from "./LoadingOverlay";
-import { getCardByName } from "@ygo/card-api";
 import { getCardDetails } from "@ygo/details-provider";
 import { parseCondition } from "@server/parser";
 import { SimulationInput } from "@server/simulation-input";
@@ -16,6 +15,7 @@ import { ClipboardInput, FileInput } from "./IO/ImportButtons";
 import {ClipboardOutput, FileOutput} from "./IO/ExportButtons";
 import { getDeckName } from "@/ygo/archetype";
 import { saveAs } from "file-saver";
+import { getCard } from "@/ygo/card-api";
 
 interface ConfigBuilderProps {
     cardData: Map<string, CardDetails>;
@@ -117,7 +117,7 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
         }
 
         let cardDetails: CardDetails = {qty: 1};
-        const cardInfo = await getCardByName(name);
+        const cardInfo = await getCard(name);
 
         if (cardInfo !== null) {
             // We have Card Info, lets make some populated data

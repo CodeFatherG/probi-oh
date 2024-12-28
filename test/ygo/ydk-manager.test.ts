@@ -1,5 +1,5 @@
 import ydkManager from '@ygo/ydk-manager';
-import { getCardById, getCardByName } from '@ygo/card-api';
+import { getCard } from '@ygo/card-api';
 import { getCardDetails } from '@ygo/details-provider';
 import { CardDetails } from '@server/card-details';
 import { CardInformation } from '@ygo/card-information';
@@ -61,8 +61,7 @@ class MockFileReader implements Partial<FileReader> {
 
 describe('YDK Manager', () => {
     // Mock implementations
-    const mockGetCardById = getCardById as jest.MockedFunction<typeof getCardById>;
-    const mockGetCardByName = getCardByName as jest.MockedFunction<typeof getCardByName>;
+    const mockGetCard = getCard as jest.MockedFunction<typeof getCard>;
     const mockGetCardDetails = getCardDetails as jest.MockedFunction<typeof getCardDetails>;
 
     beforeEach(() => {
@@ -96,7 +95,7 @@ describe('YDK Manager', () => {
             const mockCardDetails1: CardDetails = { tags: ['Monster'] };
             const mockCardDetails2: CardDetails = { tags: ['Spell'] };
 
-            mockGetCardById
+            mockGetCard
                 .mockResolvedValueOnce(mockCardInfo1)
                 .mockResolvedValueOnce(mockCardInfo2);
             mockGetCardDetails
@@ -108,7 +107,7 @@ describe('YDK Manager', () => {
             expect(result.deck.size).toBe(2);
             expect(result.deck.get('Card 1')).toEqual({qty: 1, tags: ['Monster']});
             expect(result.deck.get('Card 2')).toEqual({qty: 1, tags: ['Spell']});
-            expect(mockGetCardById).toHaveBeenCalledTimes(2);
+            expect(mockGetCard).toHaveBeenCalledTimes(2);
             expect(mockGetCardDetails).toHaveBeenCalledTimes(2);
         });
 
@@ -124,7 +123,7 @@ describe('YDK Manager', () => {
             const result = await ydkManager.importFromString(emptyMainDeckYdk);
 
             expect(result.deck.size).toBe(0);
-            expect(mockGetCardById).not.toHaveBeenCalled();
+            expect(mockGetCard).not.toHaveBeenCalled();
             expect(mockGetCardDetails).not.toHaveBeenCalled();
         });
 
@@ -148,7 +147,7 @@ describe('YDK Manager', () => {
             };
             const mockCardDetails: CardDetails = { tags: ['Monster'] };
 
-            mockGetCardById
+            mockGetCard
                 .mockResolvedValueOnce(mockCardInfo1)
                 .mockResolvedValueOnce(mockCardInfo2);
             mockGetCardDetails.mockResolvedValue(mockCardDetails);
@@ -156,14 +155,14 @@ describe('YDK Manager', () => {
             const result = await ydkManager.importFromString(ydkWithInvalidId);
 
             expect(result.deck.size).toBe(2);
-            expect(mockGetCardById).toHaveBeenCalledTimes(2);
+            expect(mockGetCard).toHaveBeenCalledTimes(2);
             expect(mockGetCardDetails).toHaveBeenCalledTimes(2);
         });
 
         it('should handle errors when fetching card information', async () => {
             const validYdkString = '#created by...\n#main\n12345\n67890\n#extra\n!side\n';
-            mockGetCardById.mockRejectedValueOnce(new Error('API Error'));
-            mockGetCardById.mockResolvedValueOnce({
+            mockGetCard.mockRejectedValueOnce(new Error('API Error'));
+            mockGetCard.mockResolvedValueOnce({
                 id: 67890,
                 name: 'Card 2',
                 type: 'Spell',
@@ -192,7 +191,7 @@ describe('YDK Manager', () => {
                 ['Card 2', { qty: 1, tags: ['Spell'] }],
             ]);
 
-            mockGetCardByName
+            mockGetCard
                 .mockResolvedValueOnce({
                     id: 12345,
                     name: 'Card 1',
@@ -213,7 +212,7 @@ describe('YDK Manager', () => {
             const result = await ydkManager.exportDeckToString(mockCards);
 
             expect(result).toBe('#Created by Probi-Oh\n#tags=\n#main\n12345\n67890\n#extra\n!side\n');
-            expect(mockGetCardByName).toHaveBeenCalledTimes(2);
+            expect(mockGetCard).toHaveBeenCalledTimes(2);
         });
 
         it('should serialise cards with multiple qty to YDK string format', async () => {
@@ -222,7 +221,7 @@ describe('YDK Manager', () => {
                 ['Card 2', { qty: 1, tags: ['Spell'] }],
             ]);
 
-            mockGetCardByName
+            mockGetCard
                 .mockResolvedValueOnce({
                     id: 12345,
                     name: 'Card 1',
@@ -243,7 +242,7 @@ describe('YDK Manager', () => {
             const result = await ydkManager.exportDeckToString(mockCards);
 
             expect(result).toBe('#Created by Probi-Oh\n#tags=\n#main\n12345\n12345\n67890\n#extra\n!side\n');
-            expect(mockGetCardByName).toHaveBeenCalledTimes(2);
+            expect(mockGetCard).toHaveBeenCalledTimes(2);
         });
 
         it('should handle errors when fetching card information', async () => {
@@ -252,7 +251,7 @@ describe('YDK Manager', () => {
                 ['Card 2', { qty:1, tags: ['Spell'] }],
             ]);
 
-            mockGetCardByName
+            mockGetCard
                 .mockResolvedValueOnce({
                     id: 12345,
                     name: 'Card 1',
@@ -279,7 +278,7 @@ describe('YDK Manager', () => {
             const result = await ydkManager.exportDeckToString(emptyCards);
 
             expect(result).toBe('#Created by Probi-Oh\n#tags=\n#main\n#extra\n!side\n');
-            expect(mockGetCardByName).not.toHaveBeenCalled();
+            expect(mockGetCard).not.toHaveBeenCalled();
         });
     });
 });

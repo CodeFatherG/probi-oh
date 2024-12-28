@@ -1,7 +1,7 @@
 // card-api.ts
 
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { CardInformation } from './card-information';
+import { CardInformation } from '@ygo/card-information';
 
 /**
  * Represents the response from the Yu-Gi-Oh! API.
@@ -20,20 +20,6 @@ interface ApiResponse {
  */
 interface CardDataSchema extends DBSchema {
     /**
-     * The cards stored in the database.
-     */
-    cards: {
-        /**
-         * The key of the card.
-         */
-        key: string;
-        /**
-         * The Card Information.
-         */
-        value: CardInformation;
-    };
-
-    /**
      * The images stored in the database.
      */
     images: {
@@ -47,21 +33,6 @@ interface CardDataSchema extends DBSchema {
          */
         value: Blob;
     };
-
-    /**
-     * The archetypes stored in the database.
-     */
-    archetypes: {
-        /**
-         * The key of the archetypes.
-         */
-        key: string;
-        
-        /**
-         * The archetypes.
-         */
-        value: string[];
-    };
 }
 
 let dbInstance: IDBPDatabase<CardDataSchema> | null = null;
@@ -72,16 +43,10 @@ let dbInstance: IDBPDatabase<CardDataSchema> | null = null;
  */
 async function initDB(): Promise<IDBPDatabase<CardDataSchema>> {
     if (!dbInstance) {
-        dbInstance = await openDB<CardDataSchema>('YuGiOhDB', 2, {
+        dbInstance = await openDB<CardDataSchema>('YuGiOhDB', 3, {
             upgrade(db) {
-                if (!db.objectStoreNames.contains('cards')) {
-                    db.createObjectStore('cards');
-                }
                 if (!db.objectStoreNames.contains('images')) {
                     db.createObjectStore('images');
-                }
-                if (!db.objectStoreNames.contains('archetypes')) {
-                    db.createObjectStore('archetypes');
                 }
             },
         });
@@ -96,28 +61,33 @@ async function initDB(): Promise<IDBPDatabase<CardDataSchema>> {
  * @param fetcher The fetch function to use.
  * @returns {Promise<CardInformation | null>} The card information.
  */
-async function getCardInformation(url: URL, db: IDBPDatabase<CardDataSchema>, fetcher = fetch): Promise<CardInformation | null> {
+async function getCardInformation(
+    url: URL,
+    db: IDBPDatabase<CardDataSchema>,
+    fetcher = fetch
+): Promise<CardInformation | null> {
     try {
         const response = await fetcher(url);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data: ApiResponse = await response.json();
+        const info: ApiResponse = await response.json();
 
-        if (data.data && data.data.length > 0) {
-            const card = data.data[0];
-            await db.put('cards', card, card.id.toString());
-            await db.put('cards', card, card.name);
+        if (info && info.data.length > 0) {
+            const card = info.data[0];
             return card;
         } else {
             console.error(`No card found at ${url}`);
             return null;
         }
     } catch (error) {
-        console.error('Error fetching card data:', error);
+        console.error("Error fetching card data:", error);
         return null;
     }
 }
+
+
+
 
 /**
  * Gets card information by ID.
@@ -126,12 +96,9 @@ async function getCardInformation(url: URL, db: IDBPDatabase<CardDataSchema>, fe
  * @param dbFactory The database factory function.
  * @returns {Promise<CardInformation | null>} The card information.
  */
-export async function getCardById(id: number, fetcher = fetch, dbFactory = initDB): Promise<CardInformation | null> {
+async function getCardById(id: number, fetcher = fetch, dbFactory = initDB): Promise<CardInformation | null> {
     const db = await dbFactory();
     
-    const cachedCard = await db.get('cards', id.toString()) ?? null;
-    if (cachedCard) return cachedCard;
-
     const url = new URL('https://db.ygoprodeck.com/api/v7/cardinfo.php');
     url.searchParams.append('id', id.toString());
 
@@ -145,28 +112,36 @@ export async function getCardById(id: number, fetcher = fetch, dbFactory = initD
  * @param dbFactory The database factory function.
  * @returns {Promise<CardInformation | null>} The card information.
  */
-export async function getCardByName(name: string, fetcher = fetch, dbFactory = initDB): Promise<CardInformation | null> {
+async function getCardByName(name: string, fetcher = fetch, dbFactory = initDB): Promise<CardInformation | null> {
     const db = await dbFactory();
     
-    const cachedCard = await db.get('cards', name) ?? null;
-    if (cachedCard) return cachedCard;
-
     const url = new URL('https://db.ygoprodeck.com/api/v7/cardinfo.php');
     url.searchParams.append('name', name);
 
     return await getCardInformation(url, db, fetcher);
 }
 
+export async function getCard(idOrName: string | number, fetcher = fetch, dbFactory = initDB): Promise<CardInformation | null> {
+    let card: CardInformation | null = null;
+
+    if (typeof idOrName === 'number') {
+        card = await getCardById(idOrName, fetcher, dbFactory);
+    } else {
+        card = await getCardByName(idOrName, fetcher, dbFactory);
+    }
+
+    console.log(card);
+    
+    return card;
+}
+
 /**
  * Searches for cards using a fuzzy search query.
  * @param query The query to search for.
  * @param fetcher The fetch function to use.
- * @param dbFactory The database factory function.
  * @returns {Promise<CardInformation[]>} The card information.
  */
-export async function fuzzySearchCard(query: string, fetcher = fetch, dbFactory = initDB): Promise<CardInformation[]> {
-    const db = await dbFactory();
-
+export async function fuzzySearchCard(query: string, fetcher = fetch): Promise<CardInformation[]> {
     const url = new URL('https://db.ygoprodeck.com/api/v7/cardinfo.php');
     url.searchParams.append('fname', query);
 
@@ -175,14 +150,10 @@ export async function fuzzySearchCard(query: string, fetcher = fetch, dbFactory 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data: ApiResponse = await response.json();
+        const info: ApiResponse = await response.json();
 
-        if (data.data && data.data.length > 0) {
-            await Promise.all(data.data.map(async (card) => {
-                await db.put('cards', card, card.id.toString());
-                await db.put('cards', card, card.name);
-            }));
-            return data.data;
+        if (info && info.data.length > 0) {
+            return info.data;
         } else {
             console.error(`No cards found matching query ${query}`);
             return [];
@@ -236,16 +207,10 @@ export async function getCardImage(idOrName: number | string,
  */
 export async function clearCardDatabase(dbFactory = initDB): Promise<void> {
     const db = await dbFactory();
-    await db.clear('cards');
     await db.clear('images');
 }
 
-export async function getArchetypes(fetcher = fetch, dbFactory = initDB): Promise<string[]> {
-    const db = await dbFactory();
-    
-    const cachedArchetypes = await db.get('archetypes', 'all');
-    if (cachedArchetypes) return cachedArchetypes;
-
+export async function getArchetypes(fetcher = fetch): Promise<string[]> {
     const url = new URL('https://db.ygoprodeck.com/api/v7/archetypes.php');
 
     try {
@@ -255,7 +220,6 @@ export async function getArchetypes(fetcher = fetch, dbFactory = initDB): Promis
         }
         const data: { archetype_name: string }[] = await response.json();
         const archetypes = data.map(item => item.archetype_name);
-        await db.put('archetypes', archetypes, 'all');
         return archetypes;
     } catch (error) {
         console.error('Error fetching archetypes:', error);

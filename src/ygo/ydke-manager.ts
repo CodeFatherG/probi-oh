@@ -2,8 +2,8 @@ import { CardDetails } from "@server/card-details";
 import { BaseCondition } from "@server/condition";
 import { DataFileManager } from "@server/data-file";
 import { SimulationInput } from "@server/simulation-input";
-import { getCardById, getCardByName } from "./card-api";
 import { getCardDetails } from "./details-provider";
+import { getCard } from "./card-api";
 
 class YdkeManager implements DataFileManager {
     private static instance: YdkeManager;
@@ -49,7 +49,7 @@ class YdkeManager implements DataFileManager {
         // Fetch card details and build the deck object
         for (const id of mainDeckIds) {
             try {
-                const cardInfo = await getCardById(id);
+                const cardInfo = await getCard(id);
 
                 if (!cardInfo) {
                     console.error(`No card found for ID ${id}`);
@@ -88,7 +88,7 @@ class YdkeManager implements DataFileManager {
         const cardIds: number[] = [];
         for (const [name, details] of deck) {
             try {
-                const info = await getCardByName(name);
+                const info = await getCard(name);
 
                 if (!info) {
                     console.error(`No card found for name ${name}`);
