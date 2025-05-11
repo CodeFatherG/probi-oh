@@ -2,9 +2,9 @@ import ydkeManager from '@ygo/ydke-manager'; // Adjust the import path as needed
 import { getCard } from '@ygo/card-api';
 import { getCardDetails } from '@ygo/details-provider';
 import { CardInformation } from '@ygo/card-information';
-import { CardDetails } from '@server/card-details';
-import { SimulationInput } from '@server/simulation-input';
-import { BaseCondition, Condition } from '@server/condition';
+import { CardDetails } from '@probi-oh/types';
+import { SimulationInput } from '@probi-oh/types';
+import { BaseCondition, Condition } from '@probi-oh/core/src/condition';
 
 // Mock the imported functions
 jest.mock('@ygo/card-api');

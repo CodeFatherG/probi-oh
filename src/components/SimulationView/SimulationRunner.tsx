@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import Button from '@mui/material/Button';
-import { CardDetails } from '@server/card-details';
-import { BaseCondition } from '@server/condition';
-import { Simulation } from '@server/simulation';
-import { buildDeck, Deck } from '@server/deck';
-import { GameState } from '@server/game-state';
+import { CardDetails } from '@probi-oh/types';
+import { BaseCondition } from '@probi-oh/core/src/condition';
+import { Simulation } from '@probi-oh/core/src/simulation';
+import { buildDeck, Deck } from '@probi-oh/core/src/deck';
+import { GameState } from '@probi-oh/core/src/game-state';
 import ResultDisplay from './ResultDisplay';
-import { Report, generateReport } from '@server/report';
+import { Report, generateReport } from '@probi-oh/core/src/report';
 import { Box, LinearProgress, Stack } from '@mui/material';
-import { parseCondition } from '@server/parser';
+import { parseCondition } from '@probi-oh/core/src/parser';
 import { recordSimulation } from '../../db/simulations/post';
 import { getSettings } from '../Settings/settings';
 

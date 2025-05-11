@@ -1,4 +1,4 @@
-import { CardDetails, CostType, ConditionType, RestrictionType } from '@server/card-details';
+import { CardDetails, CostType, ConditionType, RestrictionType } from '@probi-oh/types';
 import {CardInformation} from '@ygo/card-information';
 import { getCardDetails } from '@ygo/details-provider';
 import { handTrapMap } from '@ygo/handtrap-map';

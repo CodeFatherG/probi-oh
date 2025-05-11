@@ -1,7 +1,7 @@
-import { CardDetails } from "@server/card-details";
-import { BaseCondition } from "@server/condition";
-import { DataFileManager } from "@server/data-file";
-import { SimulationInput } from "@server/simulation-input";
+import { CardDetails } from "@probi-oh/types";
+import { BaseCondition } from "@probi-oh/core/src/condition";
+import { DataFileManager } from "@probi-oh/core/src/data-file";
+import { SimulationInput } from "@probi-oh/types";
 import { getCardDetails } from "./details-provider";
 import { getCard } from "./card-api";
 

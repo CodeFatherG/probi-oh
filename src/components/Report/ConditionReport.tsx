@@ -1,10 +1,10 @@
 import React from 'react';
-import { Report, ConditionStats } from '@server/report';
+import { SimulationOutput, ConditionStats } from '@probi-oh/types';
 import { Collapse, List, ListItemButton, ListItemText, Typography } from '@mui/material';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
 
 interface ConditionDisplayProps {
-    report: Report;
+    report: SimulationOutput;
 }
 
 interface ConditionReportProps {

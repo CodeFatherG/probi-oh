@@ -1,4 +1,4 @@
-import { CardDetails } from '@server/card-details';
+import { CardDetails } from '@probi-oh/types';
 import { CardInformation } from '@ygo/card-information';
 import { freeCardMap } from '@ygo/free-card-map';
 import { handTrapMap } from '@ygo/handtrap-map';

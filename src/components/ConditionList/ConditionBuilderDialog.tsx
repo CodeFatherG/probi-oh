@@ -7,8 +7,8 @@ import {
 } from '@mui/material';
 import { Remove, DragIndicator } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { parseCondition } from '@server/parser';
-import { AndCondition, BaseCondition, Condition, LocationConditionTarget, OrCondition } from '@server/condition';
+import { parseCondition } from '@probi-oh/core/src/parser';
+import { AndCondition, BaseCondition, Condition, LocationConditionTarget, OrCondition } from '@probi-oh/core/src/condition';
 
 interface ConditionBuilderDialogProps {
     open: boolean;

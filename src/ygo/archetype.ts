@@ -1,4 +1,4 @@
-import { CardDetails } from "@server/card-details";
+import { CardDetails } from "@probi-oh/types";
 import { getArchetypes } from "./card-api";
 
 export async function getDeckArchetypes(cards: Map<string, CardDetails>): Promise<Record<string, [string, CardDetails][]>> {

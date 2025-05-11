@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Box, Checkbox, Collapse, FormControlLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, Toolbar, Typography } from '@mui/material';
-import { CardStats, Report } from '@server/report';
+import { CardStats, SimulationOutput } from '@probi-oh/types';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import { getSettings } from '../Settings/settings';
 
@@ -10,7 +10,7 @@ const getTotalHandsSeen = (stats: CardStats) => Object.values(stats.seenCount).r
 const getOverallSeenCount = (stats: Record<string, CardStats>) => Object.values(stats).reduce((acc, stats) => acc + getTotalSeenCount(stats), 0);
 
 interface CardStatsTableProps {
-    report: Report;
+    report: SimulationOutput;
 }
 
 interface CardStatsRowProps {

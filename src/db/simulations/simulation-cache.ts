@@ -1,5 +1,5 @@
-import { CardDetails } from "@server/card-details";
-import { SimulationInput } from "@server/simulation-input";
+import { CardDetails } from "@probi-oh/types";
+import { SimulationInput } from "@probi-oh/types";
 import { getSimulationData, SimulationData } from "./get";
 
 interface CacheEntry {

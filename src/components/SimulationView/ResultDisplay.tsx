@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Paper, Stack, Typography } from '@mui/material';
-import { Report } from '@server/report';
+import { Report } from '@probi-oh/core/src/report';
 import ReportDisplay from '../Report/ReportDisplay';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
 

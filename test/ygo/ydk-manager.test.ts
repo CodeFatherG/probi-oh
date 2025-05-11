@@ -1,7 +1,7 @@
 import ydkManager from '@ygo/ydk-manager';
 import { getCard } from '@ygo/card-api';
 import { getCardDetails } from '@ygo/details-provider';
-import { CardDetails } from '@server/card-details';
+import { CardDetails } from '@probi-oh/types';
 import { CardInformation } from '@ygo/card-information';
 
 // Mock the imported functions

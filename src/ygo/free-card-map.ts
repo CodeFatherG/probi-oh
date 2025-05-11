@@ -1,4 +1,4 @@
-import { ConditionType, CostType, FreeCardDetails, RestrictionType } from "@server/card-details";
+import { ConditionType, CostType, FreeCardDetails, RestrictionType } from "@probi-oh/types";
 
 export const freeCardMap: Record<string, FreeCardDetails> = {
     'Pot of Desires': {
