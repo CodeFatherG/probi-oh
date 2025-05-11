@@ -4,6 +4,7 @@ import { ChevronLeft, Menu } from "@mui/icons-material";
 import SimulationSummary from "./SimulationSummary";
 import { simulationEventManager } from "../../db/simulations/simulation-event-manager";
 import useLocalStorage from "../../hooks/useLocalStorage";
+import { isConsentGiven } from "@/analytics/cookieConsent";
 
 interface SimulationDrawerProps {
     onApply: (simulationId: string) => void;
@@ -17,10 +18,12 @@ export default function SimulationDrawer({ onApply }: SimulationDrawerProps): JS
 
     useEffect(() => {
         const callback = (simulationId: string) => {
-            console.log('New simulation added:', simulationId);
-            console.log('Current simulations:', simulations);
-            const updatedSimulations = [simulationId, ...simulations.slice(0, 9)];
-            setSimulations(updatedSimulations);
+            if (isConsentGiven()) {
+                console.log('New simulation added:', simulationId);
+                console.log('Current simulations:', simulations);
+                const updatedSimulations = [simulationId, ...simulations.slice(0, 9)];
+                setSimulations(updatedSimulations);
+            }
         };
     
         simulationEventManager.registerCallback(callback);

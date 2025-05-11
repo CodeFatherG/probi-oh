@@ -15,11 +15,18 @@ import SimulationDrawer from '@components/SimulationDrawer/SimulationDrawer';
 import { simulationCache } from '@/db/simulations/simulation-cache';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { simulationEventManager } from '@/db/simulations/simulation-event-manager';
+import { acceptAllCookies, acceptNecessaryCookies, isConsentGiven } from './analytics/cookieConsent';
+import CookieConsentDialog from './analytics/CookieConsentDialog';
 
 export default function App() {
-    const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
-    const [conditionData, setConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
+    const [cardData, setCardData] = isConsentGiven() ? 
+                                        useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>()) : 
+                                        useState(new Map<string, CardDetails>());
+    const [conditionData, setConditionData] = isConsentGiven() ? 
+                                                useLocalStorage<string[]>("conditionDataStore", []) : 
+                                                useState<string[]>([]);
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const [cookieConsentOpen, setCookieConsentOpen] = useState(isConsentGiven() === false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -33,7 +40,9 @@ export default function App() {
 
     useEffect(() => {
         simulationEventManager.registerCallback((id: string) => {
-            navigate(`?id=${id}`, { replace: true });
+            if (isConsentGiven()) {
+                navigate(`?id=${id}`, { replace: true });
+            }
         })
     }, []);
 
@@ -76,7 +85,7 @@ export default function App() {
                         onConditionsUpdate={handleConditionsUpdate}
                     />
                     <SimulationRunner
-                        disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0}
+                        disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0 || cookieConsentOpen}
                         cards={cardData}
                         conditions={conditionData}
                     />
@@ -104,6 +113,18 @@ export default function App() {
             <GitLink link="https://github.com/CodeFatherG/probi-oh" text="Visit us on Github!" />
             <MobileDialog />
             <SimulationDrawer onApply={handleApplySimulation}/>
+            <CookieConsentDialog
+                open={cookieConsentOpen}
+                onConsent={(type) => {
+                    if (type) {
+                        acceptAllCookies();
+                    } else {
+                        acceptNecessaryCookies();
+                    }
+                    
+                    setCookieConsentOpen(false);
+                }}
+            />
         </ErrorBoundary>
     );
 }

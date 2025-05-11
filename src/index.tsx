@@ -4,10 +4,7 @@ import './styles/index.css';
 import App from './App';
 import { theme } from './styles/theme';
 import { ThemeProvider } from '@emotion/react';
-import { initialiseAnalytics } from './analytics/analytics';
 import { BrowserRouter } from 'react-router-dom';
-
-initialiseAnalytics();
 
 console.log('Logging is enabled', process.env.LOG);
 if (!process.env.LOG) {
