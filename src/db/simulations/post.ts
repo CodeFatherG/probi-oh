@@ -1,6 +1,5 @@
 import { getUserId } from "../../analytics/user-id";
-import { SimulationInput } from "@probi-oh/types";
-import { Report } from "@probi-oh/core/src/report";
+import { SimulationInput, SimulationOutput } from "@probi-oh/types";
 import { v4 as uuid } from 'uuid';
 import { simulationEventManager } from './simulation-event-manager';
 
@@ -13,7 +12,7 @@ interface PostData {
     summary: string;
 }
 
-async function postSimulationData(input: SimulationInput, report: Report): Promise<string> {
+async function postSimulationData(input: SimulationInput, report: SimulationOutput): Promise<string> {
     const apiUrl = `${process.env.API_URL}/api/simulations`;
   
     try {
@@ -49,7 +48,7 @@ async function postSimulationData(input: SimulationInput, report: Report): Promi
     }
 }
 
-export async function recordSimulation(input: SimulationInput, report: Report): Promise<void> {
+export async function recordSimulation(input: SimulationInput, report: SimulationOutput): Promise<void> {
     try {
         const id = await postSimulationData(input, report);
         simulationEventManager.notifySimulationAdded(id);

@@ -6,11 +6,13 @@ import { Simulation } from '@probi-oh/core/src/simulation';
 import { buildDeck, Deck } from '@probi-oh/core/src/deck';
 import { GameState } from '@probi-oh/core/src/game-state';
 import ResultDisplay from './ResultDisplay';
-import { Report, generateReport } from '@probi-oh/core/src/report';
+import { generateReport } from '@probi-oh/core/src/report';
+import { SimulationOutput } from '@probi-oh/types';
 import { Box, LinearProgress, Stack } from '@mui/material';
 import { parseCondition } from '@probi-oh/core/src/parser';
 import { recordSimulation } from '../../db/simulations/post';
 import { getSettings } from '../Settings/settings';
+import { isConsentGiven } from '@/analytics/cookieConsent';
 
 interface SimulationRunnerProps {
     disabled: boolean;
@@ -23,9 +25,8 @@ export default function SimulationRunner({ disabled,
                                            conditions}: SimulationRunnerProps) {
     const [isSimulationRunning, setIsSimulationRunning] = useState(false);
     const [progress, setProgress] = useState(0);
-    const [reportData, setReportData] = useState<Report | null>(null);
+    const [reportData, setReportData] = useState<SimulationOutput | null>(null);
     const [successRate, setSuccessRate] = useState(0);
-
     const settings = getSettings();
 
     const simulateDraw = async (deck: Deck, 
@@ -71,7 +72,9 @@ export default function SimulationRunner({ disabled,
             const sims = await simulateDraw(deck, conditions.map(parseCondition), settings.simulationHandSize, settings.simulationIterations);
             const report = generateReport(sims);
 
-            recordSimulation({deck: cards, conditions: conditions}, report);
+            if (isConsentGiven()) {
+                recordSimulation({deck: cards, conditions: conditions}, report);
+            }
 
             setReportData(report);
             setSuccessRate(report.successfulSimulations / settings.simulationIterations);
