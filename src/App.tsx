@@ -19,8 +19,12 @@ import { acceptAllCookies, acceptNecessaryCookies, isConsentGiven } from './anal
 import CookieConsentDialog from './analytics/CookieConsentDialog';
 
 export default function App() {
-    const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
-    const [conditionData, setConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
+    const [cardData, setCardData] = isConsentGiven() ? 
+                                        useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>()) : 
+                                        useState(new Map<string, CardDetails>());
+    const [conditionData, setConditionData] = isConsentGiven() ? 
+                                                useLocalStorage<string[]>("conditionDataStore", []) : 
+                                                useState<string[]>([]);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [cookieConsentOpen, setCookieConsentOpen] = useState(isConsentGiven() === false);
     const navigate = useNavigate();
