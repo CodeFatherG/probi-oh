@@ -1,6 +1,6 @@
 import { getUserId } from "../../analytics/user-id";
-import { SimulationInput } from "@server/simulation-input";
-import { Report } from "@server/report";
+import { SimulationInput } from "@probi-oh/types";
+import { Report } from "@probi-oh/core/src/report";
 import { v4 as uuid } from 'uuid';
 import { simulationEventManager } from './simulation-event-manager';
 

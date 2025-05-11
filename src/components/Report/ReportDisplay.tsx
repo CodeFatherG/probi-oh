@@ -1,10 +1,10 @@
 import React from 'react';
-import { Report } from '@server/report';
+import { SimulationOutput } from '@probi-oh/types';
 import CardStatsTable from './CardStatsTable';
 import ConditionDisplay from './ConditionReport';
 
 interface ReportDisplayProps {
-    report: Report;
+    report: SimulationOutput;
 }
 
 export default function ReportDisplay({ report }: ReportDisplayProps) {

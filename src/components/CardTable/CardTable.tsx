@@ -8,7 +8,7 @@ import {
     Tooltip,
 } from '@mui/material';
 import { fuzzySearchCard } from '@ygo/card-api';
-import { CardDetails } from '@server/card-details';
+import { CardDetails } from '@probi-oh/types';
 import { Clear, Delete, Search } from '@mui/icons-material';
 import { DragDropContext, Draggable, Droppable, DropResult } from '@hello-pangea/dnd';
 import useLocalStorage from '../../hooks/useLocalStorage';

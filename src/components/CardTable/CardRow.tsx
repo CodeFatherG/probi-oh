@@ -3,7 +3,6 @@ import { Box, IconButton, Stack, TableCell, TableRow, TableRowProps, TextField, 
 import TagBox from "./TagBox";
 import CardImage from "./CardImage";
 import { Delete, DragIndicator } from "@mui/icons-material";
-import { CardDetails } from '@server/card-details';
 import { DraggableProvided } from "@hello-pangea/dnd";
 import CardPreview from "./CardPreview";
 import { CardInformation } from "@/ygo/card-information";
@@ -12,6 +11,7 @@ import { getSettings } from "../Settings/settings";
 import { getCard } from "@/ygo/card-api";
 import { getCurrencySymbol } from "@/currency/currency";
 import PriceSummary from "./PriceSummary";
+import { CardDetails } from "@probi-oh/types";
 
 interface CardRowProps extends TableRowProps {
     cardName: string;

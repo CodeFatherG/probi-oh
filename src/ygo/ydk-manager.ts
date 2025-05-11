@@ -1,8 +1,8 @@
-import { CardDetails } from '@server/card-details';
+import { CardDetails } from '@probi-oh/types';
 import { getCardDetails } from '@ygo/details-provider';
-import { DataFileManager } from '@server/data-file';
-import { SimulationInput } from '@server/simulation-input';
-import { BaseCondition } from '@server/condition';
+import { DataFileManager } from '@probi-oh/core/src/data-file';
+import { SimulationInput } from '@probi-oh/types';
+import { BaseCondition } from '@probi-oh/core/src/condition';
 import { getCard } from './card-api';
 
 class YdkManager implements DataFileManager {

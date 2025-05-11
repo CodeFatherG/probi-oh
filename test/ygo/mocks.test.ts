@@ -1,4 +1,4 @@
-import { CreateCard } from "@server/card";
+import { CreateCard } from "@probi-oh/core/src/card";
 import { MockDeck } from "../mock/deck.mock";
 import { MockGameState } from "../mock/game-state.mock";
 

@@ -1,3 +1,6 @@
-[submodule "server"]
-	path = server
-	url = https://github.com/CodeFatherG/probi-oh-server.git
+[submodule "types"]
+	path = types
+	url = git@github.com:CodeFatherG/probi-oh-types.git
+[submodule "core"]
+	path = core
+	url = git@github.com:CodeFatherG/probi-oh-core.git

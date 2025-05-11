@@ -1,5 +1,5 @@
-import { Card, CreateCard } from "@server/card";
-import { GameState } from "@server/game-state";
+import { Card, CreateCard } from "@probi-oh/core/src/card";
+import { GameState } from "@probi-oh/core/src/game-state";
 import { MockDeck } from "./deck.mock";
 
 export class MockGameState extends GameState {

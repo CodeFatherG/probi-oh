@@ -1,8 +1,8 @@
-import { Condition } from "@server/condition";
-import { Simulation } from "@server/simulation";
+import { Condition } from "@probi-oh/core/src/condition";
+import { Simulation } from "@probi-oh/core/src/simulation";
 import { MockGameState } from "./game-state.mock";
-import { BaseCondition } from '@server/condition';
-import { SimulationBranch } from "@server/simulation";
+import { BaseCondition } from '@probi-oh/core/src/condition';
+import { SimulationBranch } from "@probi-oh/core/src/simulation";
 
 export class MockSimulation extends Simulation {
     private mockBranches: Map<BaseCondition, SimulationBranch[]> = new Map();

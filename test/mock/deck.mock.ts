@@ -1,5 +1,5 @@
-import { Card } from "@server/card";
-import { Deck } from "@server/deck";
+import { Card } from "@probi-oh/core/src/card";
+import { Deck } from "@probi-oh/core/src/deck";
 
 export class MockDeck extends Deck {
     constructor(cards: Card[] = [], deckSize: number = 40) {

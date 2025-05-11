@@ -1,6 +1,6 @@
-import { AndCondition, Condition, OrCondition } from "@server/condition";
-import { GameState } from "@server/game-state";
-import { SimulationBranch } from "@server/simulation";
+import { AndCondition, Condition, OrCondition } from "@probi-oh/core/src/condition";
+import { GameState } from "@probi-oh/core/src/game-state";
+import { SimulationBranch } from "@probi-oh/core/src/simulation";
 
 export class MockSimulationBranch extends SimulationBranch {
     constructor(

@@ -1,10 +1,10 @@
-import { CreateCard, FreeCard } from "@server/card";
-import { Condition } from "@server/condition";
+import { CreateCard, FreeCard } from "@probi-oh/core/src/card";
+import { Condition } from "@probi-oh/core/src/condition";
 import { MockSimulationBranch } from "../mock/simulation-branch.mock";
 import { freeCardMap } from "@ygo/free-card-map";
 import { MockGameState } from "../mock/game-state.mock";
 import { MockDeck } from "../mock/deck.mock";
-import { processFreeCard } from "@server/free-card-processor";
+import { processFreeCard } from "@probi-oh/core/src/free-card-processor";
 
 describe('FreeCardMap', () => {
     let mockGameState: MockGameState;
