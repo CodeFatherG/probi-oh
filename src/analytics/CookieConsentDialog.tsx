@@ -8,7 +8,7 @@ interface CookieConsentDialogProps {
 }
 
 const CookieConsentDialog = ({ open, onConsent}: CookieConsentDialogProps) => {
-    if (!open) return (<></>);
+    if (!open) return null;
 
     return (
         <Paper
@@ -23,22 +23,26 @@ const CookieConsentDialog = ({ open, onConsent}: CookieConsentDialogProps) => {
                 zIndex: 1000,
             }}
         >
-            <Typography variant="subtitle1" gutterBottom>
-                Cookie Consent
+            <Box display="flex" justifyContent="center" alignItems="center">
+                <Typography variant="h6" gutterBottom>
+                    Cookie Consent
+                </Typography>
+            </Box>
+            <Typography variant="body2" paragraph>
+                <strong>We NEVER collect any personal or marketing information.</strong><br /><br />
             </Typography>
             <Typography variant="caption" paragraph>
-                <strong>We NEVER collect any personal or marketing information.</strong><br />
                 We collect data about your simulation for history, analytics, and sharable links. Some features may not work without cookies.
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-            <Button
+                <Button
                     variant="outlined"
                     color="secondary"
                     onClick={() => onConsent(false)}
                     startIcon={<ShieldIcon />}
                     sx={{ flexGrow: 1, mr: 1 }}
                 >
-                    Necessary Only
+                    Necessary
                 </Button>
                 <Button
                     variant="contained"
@@ -47,7 +51,7 @@ const CookieConsentDialog = ({ open, onConsent}: CookieConsentDialogProps) => {
                     startIcon={<AnalyticsIcon />}
                     sx={{ flexGrow: 1, ml: 1 }}
                 >
-                    Allow All Cookies
+                    Allow All
                 </Button>
             </Box>
         </Paper>
