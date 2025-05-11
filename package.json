@@ -11,12 +11,18 @@
       "name": "CodeFatherG"
     }
   ],
+  "private": true,
+  "workspaces": ["core", "types"],
   "directories": {
     "test": "test"
   },
   "scripts": {
     "start": "webpack serve --mode development",
     "build": "webpack --mode production",
+    "build:all": "npm run build:deps && npm run build",
+    "build:deps": "npm run build:types && npm run build:core",
+    "build:types": "npm run build -w types",
+    "build:core": "npm run build -w core",
     "test": "jest",
     "test:single": "jest -t",
     "test:coverage": "jest --coverage",
@@ -29,8 +35,10 @@
     "@everapi/freecurrencyapi-js": "^1.0.1",
     "@hello-pangea/dnd": "^16.6.0",
     "@mui/icons-material": "^5.16.7",
+    "@probi-oh/types": "^1.0.0",
+    "@probi-oh/core": "^1.0.0",
     "@types/uuid": "^10.0.0",
-    "firebase": "^10.14.0",
+    "firebase": "^11.7.1",
     "idb": "^8.0.0",
     "mui": "^0.0.1",
     "npm-gui": "^4.0.4",
