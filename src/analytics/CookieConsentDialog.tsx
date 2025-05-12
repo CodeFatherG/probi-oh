@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Button, Paper, Typography } from '@mui/material';
 import { Analytics as AnalyticsIcon, Shield as ShieldIcon } from '@mui/icons-material';
+import { Link } from 'react-router-dom';
 
 interface CookieConsentDialogProps {
     open: boolean;
@@ -29,10 +30,12 @@ const CookieConsentDialog = ({ open, onConsent}: CookieConsentDialogProps) => {
                 </Typography>
             </Box>
             <Typography variant="body2" paragraph>
-                <strong>We NEVER collect any personal or marketing information.</strong><br /><br />
+                <strong>We NEVER collect any personal or marketing information.</strong><br />
             </Typography>
             <Typography variant="caption" paragraph>
                 We collect data about your simulation for history, analytics, and sharable links. Some features may not work without cookies.
+                <br />
+                Read our <Link to="/privacy">Privacy Policy</Link> for more details.
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
                 <Button
