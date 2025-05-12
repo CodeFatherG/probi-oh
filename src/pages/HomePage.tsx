@@ -5,7 +5,7 @@ import { CardDetails } from '@probi-oh/types';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import useLocalStorageMap from '@/hooks/useLocalStorageMap';
 import ErrorBoundary from '@components/ErrorBoundary';
-import { Box, IconButton, Stack } from '@mui/material';
+import { Box, IconButton, Stack, Typography } from '@mui/material';
 import SettingsDialog from '@components/Settings/SettingsDialog';
 import SettingsIcon from '@mui/icons-material/Settings';
 import GitLink from '@components/GitLink';
@@ -17,7 +17,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { simulationEventManager } from '@/db/simulations/simulation-event-manager';
 import { acceptAllCookies, acceptNecessaryCookies, isConsentGiven } from '@/analytics/cookieConsent';
 import CookieConsentDialog from '@/analytics/CookieConsentDialog';
-import logo from '@/assets/dtlogo.png';
 
 const HomePage = () => {
     const persistentCardData = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
@@ -78,21 +77,8 @@ const HomePage = () => {
     return (
         <ErrorBoundary>
             <Box className="app">
-                <Box
-                    component="img"
-                    src={logo}
-                    alt="Logo"
-                    sx={{
-                        width: {
-                            xs: 100,
-                            sm: 150,
-                            md: 280,
-                        },
-                        height: 'auto',
-                        display: 'block',
-                        margin: 'auto',
-                    }}
-                />
+                <Typography className="heading" variant='h1' style={{paddingTop: "20px"}}>Probi-oh</Typography>
+                <Typography className="heading" variant='h4'>Yu-Gi-Oh! Probability Simulator</Typography>
                 <Stack spacing={2}>
                     <ConfigBuilder 
                         cardData={cardData}
