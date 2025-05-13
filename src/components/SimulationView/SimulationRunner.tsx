@@ -51,6 +51,11 @@ export default function SimulationRunner({ disabled,
         return () => {
             worker.onmessage = null;
             worker.onerror = null;
+            worker.terminate();
+            setIsSimulationRunning(false);
+            setProgress(0);
+            setReportData(null);
+            setSuccessRate(0);
         };
     }, []);
 
