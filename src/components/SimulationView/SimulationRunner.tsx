@@ -1,15 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
 import { CardDetails } from '@probi-oh/types';
-import { BaseCondition } from '@probi-oh/core/src/condition';
-import { Simulation } from '@probi-oh/core/src/simulation';
-import { buildDeck, Deck } from '@probi-oh/core/src/deck';
-import { GameState } from '@probi-oh/core/src/game-state';
 import ResultDisplay from './ResultDisplay';
-import { generateReport } from '@probi-oh/core/src/report';
 import { SimulationOutput } from '@probi-oh/types';
 import { Box, LinearProgress, Stack } from '@mui/material';
-import { parseCondition } from '@probi-oh/core/src/parser';
 import { recordSimulation } from '../../db/simulations/post';
 import { getSettings } from '../Settings/settings';
 
@@ -26,55 +20,50 @@ export default function SimulationRunner({ disabled,
     const [progress, setProgress] = useState(0);
     const [reportData, setReportData] = useState<SimulationOutput | null>(null);
     const [successRate, setSuccessRate] = useState(0);
+    const [worker, ] = useState(new Worker(new URL('@/workers/simulation.worker.ts', import.meta.url)));
     const settings = getSettings();
 
-    const simulateDraw = async (deck: Deck, 
-                                conditions: BaseCondition[], 
-                                handSize: number, 
-                                trials: number): Promise<Simulation[]> => {
-        const simulations: Simulation[] = [];
+    worker.onmessage = (event) => {
+        const post = JSON.parse(event.data);
 
-        for (let i = 0; i < trials; i++) {
-            // Create the game state for this trial
-            const gamestate = new GameState(deck.deepCopy());
+        console.log('worker message:', post);
 
-            // draw the hand for this trial so it is common to all conditions   
-            gamestate.drawHand(handSize);
+        // we got a mesage so the worker is running
+        setIsSimulationRunning(true);
 
-            const simulation = new Simulation(gamestate.deepCopy(), conditions);
-            simulations.push(simulation);
-
-            // Run the simulation
-            simulation.iterate();
-
-            if (i % 100 === 0 || i === trials - 1) {
-                const progress = Math.round(((i + 1) / trials) * 100);
-                setProgress(progress);
-
-                // Yield to the event loop to keep UI responsive
-                await new Promise(resolve => setTimeout(resolve, 0));
-            }
+        if (post.progress) {
+            setProgress(post.progress);
+        } else if (post.simulations) {
+            setReportData(post.simulations);
         }
+    };
 
-        return simulations
-    }
+    useEffect(() => {
+        // report data is set so we have completed the simulation
+        setIsSimulationRunning(false);
+        
+        if (!reportData) return;
 
-    const runSimulation = async () => {
+        recordSimulation({deck: cards, conditions: conditions}, reportData);
+        setSuccessRate(reportData.successfulSimulations / settings.simulationIterations);
+    }, [reportData]);
+
+    const runSimulation = () => {
         setProgress(0);
         setIsSimulationRunning(true);
         setReportData(null);
 
         try {
             console.log(`Cards: ${Array.from(cards, ([card, details]) => `${card}: ${details.qty || 1}`).join(', ')}`);
-            const deck = buildDeck(cards);
 
-            const sims = await simulateDraw(deck, conditions.map(parseCondition), settings.simulationHandSize, settings.simulationIterations);
-            const report = generateReport(sims);
-
-            recordSimulation({deck: cards, conditions: conditions}, report);
-
-            setReportData(report);
-            setSuccessRate(report.successfulSimulations / settings.simulationIterations);
+            worker.postMessage({
+                input: {
+                    deck: cards,
+                    conditions: conditions,
+                },
+                handSize: settings.simulationHandSize,
+                batchSize: settings.simulationIterations,
+            });
         } catch (err) {
             console.error('Error running simulation:', err);
         } finally {
