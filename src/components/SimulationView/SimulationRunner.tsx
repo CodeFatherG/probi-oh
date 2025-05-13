@@ -23,20 +23,22 @@ export default function SimulationRunner({ disabled,
     const [worker, ] = useState(new Worker(new URL('@/workers/simulation.worker.ts', import.meta.url)));
     const settings = getSettings();
 
-    worker.onmessage = (event) => {
-        const post = JSON.parse(event.data);
+    useEffect(() => {
+        worker.onmessage = (event) => {
+            const post = JSON.parse(event.data);
 
-        console.log('worker message:', post);
+            console.log('worker message:', post);
 
-        // we got a message so the worker is running
-        setIsSimulationRunning(true);
+            // we got a message so the worker is running
+            setIsSimulationRunning(true);
 
-        if (post.progress) {
-            setProgress(post.progress);
-        } else if (post.simulations) {
-            setReportData(post.simulations);
-        }
-    };
+            if (post.progress) {
+                setProgress(post.progress);
+            } else if (post.simulations) {
+                setReportData(post.simulations);
+            }
+        };
+    }, []);
 
     useEffect(() => {
         // report data is set so we have completed the simulation
