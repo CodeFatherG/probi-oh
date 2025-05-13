@@ -28,7 +28,7 @@ export default function SimulationRunner({ disabled,
 
         console.log('worker message:', post);
 
-        // we got a mesage so the worker is running
+        // we got a message so the worker is running
         setIsSimulationRunning(true);
 
         if (post.progress) {
@@ -41,7 +41,7 @@ export default function SimulationRunner({ disabled,
     useEffect(() => {
         // report data is set so we have completed the simulation
         setIsSimulationRunning(false);
-        
+
         if (!reportData) return;
 
         recordSimulation({deck: cards, conditions: conditions}, reportData);

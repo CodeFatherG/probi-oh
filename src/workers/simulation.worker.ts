@@ -31,10 +31,8 @@ const simulateDraw = (deck: Deck,
             // Run the simulation
             simulation.iterate();
 
-            if (i % 100 === 0 || i === trials - 1) {
-                const progress = Math.round(((i + 1) / trials) * 100);
-                self.postMessage(JSON.stringify({ progress: progress }));
-            }
+            const progress = ((i + 1) / trials) * 100;
+            self.postMessage(JSON.stringify({ progress: progress }));
         }
 
         return simulations
