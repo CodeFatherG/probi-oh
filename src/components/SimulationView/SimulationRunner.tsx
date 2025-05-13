@@ -69,10 +69,10 @@ export default function SimulationRunner({ disabled,
     }, []);
 
     useEffect(() => {
+        if (!reportData) return;
+
         // report data is set so we have completed the simulation
         setIsSimulationRunning(false);
-
-        if (!reportData) return;
 
         recordSimulation({deck: cards, conditions: conditions}, reportData);
         setSuccessRate(reportData.successfulSimulations / settings.simulationIterations);

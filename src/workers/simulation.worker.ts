@@ -34,11 +34,11 @@ const simulateDraw = (deck: Deck,
         // post an update every 100 iterations
         if (i > 0 && i % 100 === 0) {
             const progress = ((i + 1) / trials) * 100;
-            self.postMessage({ progress: progress });
+            self.postMessage({ type: "progress", progress: progress });
         }
     }
 
-    self.postMessage({ progress: 100 });
+    self.postMessage({ type: "progress", progress: 100 });
 
     return simulations
 }
@@ -46,9 +46,13 @@ const simulateDraw = (deck: Deck,
 self.onmessage = (event: MessageEvent) => {
     const { input, handSize, iterations } = event.data as SimulationWorkerMessage;
 
-    const deck = buildDeck(input.deck);
-    const sims = simulateDraw(deck, input.conditions.map(parseCondition), handSize, iterations);
-    const report = generateReport(sims);
-
-    self.postMessage({ simulations: report });
+    try {
+        const deck = buildDeck(input.deck);
+        const sims = simulateDraw(deck, input.conditions.map(parseCondition), handSize, iterations);
+        const report = generateReport(sims);
+        self.postMessage({ type: "result", simulations: report });
+    } catch (error) {
+        console.error('Error in simulation worker:', error);
+        self.postMessage({ type: "error", error: (error as Error).message });
+    }
 };
