@@ -40,10 +40,17 @@ export default function SimulationRunner({ disabled,
         };
 
         worker.onmessage = handleMessage;
+        worker.onerror = (error) => {
+            console.error('Worker error:', error);
+            setIsSimulationRunning(false);
+            setProgress(0);
+            setReportData(null);
+        };
 
         // Cleanup function to reset the listener
         return () => {
             worker.onmessage = null;
+            worker.onerror = null;
         };
     }, []);
 
