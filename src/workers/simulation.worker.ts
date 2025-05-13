@@ -45,11 +45,10 @@ const simulateDraw = (deck: Deck,
 
 self.onmessage = (event: MessageEvent) => {
     const { input, handSize, iterations } = event.data as SimulationWorkerMessage;
-    console.log(`Running simulation with ${iterations} iterations of ${handSize} hands`);
 
     const deck = buildDeck(input.deck);
     const sims = simulateDraw(deck, input.conditions.map(parseCondition), handSize, iterations);
     const report = generateReport(sims);
 
-    self.postMessage(JSON.stringify({simulations: report}));
+    self.postMessage({ simulations: report });
 };

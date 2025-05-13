@@ -25,7 +25,7 @@ export default function SimulationRunner({ disabled,
 
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
-            const post = JSON.parse(event.data);
+            const post = event.data;
 
             console.log('worker message:', post);
 
@@ -39,25 +39,16 @@ export default function SimulationRunner({ disabled,
             }
         };
 
-        worker.onmessage = handleMessage;
-        worker.onerror = (error) => {
+        const handleError = (error: ErrorEvent) => {
             console.error('Worker error:', error);
             setIsSimulationRunning(false);
             setProgress(0);
             setReportData(null);
         };
 
-        // Cleanup function to reset the listener
-        return () => {
-            worker.onmessage = null;
-            worker.onerror = null;
-            worker.terminate();
-            setIsSimulationRunning(false);
-            setProgress(0);
-            setReportData(null);
-            setSuccessRate(0);
-        };
-    }, []);
+        worker.onmessage = handleMessage;
+        worker.onerror = handleError;
+    }, [worker]);
 
     useEffect(() => {
         // report data is set so we have completed the simulation
