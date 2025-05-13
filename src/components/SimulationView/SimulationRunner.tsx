@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Button from '@mui/material/Button';
 import { CardDetails } from '@probi-oh/types';
 import ResultDisplay from './ResultDisplay';
@@ -20,10 +20,19 @@ export default function SimulationRunner({ disabled,
     const [progress, setProgress] = useState(0);
     const [reportData, setReportData] = useState<SimulationOutput | null>(null);
     const [successRate, setSuccessRate] = useState(0);
-    const [worker, ] = useState(new Worker(new URL('@/workers/simulation.worker.ts', import.meta.url)));
     const settings = getSettings();
 
+    const workerRef = useRef<Worker | null>(null);
+
     useEffect(() => {
+        // Initialize worker once
+        if (!workerRef.current) {
+            console.log('Initializing worker');
+            workerRef.current = new Worker(
+                new URL('@/workers/simulation.worker.ts', import.meta.url)
+            );
+        }
+
         const handleMessage = (event: MessageEvent) => {
             const post = event.data;
 
@@ -32,10 +41,12 @@ export default function SimulationRunner({ disabled,
             // we got a message so the worker is running
             setIsSimulationRunning(true);
 
-            if (post.progress) {
+            if (post.type === 'progress') {
                 setProgress(post.progress);
-            } else if (post.simulations) {
+            } else if (post.type === 'result') {
                 setReportData(post.simulations);
+            } else if (post.type === 'error') {
+                console.error(post.message);
             }
         };
 
@@ -46,9 +57,16 @@ export default function SimulationRunner({ disabled,
             setReportData(null);
         };
 
+        const worker = workerRef.current;
         worker.onmessage = handleMessage;
         worker.onerror = handleError;
-    }, [worker]);
+
+        return () => {
+            console.log('Terminating worker');
+            workerRef.current?.terminate();
+            workerRef.current = null;
+        };
+    }, []);
 
     useEffect(() => {
         // report data is set so we have completed the simulation
@@ -68,6 +86,9 @@ export default function SimulationRunner({ disabled,
         try {
             console.log(`Cards: ${Array.from(cards, ([card, details]) => `${card}: ${details.qty || 1}`).join(', ')}`);
 
+            const worker = workerRef.current;
+            if (!worker) return;
+
             worker.postMessage({
                 input: {
                     deck: cards,
@@ -78,8 +99,6 @@ export default function SimulationRunner({ disabled,
             });
         } catch (err) {
             console.error('Error running simulation:', err);
-        } finally {
-            setIsSimulationRunning(false);
         }
     };
 
