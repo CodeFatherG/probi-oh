@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogTitle, TextField, Button, Box, IconButton, Autocomplete, Typography, Switch, FormGroup, FormControl, FormControlLabel, Grid } from '@mui/material';
+import { Dialog, DialogContent, DialogTitle, TextField, Button, Box, IconButton, Autocomplete, Typography, Switch, Grid } from '@mui/material';
 import InfoDialog from './InfoDialog';
 import { Info } from '@mui/icons-material';
 import { getSettings, saveSettings, Settings } from './settings';
