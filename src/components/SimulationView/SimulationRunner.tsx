@@ -24,7 +24,7 @@ export default function SimulationRunner({ disabled,
     const settings = getSettings();
 
     useEffect(() => {
-        worker.onmessage = (event) => {
+        const handleMessage = (event: MessageEvent) => {
             const post = JSON.parse(event.data);
 
             console.log('worker message:', post);
@@ -37,6 +37,13 @@ export default function SimulationRunner({ disabled,
             } else if (post.simulations) {
                 setReportData(post.simulations);
             }
+        };
+
+        worker.onmessage = handleMessage;
+
+        // Cleanup function to reset the listener
+        return () => {
+            worker.onmessage = null;
         };
     }, []);
 
