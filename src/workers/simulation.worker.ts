@@ -34,11 +34,11 @@ const simulateDraw = (deck: Deck,
         // post an update every 100 iterations
         if (i > 0 && i % 100 === 0) {
             const progress = ((i + 1) / trials) * 100;
-            self.postMessage(JSON.stringify({ progress: progress }));
+            self.postMessage({ progress: progress });
         }
     }
 
-    self.postMessage(JSON.stringify({ progress: 100 }));
+    self.postMessage({ progress: 100 });
 
     return simulations
 }
