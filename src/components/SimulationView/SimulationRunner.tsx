@@ -12,7 +12,6 @@ import { Box, LinearProgress, Stack } from '@mui/material';
 import { parseCondition } from '@probi-oh/core/src/parser';
 import { recordSimulation } from '../../db/simulations/post';
 import { getSettings } from '../Settings/settings';
-import { isConsentGiven } from '@/analytics/cookieConsent';
 
 interface SimulationRunnerProps {
     disabled: boolean;
@@ -72,9 +71,7 @@ export default function SimulationRunner({ disabled,
             const sims = await simulateDraw(deck, conditions.map(parseCondition), settings.simulationHandSize, settings.simulationIterations);
             const report = generateReport(sims);
 
-            if (isConsentGiven()) {
-                recordSimulation({deck: cards, conditions: conditions}, report);
-            }
+            recordSimulation({deck: cards, conditions: conditions}, report);
 
             setReportData(report);
             setSuccessRate(report.successfulSimulations / settings.simulationIterations);

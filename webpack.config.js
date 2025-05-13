@@ -67,6 +67,7 @@ module.exports = (env, argv) => {
             static: path.join(__dirname, 'dist'),
             compress: true,
             port: 4000,
+            historyApiFallback: true
         },
     };
 };
