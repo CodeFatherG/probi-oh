@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogTitle, TextField, Button, Box, IconButton, Autocomplete } from '@mui/material';
+import { Dialog, DialogContent, DialogTitle, TextField, Button, Box, IconButton, Autocomplete, Typography, Switch, FormGroup, FormControl, FormControlLabel, Grid } from '@mui/material';
 import InfoDialog from './InfoDialog';
 import { Info } from '@mui/icons-material';
 import { getSettings, saveSettings, Settings } from './settings';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { persistUserId } from '../../analytics/user-id';
 import { getCurrencies } from '@/currency/currency';
+import { acceptAllCookies, acceptNecessaryCookies } from '@/analytics/cookieConsent';
 
 interface SettingsDialogProps {
     open: boolean;
@@ -16,6 +17,16 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     const [infoOpen, setInfoOpen] = useState(false);
     const [settings, setSettings] = useState<Settings>(getSettings());
     const [currencies, setCurrencies] = useState<string[]>([]);
+    const [isDataConsentEnabled, setDataConsentEnabled] = useState(false);
+
+    useEffect(() => {
+        if (isDataConsentEnabled) {
+            acceptAllCookies();
+        } else {
+            acceptNecessaryCookies();
+        }
+    }, [isDataConsentEnabled]);
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -52,83 +63,135 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             </Box>
             <DialogContent sx={{pt: 0}}>
                 <Box component="form" noValidate autoComplete="off">
-                    <TextField
-                        fullWidth
-                        label="Simulation Iterations"
-                        type="number"
-                        inputProps={{
-                            min: 1
-                        }}
-                        name="simulationIterations"
-                        value={settings.simulationIterations}
-                        onChange={handleChange}
-                        margin="normal"
-                        onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                                e.preventDefault(); // Prevent form submission on Enter
-                                handleSave();
-                            }
-                        }}
-                    />
-                    <TextField
-                        fullWidth
-                        label="Hand Size"
-                        type="number"
-                        inputProps={{
-                            min: 1
-                        }}
-                        name="simulationHandSize"
-                        value={settings.simulationHandSize}
-                        onChange={handleChange}
-                        margin="normal"
-                        onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                                e.preventDefault(); // Prevent form submission on Enter
-                                handleSave();
-                            }
-                        }}
-                    />
-                    <TextField
-                        fullWidth
-                        label="Precision (Max Decimal Places)"
-                        type="number"
-                        inputProps={{
-                            min: 1,
-                            max: 10
-                        }}
-                        name="statisticMaxPrecision"
-                        value={settings.statisticMaxPrecision}
-                        onChange={handleChange}
-                        margin="normal"
-                        onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                                e.preventDefault(); // Prevent form submission on Enter
-                                handleSave();
-                            }
-                        }}
-                    />
-                    <Autocomplete
-                        options={currencies}
-                        value={settings.selectedCurrency}
-                        onChange={(event, value) => {
-                            if (value) {
-                                settings.selectedCurrency = value;
-                            }
-                        }}
-                        renderInput={(params) => <TextField {...params} label="Currency" />}
-                    />
-                    <Button 
-                        onClick={() => {
-                            console.log('Clearing cache...');
-                            localStorage.clear();
-                            navigate('', { replace: true });
-                            persistUserId();
-                            window.location.reload();
-                            return;
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'flex-start',
+                            gap: 2,
                         }}
                     >
-                        Clear Cache
-                    </Button>
+                        <Box
+                            sx={{
+                                border: '1px solid #ccc',
+                                borderRadius: 2,
+                                padding: 2,
+                                width: '100%',
+                            }}
+                        >
+                            <TextField
+                                fullWidth
+                                label="Simulation Iterations"
+                                type="number"
+                                inputProps={{
+                                    min: 1
+                                }}
+                                name="simulationIterations"
+                                value={settings.simulationIterations}
+                                onChange={handleChange}
+                                margin="normal"
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault(); // Prevent form submission on Enter
+                                        handleSave();
+                                    }
+                                }}
+                            />
+                            <TextField
+                                fullWidth
+                                label="Hand Size"
+                                type="number"
+                                inputProps={{
+                                    min: 1
+                                }}
+                                name="simulationHandSize"
+                                value={settings.simulationHandSize}
+                                onChange={handleChange}
+                                margin="normal"
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault(); // Prevent form submission on Enter
+                                        handleSave();
+                                    }
+                                }}
+                            />
+                            <TextField
+                                fullWidth
+                                label="Precision (Max Decimal Places)"
+                                type="number"
+                                inputProps={{
+                                    min: 1,
+                                    max: 10
+                                }}
+                                name="statisticMaxPrecision"
+                                value={settings.statisticMaxPrecision}
+                                onChange={handleChange}
+                                margin="normal"
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault(); // Prevent form submission on Enter
+                                        handleSave();
+                                    }
+                                }}
+                            />
+                            <Autocomplete
+                                options={currencies}
+                                value={settings.selectedCurrency}
+                                onChange={(event, value) => {
+                                    if (value) {
+                                        settings.selectedCurrency = value;
+                                    }
+                                }}
+                                renderInput={(params) => <TextField {...params} label="Currency" />}
+                            />
+                        </Box>
+                        <Box>
+                            <Grid container>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography variant="body2" pt='4px'>
+                                        Technical Data
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Switch
+                                        color="primary"
+                                        checked={true}
+                                        disabled
+                                        
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography variant="body2" pt='4px' noWrap>
+                                        Data Consent
+                                    </Typography>
+                                    </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Switch
+                                        color="primary"
+                                        checked={isDataConsentEnabled}
+                                        onClick={() => {
+                                            setDataConsentEnabled(!isDataConsentEnabled);
+                                        }}
+                                    />
+                                </Grid>
+                            </Grid>
+                            <Typography variant="caption" paragraph>
+                                <Link to="/privacy">Privacy Policy</Link>.
+                            </Typography>
+                        </Box>
+                    </Box>
+                    <Button 
+                            onClick={() => {
+                                console.log('Clearing cache...');
+                                localStorage.clear();
+                                navigate('', { replace: true });
+                                persistUserId();
+                                window.location.reload();
+                                return;
+                            }}
+                        >
+                            Clear Cache
+                        </Button>
                     <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                         <Button onClick={onClose} sx={{ mr: 1 }}>
                             Cancel

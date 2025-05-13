@@ -31,7 +31,8 @@ const PrivacyPolicy = () => {
             content="To group and analyze simulation sessions from the same device, we store a randomly generated User ID in your browser's local storage. This ID:
 - Is created randomly by your browser.
 - Does not contain any personally identifiable information.
-- Is used solely to associate multiple simulation sessions from the same browser for analytics purposes."
+- Is used solely to associate multiple simulation sessions from the same browser for analytics purposes.
+- Is not shared with any third parties."
           />
 
           <Section
@@ -62,6 +63,7 @@ const PrivacyPolicy = () => {
             title="7. Your Control"
             content="You are in full control of your data:
 - You can clear your browser's local storage at any time to remove your user ID and cached simulations.
+- If you do not consent we will not generate a User ID for your browser session, persist this ID in your browsers local storage, or write this ID to the database. This will limit your ability to share simulations, but will not affect your ability to use the application.
 - If you use a private/incognito browser session, no data will persist between sessions."
           />
 

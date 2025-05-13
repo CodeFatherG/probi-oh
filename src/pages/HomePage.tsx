@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import './styles/App.css';
+import '@/styles/HomePage.css';
 import SimulationRunner from '@components/SimulationView/SimulationRunner';
 import { CardDetails } from '@probi-oh/types';
 import useLocalStorage from '@/hooks/useLocalStorage';
@@ -16,18 +16,12 @@ import { simulationCache } from '@/db/simulations/simulation-cache';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { simulationEventManager } from '@/db/simulations/simulation-event-manager';
 import { acceptAllCookies, acceptNecessaryCookies, isConsentGiven } from '@/analytics/cookieConsent';
-import CookieConsentDialog from '@/analytics/CookieConsentDialog';
-import logo from './assets/dtlogo.png';
+import DataConsentDialog from '@/analytics/CookieConsentDialog';
+import logo from '@/assets/dtlogo.png';
 
-export default function App() {
-    const persistentCardData = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
-    const nonPersistentCardData = useState(new Map<string, CardDetails>());
-    const [cardData, setCardData] = isConsentGiven() ? persistentCardData : nonPersistentCardData;
-
-    const persistentConditionData = useLocalStorage<string[]>("conditionDataStore", []);
-    const nonPersistentConditionData = useState<string[]>([]);
-    const [conditionData, setConditionData] = isConsentGiven() ? persistentConditionData : nonPersistentConditionData;
-
+export default function HomePage() {
+    const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
+    const [conditionData, setConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [cookieConsentOpen, setCookieConsentOpen] = useState(isConsentGiven() === false);
     const navigate = useNavigate();
@@ -43,7 +37,7 @@ export default function App() {
 
     useEffect(() => {
         simulationEventManager.registerCallback((id: string) => {
-            if (isConsentGiven()) {
+            if (!isConsentGiven()) {
                 navigate(`?id=${id}`, { replace: true });
             }
         })
@@ -101,7 +95,7 @@ export default function App() {
                         onConditionsUpdate={handleConditionsUpdate}
                     />
                     <SimulationRunner
-                        disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0 || cookieConsentOpen}
+                        disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0}
                         cards={cardData}
                         conditions={conditionData}
                     />
@@ -128,15 +122,11 @@ export default function App() {
             </Box>
             <GitLink link="https://github.com/CodeFatherG/probi-oh" text="Visit us on Github!" />
             <MobileDialog />
-            <SimulationDrawer onApply={handleApplySimulation}/>
-            <CookieConsentDialog
+            <SimulationDrawer enabled={isConsentGiven()} onApply={handleApplySimulation}/>
+            <DataConsentDialog
                 open={cookieConsentOpen}
                 onConsent={(type) => {
                     if (type) {
-                        if (!isConsentGiven()) {
-                            persistentCardData[1](nonPersistentCardData[0]);
-                            persistentConditionData[1](nonPersistentConditionData[0]);
-                        }
                         acceptAllCookies();
                     } else {
                         localStorage.clear();

@@ -8,7 +8,7 @@ interface CookieConsentDialogProps {
     onConsent: (type: boolean) => void;
 }
 
-const CookieConsentDialog = ({ open, onConsent}: CookieConsentDialogProps) => {
+const DataConsentDialog = ({ open, onConsent}: CookieConsentDialogProps) => {
     if (!open) return null;
 
     return (
@@ -26,14 +26,14 @@ const CookieConsentDialog = ({ open, onConsent}: CookieConsentDialogProps) => {
         >
             <Box display="flex" justifyContent="center" alignItems="center">
                 <Typography variant="h6" gutterBottom>
-                    Cookie Consent
+                    Data Consent
                 </Typography>
             </Box>
             <Typography variant="body2" paragraph>
                 <strong>We NEVER collect any personal or marketing information.</strong><br />
             </Typography>
             <Typography variant="caption" paragraph>
-                We collect data about your simulation for history, analytics, and sharable links. Some features may not work without cookies.
+                We collect data about your simulation for history, analytics, and sharable links. Some features may not work without data permissions.
                 <br />
                 Read our <Link to="/privacy">Privacy Policy</Link> for more details.
             </Typography>
@@ -61,4 +61,4 @@ const CookieConsentDialog = ({ open, onConsent}: CookieConsentDialogProps) => {
     );
 };
 
-export default CookieConsentDialog;
+export default DataConsentDialog;

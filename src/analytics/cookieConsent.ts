@@ -1,3 +1,5 @@
+import { clearUserId, persistUserId } from "./user-id";
+
 const keyConsent = "cookieConsent";
 
 export function isConsentGiven(): boolean {
@@ -36,10 +38,14 @@ export function acceptAllCookies(): void {
     if (typeof window !== "undefined") {
         setConsent(true);
     }
+
+    persistUserId();
 }
 
 export function acceptNecessaryCookies(): void {
     if (typeof window !== "undefined") {
         setConsent(false);
     }
+
+    clearUserId();
 }
