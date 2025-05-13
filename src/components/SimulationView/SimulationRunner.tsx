@@ -64,7 +64,7 @@ export default function SimulationRunner({ disabled,
                     conditions: conditions,
                 },
                 handSize: settings.simulationHandSize,
-                batchSize: settings.simulationIterations,
+                iterations: settings.simulationIterations,
             });
         } catch (err) {
             console.error('Error running simulation:', err);
