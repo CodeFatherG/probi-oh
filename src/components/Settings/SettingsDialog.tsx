@@ -6,7 +6,7 @@ import { getSettings, saveSettings, Settings } from './settings';
 import { Link, useNavigate } from 'react-router-dom';
 import { persistUserId } from '../../analytics/user-id';
 import { getCurrencies } from '@/currency/currency';
-import { acceptAllCookies, acceptNecessaryCookies } from '@/analytics/cookieConsent';
+import { acceptAllCookies, acceptNecessaryCookies, isConsentGiven } from '@/analytics/cookieConsent';
 
 interface SettingsDialogProps {
     open: boolean;
@@ -17,7 +17,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     const [infoOpen, setInfoOpen] = useState(false);
     const [settings, setSettings] = useState<Settings>(getSettings());
     const [currencies, setCurrencies] = useState<string[]>([]);
-    const [isDataConsentEnabled, setDataConsentEnabled] = useState(false);
+    const [isDataConsentEnabled, setDataConsentEnabled] = useState(isConsentGiven());
 
     useEffect(() => {
         if (isDataConsentEnabled) {
@@ -26,6 +26,10 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             acceptNecessaryCookies();
         }
     }, [isDataConsentEnabled]);
+
+    useEffect(() => {
+        setDataConsentEnabled(isConsentGiven());
+    }, [isConsentGiven()]);
 
     const navigate = useNavigate();
 
