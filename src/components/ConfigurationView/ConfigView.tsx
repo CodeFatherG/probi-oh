@@ -10,6 +10,7 @@ import { DataFileManager } from "@probi-oh/core/src/data-file";
 import ydkManager from "@/ygo/ydk-manager";
 import yamlManager from "@probi-oh/core/src/yaml-manager";
 import ydkeManager from "@/ygo/ydke-manager";
+import jsonManager from "@probi-oh/core/src/json-manager";
 import { ClipboardInput, FileInput } from "./IO/ImportButtons";
 import {ClipboardOutput, FileOutput} from "./IO/ExportButtons";
 import { getDeckName } from "@/ygo/archetype";
@@ -23,16 +24,23 @@ interface ConfigBuilderProps {
     onConditionsUpdate: (conditions: Condition[]) => void;
 }
 
-const fileManagerDict: { [key: string]: DataFileManager } = {
+const fileManagerDictInput: { [key: string]: DataFileManager } = {
     '.yml':     yamlManager,
     '.yaml':    yamlManager,
     '.ydk':     ydkManager,
     '.ydke':    ydkeManager,
+    '.json':   jsonManager,
+};
+
+const fileManagerDictOutput: { [key: string]: DataFileManager } = {
+    '.ydk':     ydkManager,
+    '.ydke':    ydkeManager,
+    '.json':   jsonManager,
 };
 
 export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, onConditionsUpdate }: ConfigBuilderProps) {
     const [isLoading, setIsLoading] = useState(false);
-
+    
     const autocompleteOptions = useMemo(() => {
         const options = new Set<string>();
         cardData.forEach((details, name) => {
@@ -45,11 +53,11 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
     const handleFileUpload = async (content: string, extension: string) => {
         setIsLoading(true);
         try {
-            if (!fileManagerDict[extension]) {
+            if (!fileManagerDictInput[extension]) {
                 throw new Error(`Unsupported file type ${extension}`);
             }
 
-            const simInput = await fileManagerDict[extension].importFromString(content);
+            const simInput = await fileManagerDictInput[extension].importFromString(content);
             onCardsUpdate(simInput.deck);
             onConditionsUpdate(simInput.conditions);
         } finally {
@@ -61,29 +69,30 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
         setIsLoading(true);
 
         // Try to import as each supported file type
-        for (const extension in fileManagerDict) {
+        for (const extension in fileManagerDictInput) {
             try {
-                const simInput = await fileManagerDict[extension].importFromString(content);
+                const simInput = await fileManagerDictInput[extension].importFromString(content);
                 onCardsUpdate(simInput.deck);
                 onConditionsUpdate(simInput.conditions);
                 break;
             } catch (err) {
                 console.error(`Failed to import from clipboard as ${extension}:`, err);
             }
+
         }
 
         setIsLoading(false);
     }
 
     const handleFileDownload = async (extension: string) => {
-        if (extension in fileManagerDict) {
+        if (extension in fileManagerDictOutput) {
             const input: SimulationInput = {
                 deck: cardData,
                 conditions: conditionData,
             };
 
-            const content = await fileManagerDict[extension].exportSimulationToString(input);
-            const filename = `${await getDeckName(cardData)}${extension}$`
+            const content = await fileManagerDictOutput[extension].exportSimulationToString(input);
+            const filename = `${await getDeckName(cardData)}${extension}`;
 
             saveAs(new Blob([content], {type: 'text/plain;charset=utf-8'}), filename);
         }
@@ -95,8 +104,8 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
             conditions: conditionData,
         };
 
-        if (extension in fileManagerDict) {
-            return await fileManagerDict[extension].exportSimulationToString(input);
+        if (extension in fileManagerDictOutput) {
+            return await fileManagerDictOutput[extension].exportSimulationToString(input);
         } else {
             throw new Error(`Unsupported file type ${extension}`);
         }
@@ -145,11 +154,6 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
         }
     };
 
-    const acceptedExtensions = Object.keys(fileManagerDict);
-    if (acceptedExtensions.includes('.yaml') && acceptedExtensions.includes('.yml')) {
-        acceptedExtensions.splice(acceptedExtensions.indexOf('.yml'), 1);
-    }
-
     return (
         <>
             <LoadingOverlay isLoading={isLoading} />
@@ -158,7 +162,7 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
                     <Box display="flex">
                         <FileInput 
                             onClick={handleFileUpload} 
-                            acceptedExtensions={acceptedExtensions}
+                            acceptedExtensions={Object.keys(fileManagerDictInput)}
                         />
                         <ClipboardInput
                             onClick={handleClipboardUpload}
@@ -167,11 +171,11 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
                     <Box display='flex'>
                         <FileOutput
                             onClick={handleFileDownload}
-                            acceptedExtensions={acceptedExtensions}
+                            acceptedExtensions={Object.keys(fileManagerDictOutput)}
                         />
                         <ClipboardOutput 
                             getContent={handleClipboardCopy}
-                            acceptedExtensions={acceptedExtensions}
+                            acceptedExtensions={Object.keys(fileManagerDictOutput)}
                         />
                     </Box>
                 </Box>
