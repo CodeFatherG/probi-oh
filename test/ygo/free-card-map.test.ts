@@ -5,6 +5,7 @@ import { freeCardMap } from "@ygo/free-card-map";
 import { MockGameState } from "../mock/game-state.mock";
 import { MockDeck } from "../mock/deck.mock";
 import { processFreeCard } from "@probi-oh/core/src/free-card-processor";
+import { CardCondition, ConditionLocation, ConditionOperator } from "@probi-oh/types";
 
 describe('FreeCardMap', () => {
     let mockGameState: MockGameState;
@@ -17,7 +18,13 @@ describe('FreeCardMap', () => {
         const potOfDesires = CreateCard('Pot of Desires', { free: freeCardMap['Pot of Desires'] }) as FreeCard;
         mockGameState.addCardToHand(potOfDesires);
         mockGameState.mockDeck.setDeckList([...Array(20)].map((_, i) => CreateCard(`Deck Card ${i}`, {})));
-        const condition = new Condition('Test Card', 1);
+        const condition: CardCondition = {
+            kind: 'card',
+            cardName: 'Test Card',
+            cardCount: 1,
+            operator: ConditionOperator.AT_LEAST,
+            location: ConditionLocation.HAND,
+        };
         const simulationBranch = new MockSimulationBranch(mockGameState, condition);
 
         processFreeCard(simulationBranch, potOfDesires);
@@ -31,7 +38,13 @@ describe('FreeCardMap', () => {
         const potOfExtravagance = CreateCard('Pot of Extravagance', { free: freeCardMap['Pot of Extravagance'] }) as FreeCard;
         mockGameState.addCardToHand(potOfExtravagance);
         mockGameState.mockDeck.setDeckList([...Array(5)].map((_, i) => CreateCard(`Deck Card ${i}`, {})));
-        const condition = new Condition('Test Card', 1);
+        const condition: CardCondition = {
+            kind: 'card',
+            cardName: 'Test Card',
+            cardCount: 1,
+            operator: ConditionOperator.AT_LEAST,
+            location: ConditionLocation.HAND,
+        };
         const simulationBranch = new MockSimulationBranch(mockGameState, condition);
 
         processFreeCard(simulationBranch, potOfExtravagance);
@@ -45,7 +58,13 @@ describe('FreeCardMap', () => {
             const potOfProsperity = CreateCard('Pot of Prosperity', { free: freeCardMap['Pot of Prosperity'] }) as FreeCard;
             mockGameState.addCardToHand(potOfProsperity);
             mockGameState.mockDeck.setDeckList([...Array(10)].map((_, i) => CreateCard(`Deck Card ${i}`, {})));
-            const condition = new Condition('Test Card', 1);
+            const condition: CardCondition = {
+            kind: 'card',
+            cardName: 'Test Card',
+            cardCount: 1,
+            operator: ConditionOperator.AT_LEAST,
+            location: ConditionLocation.HAND,
+        };
             const simulationBranch = new MockSimulationBranch(mockGameState, condition);
     
             processFreeCard(simulationBranch, potOfProsperity);
@@ -59,7 +78,13 @@ describe('FreeCardMap', () => {
             const potOfProsperity = CreateCard('Pot of Prosperity', { free: freeCardMap['Pot of Prosperity'] }) as FreeCard;
             mockGameState.addCardToHand(potOfProsperity);
             mockGameState.mockDeck.setDeckList([CreateCard('Test Card', {}), ...[...Array(5)].map((_, i) => CreateCard(`Deck Card ${i}`, {}))]);
-            const condition = new Condition('Test Card', 1);
+            const condition: CardCondition = {
+            kind: 'card',
+            cardName: 'Test Card',
+            cardCount: 1,
+            operator: ConditionOperator.AT_LEAST,
+            location: ConditionLocation.HAND,
+        };
             const simulationBranch = new MockSimulationBranch(mockGameState, condition);
     
             processFreeCard(simulationBranch, potOfProsperity);
@@ -75,7 +100,13 @@ describe('FreeCardMap', () => {
         const upstartGoblin = CreateCard('Upstart Goblin', { free: freeCardMap['Upstart Goblin'] }) as FreeCard;
         mockGameState.addCardToHand(upstartGoblin);
         mockGameState.mockDeck.setDeckList([CreateCard('Deck Card', {})]);
-        const condition = new Condition('Test Card', 1);
+        const condition: CardCondition = {
+            kind: 'card',
+            cardName: 'Test Card',
+            cardCount: 1,
+            operator: ConditionOperator.AT_LEAST,
+            location: ConditionLocation.HAND,
+        };
         const simulationBranch = new MockSimulationBranch(mockGameState, condition);
 
         processFreeCard(simulationBranch, upstartGoblin);
@@ -90,7 +121,13 @@ describe('FreeCardMap', () => {
             const darkMonster = CreateCard('Dark Monster', { tags: ['DARK'] });
             mockGameState.setHand([allureOfDarkness, darkMonster]);
             mockGameState.mockDeck.setDeckList([CreateCard('Deck Card 1', {}), CreateCard('Deck Card 2', {})]);
-            const condition = new Condition('Test Card', 1);
+            const condition: CardCondition = {
+            kind: 'card',
+            cardName: 'Test Card',
+            cardCount: 1,
+            operator: ConditionOperator.AT_LEAST,
+            location: ConditionLocation.HAND,
+        };
             const simulationBranch = new MockSimulationBranch(mockGameState, condition);
     
             processFreeCard(simulationBranch, allureOfDarkness);
@@ -105,7 +142,13 @@ describe('FreeCardMap', () => {
             const darkMonster = CreateCard('Dark Monster', { tags: ['DARK'] });
             mockGameState.setHand([allureOfDarkness]);
             mockGameState.mockDeck.setDeckList([CreateCard('Deck Card 1', {}), darkMonster]);
-            const condition = new Condition('Test Card', 1);
+            const condition: CardCondition = {
+            kind: 'card',
+            cardName: 'Test Card',
+            cardCount: 1,
+            operator: ConditionOperator.AT_LEAST,
+            location: ConditionLocation.HAND,
+        };
             const simulationBranch = new MockSimulationBranch(mockGameState, condition);
     
             processFreeCard(simulationBranch, allureOfDarkness);
@@ -119,7 +162,13 @@ describe('FreeCardMap', () => {
             const allureOfDarkness = CreateCard('Allure of Darkness', { free: freeCardMap['Allure of Darkness'] }) as FreeCard;
             mockGameState.setHand([allureOfDarkness]);
             mockGameState.mockDeck.setDeckList([...Array(2)].map((_, i) => CreateCard(`Deck Card ${i}`, {})));
-            const condition = new Condition('Test Card', 1);
+            const condition: CardCondition = {
+            kind: 'card',
+            cardName: 'Test Card',
+            cardCount: 1,
+            operator: ConditionOperator.AT_LEAST,
+            location: ConditionLocation.HAND,
+        };
             const simulationBranch = new MockSimulationBranch(mockGameState, condition);
     
             processFreeCard(simulationBranch, allureOfDarkness);
@@ -136,7 +185,13 @@ describe('FreeCardMap', () => {
             const rightDarkMonster = CreateCard('Right Dark Monster', { tags: ['DARK'] });
             mockGameState.setHand([allureOfDarkness, wrongDarkMonster]);
             mockGameState.mockDeck.setDeckList([CreateCard('Deck Card 1', {}), rightDarkMonster]);
-            const condition = new Condition('Right Dark Monster', 1);
+            const condition: CardCondition = {
+                kind: 'card',
+                cardName: 'Right Dark Monster', 
+                cardCount: 1,
+                operator: ConditionOperator.AT_LEAST,
+                location: ConditionLocation.HAND,
+            };
             const simulationBranch = new MockSimulationBranch(mockGameState, condition);
     
             processFreeCard(simulationBranch, allureOfDarkness);
@@ -153,7 +208,13 @@ describe('FreeCardMap', () => {
         const intoTheVoid = CreateCard('Into The Void', { free: freeCardMap['Into The Void'] }) as FreeCard;
         mockGameState.addCardToHand(intoTheVoid);
         mockGameState.mockDeck.setDeckList([CreateCard('Deck Card', {})]);
-        const condition = new Condition('Test Card', 1);
+        const condition: CardCondition = {
+            kind: 'card',
+            cardName: 'Test Card',
+            cardCount: 1,
+            operator: ConditionOperator.AT_LEAST,
+            location: ConditionLocation.HAND,
+        };
         const simulationBranch = new MockSimulationBranch(mockGameState, condition);
 
         processFreeCard(simulationBranch, intoTheVoid);
@@ -167,7 +228,13 @@ describe('FreeCardMap', () => {
             const potOfDuality = CreateCard('Pot of Duality', { free: freeCardMap['Pot of Duality'] }) as FreeCard;
             mockGameState.addCardToHand(potOfDuality);
             mockGameState.mockDeck.setDeckList([...Array(3)].map((_, i) => CreateCard(`Deck Card ${i}`, {})));
-            const condition = new Condition('Test Card', 1);
+            const condition: CardCondition = {
+            kind: 'card',
+            cardName: 'Test Card',
+            cardCount: 1,
+            operator: ConditionOperator.AT_LEAST,
+            location: ConditionLocation.HAND,
+        };
             const simulationBranch = new MockSimulationBranch(mockGameState, condition);
     
             processFreeCard(simulationBranch, potOfDuality);
@@ -181,7 +248,13 @@ describe('FreeCardMap', () => {
             const potOfDuality = CreateCard('Pot of Duality', { free: freeCardMap['Pot of Duality'] }) as FreeCard;
             mockGameState.addCardToHand(potOfDuality);
             mockGameState.mockDeck.setDeckList([CreateCard('Test Card', {}), ...[...Array(2)].map((_, i) => CreateCard(`Deck Card ${i}`, {}))]);
-            const condition = new Condition('Test Card', 1);
+            const condition: CardCondition = {
+            kind: 'card',
+            cardName: 'Test Card',
+            cardCount: 1,
+            operator: ConditionOperator.AT_LEAST,
+            location: ConditionLocation.HAND,
+        };
             const simulationBranch = new MockSimulationBranch(mockGameState, condition);
     
             processFreeCard(simulationBranch, potOfDuality);
@@ -198,7 +271,13 @@ describe('FreeCardMap', () => {
         const level8Monster = CreateCard('Level 8 Monster', { tags: ['Level 8'] });
         mockGameState.setHand([tradeIn, level8Monster]);
         mockGameState.mockDeck.setDeckList([CreateCard('Deck Card 1', {}), CreateCard('Deck Card 2', {})]);
-        const condition = new Condition('Test Card', 1);
+        const condition: CardCondition = {
+            kind: 'card',
+            cardName: 'Test Card',
+            cardCount: 1,
+            operator: ConditionOperator.AT_LEAST,
+            location: ConditionLocation.HAND,
+        };
         const simulationBranch = new MockSimulationBranch(mockGameState, condition);
 
         processFreeCard(simulationBranch, tradeIn);
@@ -213,7 +292,13 @@ describe('FreeCardMap', () => {
         const spellcaster = CreateCard('Spellcaster', { tags: ['Spellcaster'] });
         mockGameState.setHand([spellbookOfKnowledge, spellcaster]);
         mockGameState.mockDeck.setDeckList([CreateCard('Deck Card 1', {}), CreateCard('Deck Card 2', {})]);
-        const condition = new Condition('Test Card', 1);
+        const condition: CardCondition = {
+            kind: 'card',
+            cardName: 'Test Card',
+            cardCount: 1,
+            operator: ConditionOperator.AT_LEAST,
+            location: ConditionLocation.HAND,
+        };
         const simulationBranch = new MockSimulationBranch(mockGameState, condition);
 
         processFreeCard(simulationBranch, spellbookOfKnowledge);

@@ -2,9 +2,8 @@ import ydkeManager from '@ygo/ydke-manager'; // Adjust the import path as needed
 import { getCard } from '@ygo/card-api';
 import { getCardDetails } from '@ygo/details-provider';
 import { CardInformation } from '@ygo/card-information';
-import { CardDetails } from '@probi-oh/types';
+import { CardCondition, CardDetails, ConditionLocation, ConditionOperator } from '@probi-oh/types';
 import { SimulationInput } from '@probi-oh/types';
-import { BaseCondition, Condition } from '@probi-oh/core/src/condition';
 
 // Mock the imported functions
 jest.mock('@ygo/card-api');
@@ -185,8 +184,14 @@ describe('YDKE Manager', () => {
 
     describe('exportConditionsToString', () => {
         it('should return an empty string', async () => {
-            const mockConditions: Condition[] = [
-                new Condition('Blue-Eyes White Dragon', 1, '>=')
+            const mockConditions: CardCondition[] = [
+                {
+                    kind: 'card',
+                    cardName: 'Blue-Eyes White Dragon',
+                    cardCount: 1,
+                    operator: ConditionOperator.AT_LEAST,
+                    location: ConditionLocation.HAND
+                },
             ];
 
             const result = await ydkeManager.exportConditionsToString(mockConditions);

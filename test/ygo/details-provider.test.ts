@@ -1,4 +1,4 @@
-import { CardDetails, CostType, ConditionType, RestrictionType } from '@probi-oh/types';
+import { CardDetails, FreeCardCondition, FreeCardCost, FreeCardRestriction } from '@probi-oh/types';
 import {CardInformation} from '@ygo/card-information';
 import { getCardDetails } from '@ygo/details-provider';
 import { handTrapMap } from '@ygo/handtrap-map';
@@ -21,7 +21,7 @@ describe('getCardDetails', () => {
                 count: 2,
                 oncePerTurn: true,
                 cost: {
-                    type: CostType.BanishFromDeck,
+                    type: FreeCardCost.BanishFromDeck,
                     value: 10
                 }
             }
@@ -71,7 +71,7 @@ describe('getCardDetails', () => {
                 count: 2,
                 oncePerTurn: false,
                 condition: {
-                    type: ConditionType.BanishFromHand,
+                    type: FreeCardCondition.BanishFromHand,
                     value: "DARK"
                 }
             }
@@ -97,7 +97,7 @@ describe('getCardDetails', () => {
             free: {
                 count: 2,
                 oncePerTurn: false,
-                restriction: [RestrictionType.NoPreviousDraws, RestrictionType.NoMoreDraws]
+                restriction: [FreeCardRestriction.NoPreviousDraws, FreeCardRestriction.NoMoreDraws]
             }
         };
 

@@ -8,13 +8,14 @@ import {
 import { Remove, DragIndicator } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { parseCondition } from '@probi-oh/core/src/parser';
-import { AndCondition, BaseCondition, Condition, LocationConditionTarget, OrCondition } from '@probi-oh/core/src/condition';
+import { Condition, ConditionType, LogicCondition, ConditionLocation, ConditionOperator } from '@probi-oh/types';
+import { conditionToString } from '@probi-oh/core/src/condition';
 
 interface ConditionBuilderDialogProps {
     open: boolean;
     onClose: () => void;
-    onSave: (condition: string) => void;
-    initialCondition: string;
+    onSave: (condition: Condition) => void;
+    initialCondition: Condition | undefined;
     autocompleteOptions: string[];
 }
 
@@ -245,6 +246,14 @@ function ConditionList({
     );
 }
 
+function conditionIsLogical(condition: Condition): condition is LogicCondition {
+    return (condition as LogicCondition).type !== undefined;
+}
+
+function conditionHasAnd(condition: LogicCondition): boolean {
+    return condition.type === ConditionType.AND;
+}
+
 export default function ConditionBuilderDialog({ open, onClose, onSave, initialCondition, autocompleteOptions }: ConditionBuilderDialogProps) {
     const [elements, setElements] = useState<Element[]>([]);
     const [alertOpen, setAlertOpen] = useState(false);
@@ -252,56 +261,54 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
 
     useEffect(() => {
         if (initialCondition) {
-            const parseGroup = (condition: AndCondition | OrCondition): Element => {
+            const parseGroup = (condition: LogicCondition): Element => {
                 const group = createNewElement('group');
                 group.children = [];
-                group.children.push(...parseElement(condition.conditions[0]));
-                group.children.push(createNewElement(condition instanceof AndCondition ? 'and' : 'or'));
-                group.children.push(...parseElement(condition.conditions[1]));
+                group.children.push(...parseElement(condition.conditionA));
+                group.children.push(createNewElement(condition.type === ConditionType.AND ? 'and' : 'or'));
+                group.children.push(...parseElement(condition.conditionB));
                 return group;
             }
 
             // function to parse the next condition object
-            const parseElement = (condition: BaseCondition): Element[] => {
-                if (condition instanceof AndCondition) {
-                    const cond = condition as AndCondition;
-                    if (cond.hasParentheses) {
-                        return [parseGroup(cond)];
-                    } else {
-                        return [
-                            ...parseElement(cond.conditions[0]),
-                            createNewElement('and'),
-                            ...parseElement(cond.conditions[1])
-                        ];
-                    }
-                } else if (condition instanceof OrCondition) {
-                    const cond = condition as OrCondition;
-                    if (cond.hasParentheses) {
-                        return [parseGroup(cond)];
-                    } else {
-                        return [
-                            ...parseElement(cond.conditions[0]),
-                            createNewElement('or'),
-                            ...parseElement(cond.conditions[1])
-                        ];
-                    }
-                } else if (condition instanceof Condition) {
+            const parseElement = (condition: Condition): Element[] => {
+                if (conditionIsLogical(condition)) {
+                    if (conditionHasAnd(condition)) {
+                        if (condition.render?.hasParentheses) {
+                            return [parseGroup(condition)];
+                        } else {
+                            return [
+                                ...parseElement(condition.conditionA),
+                                createNewElement('and'),
+                                ...parseElement(condition.conditionB)
+                            ];
+                        }
+
+                    } else if (condition) {
+                        if (condition.render?.hasParentheses) {
+                            return [parseGroup(condition)];
+                        } else {
+                            return [
+                                ...parseElement(condition.conditionA),
+                                createNewElement('or'),
+                                ...parseElement(condition.conditionB)
+                            ];
+                        }
+                    } 
+                } else if (condition) {
                     const cond = createNewElement('condition');
-                    cond.quantity = condition.quantity,
-                    cond.operator = condition.operator,
+                    cond.quantity = condition.cardCount,
+                    cond.operator = condition.operator === ConditionOperator.AT_LEAST ? '>=' : condition.operator === ConditionOperator.NO_MORE ? '<=' : '=',
                     cond.cardName = condition.cardName,
-                    cond.location = condition.location === LocationConditionTarget.Deck ? 'Deck' : 'Hand'
+                    cond.location = condition.location === ConditionLocation.DECK ? 'Deck' : 'Hand'
                     return [cond];
-                } else {
-                    console.error(`Invalid condition object ${condition.toString()}`);
-                    return [];
                 }
+
+                    console.error(`Invalid condition object ${conditionToString(condition)}`);
+                    return [];
             }
 
-            // parse the condition string to objects
-            const condition = parseCondition(initialCondition);
-
-            setElements(parseElement(condition));
+            setElements(parseElement(initialCondition));
         } else {
             setElements([{ id: 'element-0', type: 'condition', quantity: 1, operator: '>=', cardName: '', location: 'Hand' }]);
         }
@@ -362,8 +369,7 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
         }).join(' ');
 
         try {
-            parseCondition(conditionString);
-            onSave(conditionString);
+            onSave(parseCondition(conditionString));
         } catch (e) {
             setAlertMessage('Invalid condition');
             setAlertOpen(true);

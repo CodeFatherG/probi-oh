@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Dialog, DialogTitle, IconButton, List, ListItem, ListItemButton, ListItemText, Tooltip } from '@mui/material';
-import { Check, FileCopy, FileUpload } from '@mui/icons-material';
+import { Check, FileCopy, FileDownload } from '@mui/icons-material';
 
 interface FileOutputProps {
     onClick: (extension: string) => void;
@@ -19,7 +19,7 @@ export function FileOutput({ onClick, acceptedExtensions }: FileOutputProps) {
     const handleDialogClose = async (value?: string) => {
         setOpen(false);
 
-        if (value && value in acceptedExtensions) {
+        if (value && acceptedExtensions.includes(value)) {
             onClick(value);
         }
     };
@@ -31,7 +31,7 @@ export function FileOutput({ onClick, acceptedExtensions }: FileOutputProps) {
                     onClick={() => setOpen(true)}
                     color="primary"
                 >
-                    <FileUpload/>
+                    <FileDownload/>
                 </IconButton>
             </Tooltip>
             <ExportTypeDialog
@@ -56,7 +56,7 @@ function ExportTypeDialog({ onClose, open, extensions }: ExportTypeDialogProps) 
         return (
             <ListItem disableGutters key={extension}>
                 <ListItemButton onClick={() => handleListItemClick(extension)}>
-                    {extension.includes("yaml") || extension.includes("yml") ?
+                    {extension.includes("yaml") || extension.includes("yml") || extension.includes("json") ?
                         <ListItemText primary={`Export to ${extension.toUpperCase()}`}/>
                     :
                         <ListItemText primary={`Export to ${extension.toUpperCase()}`} secondary={`(${extension.toUpperCase()} does not export conditions)`}/>

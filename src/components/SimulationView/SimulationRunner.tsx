@@ -1,22 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Button from '@mui/material/Button';
-import { CardDetails } from '@probi-oh/types';
-import { BaseCondition } from '@probi-oh/core/src/condition';
-import { Simulation } from '@probi-oh/core/src/simulation';
-import { buildDeck, Deck } from '@probi-oh/core/src/deck';
-import { GameState } from '@probi-oh/core/src/game-state';
+import { CardDetails, Condition } from '@probi-oh/types';
 import ResultDisplay from './ResultDisplay';
-import { generateReport } from '@probi-oh/core/src/report';
 import { SimulationOutput } from '@probi-oh/types';
 import { Box, LinearProgress, Stack } from '@mui/material';
-import { parseCondition } from '@probi-oh/core/src/parser';
 import { recordSimulation } from '../../db/simulations/post';
 import { getSettings } from '../Settings/settings';
 
 interface SimulationRunnerProps {
     disabled: boolean;
     cards: Map<string, CardDetails>;
-    conditions: string[];
+    conditions: Condition[];
 }
 
 export default function SimulationRunner({ disabled, 
@@ -28,57 +22,83 @@ export default function SimulationRunner({ disabled,
     const [successRate, setSuccessRate] = useState(0);
     const settings = getSettings();
 
-    const simulateDraw = async (deck: Deck, 
-                                conditions: BaseCondition[], 
-                                handSize: number, 
-                                trials: number): Promise<Simulation[]> => {
-        const simulations: Simulation[] = [];
+    const workerRef = useRef<Worker | null>(null);
 
-        for (let i = 0; i < trials; i++) {
-            // Create the game state for this trial
-            const gamestate = new GameState(deck.deepCopy());
-
-            // draw the hand for this trial so it is common to all conditions   
-            gamestate.drawHand(handSize);
-
-            const simulation = new Simulation(gamestate.deepCopy(), conditions);
-            simulations.push(simulation);
-
-            // Run the simulation
-            simulation.iterate();
-
-            if (i % 100 === 0 || i === trials - 1) {
-                const progress = Math.round(((i + 1) / trials) * 100);
-                setProgress(progress);
-
-                // Yield to the event loop to keep UI responsive
-                await new Promise(resolve => setTimeout(resolve, 0));
-            }
+    useEffect(() => {
+        // Initialize worker once
+        if (!workerRef.current) {
+            console.log('Initializing worker');
+            workerRef.current = new Worker(
+                new URL('@/workers/simulation.worker.ts', import.meta.url)
+            );
         }
 
-        return simulations
-    }
+        const handleMessage = (event: MessageEvent) => {
+            const post = event.data;
 
-    const runSimulation = async () => {
+            console.log('worker message:', post);
+
+            // we got a message so the worker is running
+            setIsSimulationRunning(true);
+
+            if (post.type === 'progress') {
+                setProgress(post.progress);
+            } else if (post.type === 'result') {
+                setReportData(post.simulations);
+            } else if (post.type === 'error') {
+                console.error(post.message);
+            }
+        };
+
+        const handleError = (error: ErrorEvent) => {
+            console.error('Worker error:', error);
+            setIsSimulationRunning(false);
+            setProgress(0);
+            setReportData(null);
+        };
+
+        const worker = workerRef.current;
+        worker.onmessage = handleMessage;
+        worker.onerror = handleError;
+
+        return () => {
+            console.log('Terminating worker');
+            workerRef.current?.terminate();
+            workerRef.current = null;
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!reportData) return;
+
+        // report data is set so we have completed the simulation
+        setIsSimulationRunning(false);
+
+        recordSimulation({deck: cards, conditions: conditions}, reportData);
+        setSuccessRate(reportData.successfulSimulations / settings.simulationIterations);
+    }, [reportData]);
+
+    const runSimulation = () => {
         setProgress(0);
         setIsSimulationRunning(true);
         setReportData(null);
 
         try {
             console.log(`Cards: ${Array.from(cards, ([card, details]) => `${card}: ${details.qty || 1}`).join(', ')}`);
-            const deck = buildDeck(cards);
 
-            const sims = await simulateDraw(deck, conditions.map(parseCondition), settings.simulationHandSize, settings.simulationIterations);
-            const report = generateReport(sims);
+            const worker = workerRef.current;
+            if (!worker) return;
 
-            recordSimulation({deck: cards, conditions: conditions}, report);
-
-            setReportData(report);
-            setSuccessRate(report.successfulSimulations / settings.simulationIterations);
+            worker.postMessage({
+                input: {
+                    deck: cards,
+                    conditions: conditions,
+                },
+                handSize: settings.simulationHandSize,
+                iterations: settings.simulationIterations,
+            });
         } catch (err) {
             console.error('Error running simulation:', err);
-        } finally {
-            setIsSimulationRunning(false);
         }
     };
 
