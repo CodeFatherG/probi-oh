@@ -47,7 +47,15 @@ export async function getCardPrice(idOrName: string | number): Promise<Record<st
                 console.warn(`Multiple prices found for card ${idOrName}`);
             }
 
-            return sortPrices(await convertPrices(info.card_prices[0]));
+            const prices = sortPrices(
+                Object.fromEntries(
+                    Object.entries(
+                        await convertPrices(info.card_prices[0])
+                    ).filter(([, price]) => price > 0 && !isNaN(price))
+                )
+            );
+            console.log(`Final prices for card ${idOrName}:`, prices);
+            return prices;
         } else {
             throw new Error(`No card found with ID or name ${idOrName}`);
         }
@@ -82,7 +90,7 @@ async function getStatisticalList(prices: Record<string, number>, irqTh: number)
 
     // Find the prices that are within the bounds
     Object.entries(sortedPrices).forEach(([source, price]) => {
-        if (price > lowerBound && price < upperBound) {
+        if (price >= lowerBound && price <= upperBound) {
             includedPrices[source] = price;
         }
     });
