@@ -1,6 +1,7 @@
-import { CardDetails } from "@probi-oh/types";
+import { CardDetails, Condition } from "@probi-oh/types";
 import { SimulationInput } from "@probi-oh/types";
 import { getSimulationData, SimulationData } from "./get";
+import { parseCondition } from "core/src/parser";
 
 interface CacheEntry {
     data: SimulationData;
@@ -71,16 +72,32 @@ class SimulationCache {
             return undefined;
         }
 
+        const simulationInput: SimulationInput = {
+            deck: new Map<string, CardDetails>(),
+            conditions: []
+        };
+
         const json = JSON.parse(data.data);
-        const deck = new Map<string, CardDetails>();
         for (const [cardName, details] of Object.entries(json.deck)) {
-            deck.set(cardName, details as CardDetails);
+            simulationInput.deck.set(cardName, details as CardDetails);
         }
 
-        return {
-            deck,
-            conditions: json.conditions
-        };
+        // detect if the conditions are an array of strings or objects
+        if (Array.isArray(json.conditions)) {
+            for (const condition of json.conditions) {
+                if (typeof condition === 'string') {
+                    try {
+                        simulationInput.conditions.push(parseCondition(condition));
+                    } catch (e) {
+                        console.error('Error parsing condition:', condition, e);
+                    }
+                } else {
+                    simulationInput.conditions.push(condition as Condition);
+                }
+            }
+        }
+
+        return simulationInput;
     }
 
     private load(): void {

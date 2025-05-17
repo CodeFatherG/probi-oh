@@ -1,8 +1,6 @@
-import { SimulationInput } from "@probi-oh/types";
+import { Condition, SimulationInput } from "@probi-oh/types";
 import { buildDeck, Deck } from "@probi-oh/core/src/deck";
-import { BaseCondition } from "@probi-oh/core/src/condition";
 import { GameState } from "@probi-oh/core/src/game-state";
-import { parseCondition } from "@probi-oh/core/src/parser";
 import { Simulation } from "@probi-oh/core/src/simulation";
 import { generateReport } from "@probi-oh/core/src/report";
 
@@ -13,7 +11,7 @@ export interface SimulationWorkerMessage {
 }
 
 const simulateDraw = (deck: Deck, 
-                        conditions: BaseCondition[], 
+                        conditions: Condition[], 
                         handSize: number, 
                         trials: number): Simulation[] => {
     const simulations: Simulation[] = [];
@@ -48,7 +46,7 @@ self.onmessage = (event: MessageEvent) => {
 
     try {
         const deck = buildDeck(input.deck);
-        const sims = simulateDraw(deck, input.conditions.map(parseCondition), handSize, iterations);
+        const sims = simulateDraw(deck, input.conditions, handSize, iterations);
         const report = generateReport(sims);
         self.postMessage({ type: "result", simulations: report });
     } catch (error) {

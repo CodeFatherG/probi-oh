@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Button from '@mui/material/Button';
-import { CardDetails } from '@probi-oh/types';
+import { CardDetails, Condition } from '@probi-oh/types';
 import ResultDisplay from './ResultDisplay';
 import { SimulationOutput } from '@probi-oh/types';
 import { Box, LinearProgress, Stack } from '@mui/material';
@@ -10,7 +10,7 @@ import { getSettings } from '../Settings/settings';
 interface SimulationRunnerProps {
     disabled: boolean;
     cards: Map<string, CardDetails>;
-    conditions: string[];
+    conditions: Condition[];
 }
 
 export default function SimulationRunner({ disabled, 

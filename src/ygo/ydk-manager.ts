@@ -1,8 +1,7 @@
-import { CardDetails } from '@probi-oh/types';
+import { CardDetails, Condition } from '@probi-oh/types';
 import { getCardDetails } from '@ygo/details-provider';
 import { DataFileManager } from '@probi-oh/core/src/data-file';
 import { SimulationInput } from '@probi-oh/types';
-import { BaseCondition } from '@probi-oh/core/src/condition';
 import { getCard } from './card-api';
 
 class YdkManager implements DataFileManager {
@@ -90,7 +89,7 @@ class YdkManager implements DataFileManager {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public async exportConditionsToString(conditions: BaseCondition[]): Promise<string> {
+    public async exportConditionsToString(conditions: Condition[]): Promise<string> {
         return '';
     }
 

@@ -1,23 +1,23 @@
-import { ConditionType, CostType, FreeCardDetails, RestrictionType } from "@probi-oh/types";
+import { FreeCardDetails, FreeCardCondition, FreeCardCost, FreeCardRestriction } from "@probi-oh/types";
 
 export const freeCardMap: Record<string, FreeCardDetails> = {
     'Pot of Desires': {
         count: 2,
         oncePerTurn: true,
         cost: {
-            type: CostType.BanishFromDeck,
+            type: FreeCardCost.BanishFromDeck,
             value: 10
         }
     },
     'Pot of Extravagance': {
         count: 2,
         oncePerTurn: false,
-        restriction: [RestrictionType.NoPreviousDraws, RestrictionType.NoMoreDraws]
+        restriction: [FreeCardRestriction.NoPreviousDraws, FreeCardRestriction.NoMoreDraws]
     },
     'Pot of Prosperity': {
         count: 0,
         oncePerTurn: true,
-        restriction: [RestrictionType.NoPreviousDraws, RestrictionType.NoMoreDraws],
+        restriction: [FreeCardRestriction.NoPreviousDraws, FreeCardRestriction.NoMoreDraws],
         excavate: {
             count: 6,
             pick: 1
@@ -27,7 +27,7 @@ export const freeCardMap: Record<string, FreeCardDetails> = {
         count: 1,
         oncePerTurn: false,
         cost: {
-            type: CostType.PayLife,
+            type: FreeCardCost.PayLife,
             value: -1000
         }
     },
@@ -35,7 +35,7 @@ export const freeCardMap: Record<string, FreeCardDetails> = {
         count: 2,
         oncePerTurn: false,
         condition: {
-            type: ConditionType.BanishFromHand,
+            type: FreeCardCondition.BanishFromHand,
             value: "DARK"
         }
     },
@@ -55,7 +55,7 @@ export const freeCardMap: Record<string, FreeCardDetails> = {
         count: 2,
         oncePerTurn: false,
         cost: {
-            type: CostType.Discard,
+            type: FreeCardCost.Discard,
             value: ["Level 8"]
         }
     },
@@ -63,7 +63,7 @@ export const freeCardMap: Record<string, FreeCardDetails> = {
         count: 2,
         oncePerTurn: true,
         cost: {
-            type: CostType.Discard,
+            type: FreeCardCost.Discard,
             value: ["Spellcaster", "Spellbook"]
         }
     }

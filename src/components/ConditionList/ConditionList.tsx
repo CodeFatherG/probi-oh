@@ -5,10 +5,12 @@ import {
 } from '@mui/material';
 import { Add, Delete, Edit } from '@mui/icons-material';
 import ConditionBuilderDialog from './ConditionBuilderDialog';
+import { Condition } from '@probi-oh/types';
+import { conditionToString } from '@probi-oh/core/src/condition';
 
 interface ConditionListProps {
-    conditions: string[];
-    onConditionsChange: (newConditions: string[]) => void;
+    conditions: Condition[];
+    onConditionsChange: (newConditions: Condition[]) => void;
     autocompleteOptions: string[];
 }
 
@@ -26,7 +28,7 @@ export default function ConditionList({ conditions, onConditionsChange, autocomp
         setEditingIndex(null);
     };
 
-    const handleSave = (newCondition: string) => {
+    const handleSave = (newCondition: Condition) => {
         let newConditions;
         if (editingIndex !== null) {
         newConditions = [...conditions];
@@ -56,7 +58,7 @@ export default function ConditionList({ conditions, onConditionsChange, autocomp
             <List>
                 {conditions.map((condition, index) => (
                 <ListItem key={index}>
-                    <ListItemText primary={condition} />
+                    <ListItemText primary={conditionToString(condition)} />
                     <ListItemSecondaryAction>
                         <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(index)}>
                             <Edit />
@@ -77,7 +79,7 @@ export default function ConditionList({ conditions, onConditionsChange, autocomp
                 open={open}
                 onClose={handleClose}
                 onSave={handleSave}
-                initialCondition={editingIndex !== null ? conditions[editingIndex] : ''}
+                initialCondition={editingIndex !== null ? conditions[editingIndex] : undefined}
                 autocompleteOptions={autocompleteOptions}
             />
         </Paper>
