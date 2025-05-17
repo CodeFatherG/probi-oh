@@ -18,14 +18,32 @@ import { simulationEventManager } from '@/db/simulations/simulation-event-manage
 import { acceptAllCookies, acceptNecessaryCookies, isConsentGiven } from '@/analytics/cookieConsent';
 import DataConsentDialog from '@/analytics/CookieConsentDialog';
 import logo from '@/assets/dtlogo.png';
+import { parseCondition } from 'core/src/parser';
 
 export default function HomePage() {
     const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
-    const [conditionData, setConditionData] = useLocalStorage<Condition[]>("conditionDataStoreNew", []);
+    const [stringConditions, setStringConditions] = useLocalStorage<string[]>("conditionDataStore", []);
+    const [conditionData, setConditionData] = useLocalStorage<Condition[]>("conditionDataStoreObj", []);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [cookieConsentOpen, setCookieConsentOpen] = useState(isConsentGiven() === false);
     const navigate = useNavigate();
     const location = useLocation();
+
+    useEffect(() => {
+        if (stringConditions.length > 0) {
+            const conditions: Condition[] = stringConditions.map((condition) => {
+                try {
+                    return parseCondition(condition);
+                } catch (e) {
+                    console.error('Error parsing condition:', condition, e);
+                    return null;
+                }
+            }).filter((condition) => condition !== null);
+
+            setConditionData(conditions);
+            setStringConditions([]);
+        }
+    }, []);
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
