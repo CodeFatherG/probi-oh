@@ -2,10 +2,9 @@ import { Box, Stack } from "@mui/material";
 import React, { useMemo, useState } from "react";
 import CardTable from "../CardTable/CardTable";
 import ConditionList from "../ConditionList/ConditionList";
-import { CardDetails } from "@probi-oh/types";
+import { CardDetails, Condition } from "@probi-oh/types";
 import LoadingOverlay from "./LoadingOverlay";
 import { getCardDetails } from "@ygo/details-provider";
-import { parseCondition } from "@probi-oh/core/src/parser";
 import { SimulationInput } from "@probi-oh/types";
 import { DataFileManager } from "@probi-oh/core/src/data-file";
 import ydkManager from "@/ygo/ydk-manager";
@@ -19,9 +18,9 @@ import { getCard } from "@/ygo/card-api";
 
 interface ConfigBuilderProps {
     cardData: Map<string, CardDetails>;
-    conditionData: string[];
+    conditionData: Condition[];
     onCardsUpdate: (cards: Map<string, CardDetails>) => void;
-    onConditionsUpdate: (conditions: string[]) => void;
+    onConditionsUpdate: (conditions: Condition[]) => void;
 }
 
 const fileManagerDict: { [key: string]: DataFileManager } = {
@@ -138,19 +137,12 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
         onCardsUpdate(reorderedCards);
     };
 
-    const handleConditionsChange = (newConditions: string[]) => {
-        const conditions: string[] = [];
+    const handleConditionsChange = (newConditions: Condition[]) => {
+        const conditions: Condition[] = [];
         for (const condition of newConditions) {
-            if (condition.trim() !== '') {
-                // Will throw if fatal error
-                parseCondition(condition);
-
-                // If we made it here then valid condition
-                conditions.push(condition);
-            }
+            conditions.push(condition);
+            onConditionsUpdate(conditions);
         }
-
-        onConditionsUpdate(conditions);
     };
 
     const acceptedExtensions = Object.keys(fileManagerDict);

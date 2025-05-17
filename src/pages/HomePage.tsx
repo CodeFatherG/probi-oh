@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import '@/styles/HomePage.css';
 import SimulationRunner from '@components/SimulationView/SimulationRunner';
-import { CardDetails } from '@probi-oh/types';
+import { CardDetails, Condition } from '@probi-oh/types';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import useLocalStorageMap from '@/hooks/useLocalStorageMap';
 import ErrorBoundary from '@components/ErrorBoundary';
@@ -21,7 +21,7 @@ import logo from '@/assets/dtlogo.png';
 
 export default function HomePage() {
     const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
-    const [conditionData, setConditionData] = useLocalStorage<string[]>("conditionDataStore", []);
+    const [conditionData, setConditionData] = useLocalStorage<Condition[]>("conditionDataStoreNew", []);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [cookieConsentOpen, setCookieConsentOpen] = useState(isConsentGiven() === false);
     const navigate = useNavigate();
@@ -52,7 +52,7 @@ export default function HomePage() {
         navigate('', { replace: true });
     }, [setCardData]);
 
-    const handleConditionsUpdate = useCallback((conditions: string[]): void => {
+    const handleConditionsUpdate = useCallback((conditions: Condition[]): void => {
         setConditionData(conditions);
         navigate('', { replace: true });
     }, [setConditionData]);
