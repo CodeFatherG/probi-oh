@@ -434,7 +434,8 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
             for (let i = 0; i < processedItems.length; i++) {
                 if (typeof processedItems[i] === 'object' 
                     && 'type' in processedItems[i] 
-                    && (processedItems[i] as Element).type === 'and') {
+                    && ((processedItems[i] as Element).type === 'and'
+                        || (processedItems[i] as Element).type === 'or')) {
                     
                     // Check if we have valid elements on both sides
                     if (i > 0 && i < processedItems.length - 1) {
@@ -458,47 +459,7 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
                             // Replace these three items with a new logic condition
                             const newCondition: LogicCondition = {
                                 kind: 'logic',
-                                type: ConditionType.AND,
-                                conditionA: leftCondition,
-                                conditionB: rightCondition
-                            };
-                            
-                            processedItems.splice(i - 1, 3, newCondition);
-                            i--; // Adjust index after splicing
-                        }
-                    }
-                }
-            }
-            
-            // Process OR operators (lower precedence)
-            for (let i = 0; i < processedItems.length; i++) {
-                if (typeof processedItems[i] === 'object' 
-                    && 'type' in processedItems[i] 
-                    && (processedItems[i] as Element).type === 'or') {
-                    
-                    // Check if we have valid elements on both sides
-                    if (i > 0 && i < processedItems.length - 1) {
-                        const left = processedItems[i - 1];
-                        const right = processedItems[i + 1];
-                        
-                        // Convert elements to conditions if needed
-                        const leftCondition = typeof left === 'object' && 'kind' in left 
-                            ? left as Condition
-                            : (left as Element).type === 'condition' 
-                            ? elementToCardCondition(left as Element)
-                            : null;
-                            
-                        const rightCondition = typeof right === 'object' && 'kind' in right
-                            ? right as Condition
-                            : (right as Element).type === 'condition'
-                            ? elementToCardCondition(right as Element)
-                            : null;
-                        
-                        if (leftCondition && rightCondition) {
-                            // Replace these three items with a new logic condition
-                            const newCondition: LogicCondition = {
-                                kind: 'logic',
-                                type: ConditionType.OR,
+                                type: (processedItems[i] as Element).type === 'and' ? ConditionType.AND : ConditionType.OR,
                                 conditionA: leftCondition,
                                 conditionB: rightCondition
                             };
