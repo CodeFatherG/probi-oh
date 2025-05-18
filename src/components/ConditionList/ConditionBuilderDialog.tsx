@@ -7,8 +7,7 @@ import {
 } from '@mui/material';
 import { Remove, DragIndicator } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { parseCondition } from '@probi-oh/core/src/parser';
-import { Condition, ConditionType, LogicCondition, ConditionLocation, ConditionOperator } from '@probi-oh/types';
+import { Condition, ConditionType, LogicCondition, ConditionLocation, ConditionOperator, CardCondition } from '@probi-oh/types';
 import { conditionToString } from '@probi-oh/core/src/condition';
 
 interface ConditionBuilderDialogProps {
@@ -353,28 +352,220 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
         }
     };
 
-    const elementToString = (element: Element): string => {
-        if (element.type === 'condition') {
-            const op = element.operator === '>=' ? '+' : element.operator === '<=' ? '-' : '';
-            return `${element.quantity}${op} ${element.cardName} IN ${element.location}`;
-        } else if (element.type === 'group') {
-            return `(${element.children?.map(elementToString).join(' ')})`;
+   /**
+     * Converts an array of UI elements to a Condition object
+     * @param elements - The array of UI elements representing conditions and logic operators
+     * @returns A Condition object or null if invalid
+     */
+    function elementsToCondition(elements: Element[]): Condition | null {
+        if (elements.length === 0) {
+            return null;
         }
-        return element.type.toUpperCase();
-    };
 
+        // Function to convert a single condition element to a CardCondition
+        const elementToCardCondition = (element: Element): CardCondition => {
+            return {
+                kind: 'card',
+                cardName: element.cardName || '',
+                cardCount: element.quantity || 1,
+                operator: 
+                    element.operator === '>=' ? ConditionOperator.AT_LEAST :
+                    element.operator === '<=' ? ConditionOperator.NO_MORE :
+                    ConditionOperator.EXACTLY,
+                location: element.location === 'Deck' ? ConditionLocation.DECK : ConditionLocation.HAND
+            };
+        };
+
+        // Function to recursively process group elements - groups are treated as parenthesized expressions
+        const processGroup = (groupChildren: Element[]): Condition | null => {
+            if (!groupChildren || groupChildren.length === 0) {
+                return null;
+            }
+
+            // Process the group contents to get a condition
+            const groupCondition = buildConditionFromItems(groupChildren);
+            
+            // If the result is a LogicCondition, mark it with parentheses
+            if (groupCondition && groupCondition.kind === 'logic') {
+                return {
+                    ...groupCondition,
+                    render: { hasParentheses: true }
+                };
+            }
+            
+            return groupCondition;
+        };
+
+        // Function to build a condition from an array of elements
+        const buildConditionFromItems = (items: Element[]): Condition | null => {
+            if (items.length === 0) {
+                return null;
+            }
+
+            // First, process all group elements as they have highest precedence (parentheses)
+            const processedItems: (Element | Condition)[] = [];
+            
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                if (item.type === 'group' && item.children && item.children.length > 0) {
+                    // Process group and replace it with the resulting condition
+                    const groupCondition = processGroup(item.children);
+                    if (groupCondition) {
+                        processedItems.push(groupCondition);
+                    }
+                } else {
+                    processedItems.push(item);
+                }
+            }
+
+            // If we only have one item after processing groups
+            if (processedItems.length === 1) {
+                const item = processedItems[0];
+                if (typeof item === 'object' && 'kind' in item) {
+                    // Already a Condition object (processed group)
+                    return item;
+                } else if ((item as Element).type === 'condition') {
+                    return elementToCardCondition(item as Element);
+                }
+                return null;
+            }
+
+            // Process AND operators (higher precedence than OR)
+            for (let i = 0; i < processedItems.length; i++) {
+                if (typeof processedItems[i] === 'object' 
+                    && 'type' in processedItems[i] 
+                    && (processedItems[i] as Element).type === 'and') {
+                    
+                    // Check if we have valid elements on both sides
+                    if (i > 0 && i < processedItems.length - 1) {
+                        const left = processedItems[i - 1];
+                        const right = processedItems[i + 1];
+                        
+                        // Convert elements to conditions if needed
+                        const leftCondition = typeof left === 'object' && 'kind' in left 
+                            ? left as Condition
+                            : (left as Element).type === 'condition' 
+                            ? elementToCardCondition(left as Element)
+                            : null;
+                            
+                        const rightCondition = typeof right === 'object' && 'kind' in right
+                            ? right as Condition
+                            : (right as Element).type === 'condition'
+                            ? elementToCardCondition(right as Element)
+                            : null;
+                        
+                        if (leftCondition && rightCondition) {
+                            // Replace these three items with a new logic condition
+                            const newCondition: LogicCondition = {
+                                kind: 'logic',
+                                type: ConditionType.AND,
+                                conditionA: leftCondition,
+                                conditionB: rightCondition
+                            };
+                            
+                            processedItems.splice(i - 1, 3, newCondition);
+                            i--; // Adjust index after splicing
+                        }
+                    }
+                }
+            }
+            
+            // Process OR operators (lower precedence)
+            for (let i = 0; i < processedItems.length; i++) {
+                if (typeof processedItems[i] === 'object' 
+                    && 'type' in processedItems[i] 
+                    && (processedItems[i] as Element).type === 'or') {
+                    
+                    // Check if we have valid elements on both sides
+                    if (i > 0 && i < processedItems.length - 1) {
+                        const left = processedItems[i - 1];
+                        const right = processedItems[i + 1];
+                        
+                        // Convert elements to conditions if needed
+                        const leftCondition = typeof left === 'object' && 'kind' in left 
+                            ? left as Condition
+                            : (left as Element).type === 'condition' 
+                            ? elementToCardCondition(left as Element)
+                            : null;
+                            
+                        const rightCondition = typeof right === 'object' && 'kind' in right
+                            ? right as Condition
+                            : (right as Element).type === 'condition'
+                            ? elementToCardCondition(right as Element)
+                            : null;
+                        
+                        if (leftCondition && rightCondition) {
+                            // Replace these three items with a new logic condition
+                            const newCondition: LogicCondition = {
+                                kind: 'logic',
+                                type: ConditionType.OR,
+                                conditionA: leftCondition,
+                                conditionB: rightCondition
+                            };
+                            
+                            processedItems.splice(i - 1, 3, newCondition);
+                            i--; // Adjust index after splicing
+                        }
+                    }
+                }
+            }
+            
+            // After processing all operators, we should have a single condition
+            if (processedItems.length === 1) {
+                const item = processedItems[0];
+                if (typeof item === 'object' && 'kind' in item) {
+                    return item as Condition;
+                } else if ((item as Element).type === 'condition') {
+                    return elementToCardCondition(item as Element);
+                }
+            }
+            
+            // If we have multiple items left, something went wrong
+            console.error('Failed to process all elements', processedItems);
+            return null;
+        };
+
+        // Start processing with the full array of elements
+        return buildConditionFromItems(elements);
+    }
+
+    // Updated handleSave function that uses the new converter
     const handleSave = () => {
-        const conditionString = elements.map(el => {
-            return elementToString(el);
-        }).join(' ');
-
         try {
-            onSave(parseCondition(conditionString));
+            const condition = elementsToCondition(elements);
+            validateCondition(condition);
+            if (condition) {
+                onSave(condition);
+                onClose();
+            } else {
+                setAlertMessage('Could not create a valid condition');
+                setAlertOpen(true);
+            }
         } catch (e) {
-            setAlertMessage('Invalid condition');
+            console.error('Error creating condition:', e);
+            setAlertMessage('Invalid condition format' + (e instanceof Error ? `: ${e.message}` : ''));
             setAlertOpen(true);
         }
     };
+
+    // Function to validate condition structure before saving
+    // Will throw a message for error to be displayed in the alert
+    function validateCondition(condition: Condition | null): void {
+        if (!condition) throw new Error('Condition is null or undefined');
+        
+        if (condition.kind === 'card') {
+            // Validate card condition
+            if (!condition.cardName 
+                || condition.cardName.trim() === '' 
+                || condition.cardCount < 0) {
+                    throw new Error(`Invalid card condition: ` + conditionToString(condition));
+                }
+        } else if (condition.kind === 'logic') {
+            // Just call the children to throw
+            validateCondition(condition.conditionA);
+            validateCondition(condition.conditionB);
+        }
+    }
 
     const handleCloseAlert = (event?: React.SyntheticEvent | Event, reason?: string) => {
         if (reason === 'clickaway') {
