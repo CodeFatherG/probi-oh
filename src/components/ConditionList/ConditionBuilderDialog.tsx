@@ -430,7 +430,6 @@ export default function ConditionBuilderDialog({ open, onClose, onSave, initialC
                 return null;
             }
 
-            // Process AND operators (higher precedence than OR)
             for (let i = 0; i < processedItems.length; i++) {
                 if (typeof processedItems[i] === 'object' 
                     && 'type' in processedItems[i] 
