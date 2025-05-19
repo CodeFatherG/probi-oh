@@ -5,7 +5,7 @@ import CardImage from "./CardImage";
 import { Delete, DragIndicator } from "@mui/icons-material";
 import { DraggableProvided } from "@hello-pangea/dnd";
 import CardPreview from "./CardPreview";
-import { CardInformation } from "@/types/card-information";
+import { CardInformation } from '@/types/card-information';
 import { getAverageCardPrice, getCardPrice, getHighestCardPrice, getLowestCardPrice } from "@services/yugioh/prices";
 import { getSettings } from "@services/settings";
 import { getCard } from "@api/ygopro/card-api";
