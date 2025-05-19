@@ -17,7 +17,7 @@ module.exports = (env, argv) => {
     const shouldLog = isDevelopment || (isPreviewBranch);
 
     return {
-        entry: './src/index.tsx',
+        entry: './src/app/index.tsx',
         output: {
             path: path.resolve(__dirname, 'dist'),
             filename: 'bundle.[contenthash].js',

@@ -1,7 +1,7 @@
 import { CreateCard, FreeCard } from "@probi-oh/core/src/card";
 import { Condition } from "@probi-oh/core/src/condition";
 import { MockSimulationBranch } from "../mock/simulation-branch.mock";
-import { freeCardMap } from "@ygo/free-card-map";
+import { freeCardMap } from "@services/yugioh/free-card-map";
 import { MockGameState } from "../mock/game-state.mock";
 import { MockDeck } from "../mock/deck.mock";
 import { processFreeCard } from "@probi-oh/core/src/free-card-processor";

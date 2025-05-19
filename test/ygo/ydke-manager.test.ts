@@ -1,13 +1,13 @@
-import ydkeManager from '@ygo/ydke-manager'; // Adjust the import path as needed
-import { getCard } from '@ygo/card-api';
-import { getCardDetails } from '@ygo/details-provider';
-import { CardInformation } from '@ygo/card-information';
+import ydkeManager from '@services/ydke-manager'; // Adjust the import path as needed
+import { getCard } from '@api/ygopro/card-api';
+import { getCardDetails } from '@services/yugioh/details-provider';
+import { CardInformation } from '@/types/card-information';
 import { CardCondition, CardDetails, ConditionLocation, ConditionOperator } from '@probi-oh/types';
 import { SimulationInput } from '@probi-oh/types';
 
 // Mock the imported functions
-jest.mock('@ygo/card-api');
-jest.mock('@ygo/details-provider');
+jest.mock('@api/ygopro/card-api');
+jest.mock('@services/yugioh/details-provider');
 
 describe('YDKE Manager', () => {
     // Mock implementations

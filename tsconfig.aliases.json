@@ -3,8 +3,13 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@components/*": ["src/components/*"],
-      "@ygo/*": ["src/ygo/*"]
+      "@features/*": ["src/features/*"],
+      "@api/*": ["src/api/*"],
+      "@shared/*": ["src/shared/*"],
+      "@styles/*": ["src/styles/*"],
+      "@routes/*": ["src/routes/*"],
+      "@types/*": ["src/types/*"],
+      "@services/*": ["src/services/*"]
     }
   }
 }
