@@ -1,7 +1,7 @@
 import { CardDetails, FreeCardCondition, FreeCardCost, FreeCardRestriction } from '@probi-oh/types';
-import {CardInformation} from '@ygo/card-information';
-import { getCardDetails } from '@ygo/details-provider';
-import { handTrapMap } from '@ygo/handtrap-map';
+import {CardInformation} from '@/types/card-information';
+import { getCardDetails } from '@services/yugioh/details-provider';
+import { handTrapMap } from '@services/yugioh/handtrap-map';
 
 describe('getCardDetails', () => {
     // Test for a card with free details

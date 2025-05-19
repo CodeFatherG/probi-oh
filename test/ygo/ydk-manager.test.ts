@@ -1,12 +1,12 @@
-import ydkManager from '@ygo/ydk-manager';
-import { getCard } from '@ygo/card-api';
-import { getCardDetails } from '@ygo/details-provider';
+import ydkManager from '@services/ydk-manager';
+import { getCard } from '@api/ygopro/card-api';
+import { getCardDetails } from '@services/yugioh/details-provider';
 import { CardDetails } from '@probi-oh/types';
-import { CardInformation } from '@ygo/card-information';
+import { CardInformation } from '@/types/card-information';
 
 // Mock the imported functions
-jest.mock('@ygo/card-api');
-jest.mock('@ygo/details-provider');
+jest.mock('@api/ygopro/card-api');
+jest.mock('@services/yugioh/details-provider');
 
 // Mock ProgressEvent
 class MockProgressEvent {
