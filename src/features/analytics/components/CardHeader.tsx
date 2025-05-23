@@ -4,6 +4,7 @@ import { Box, BoxProps } from "@mui/material";
 import { getLevelImage } from '@/api/probi-oh/level-img';
 import { CardAttribute, getAttributeImage } from '@/api/probi-oh/attribute-img';
 import { getSpellImage, SpellType } from '@/api/probi-oh/spell-img';
+import { getTrapImage, TrapType } from '@/api/probi-oh/trap-img';
 
 interface CardHeaderProps extends Omit<BoxProps, 'component'> {
     cardInformation: CardInformation;
@@ -106,7 +107,46 @@ function SpellHeader({cardInformation}: CardHeaderProps) {
         <Box
             component="img"
             src={spellImg}
-            alt={`${cardInformation.attribute}`}
+            alt={`${spellType}`}
+            loading="lazy"
+            maxWidth='32px'
+            height='auto'
+        />
+    );
+}
+
+function TrapHeader({cardInformation}: CardHeaderProps) {
+    const [trapImg, setTrapImg] = useState<string>('');
+    const trapType = cardInformation.race.split(' ')[0];
+
+    useEffect(() => {
+        const retrieveSpellImage = async () => {
+            const spellImage = await getTrapImage(trapType.toLowerCase() as unknown as TrapType);
+            if (spellImage) {
+                const url = URL.createObjectURL(spellImage);
+                setTrapImg(url);
+            }
+        }
+        
+        retrieveSpellImage();
+    }, [cardInformation]);
+
+    // Invalid trap?
+    if (!Object.values(TrapType).includes(trapType.toLowerCase())) {
+        console.error(`Invalid trap type: ${trapType}`);
+        return <></>;
+    }
+
+    // No image for normal trap
+    if (trapType.toLowerCase() === 'normal') {
+        return <></>;
+    }
+
+    return (
+        <Box
+            component="img"
+            src={trapImg}
+            alt={`${trapType}`}
             loading="lazy"
             maxWidth='32px'
             height='auto'
@@ -129,8 +169,6 @@ export default function CardHeader({cardInformation}: CardHeaderProps) {
 
     // if the card is a trap
     if (cardInformation.type.includes("Trap")) {
-        return (
-            <></>
-        );
+        return <TrapHeader cardInformation={cardInformation} />;
     }
 }
