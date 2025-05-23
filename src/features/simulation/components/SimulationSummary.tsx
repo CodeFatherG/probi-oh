@@ -164,7 +164,7 @@ export default function SimulationSummary({ simulationId, onApply }: SimulationS
                             <Typography color="error">{error}</Typography>
                         ) : selectedCardName ? (
                             <CardImage
-                                name={selectedCardName}
+                                cardName={selectedCardName}
                                 type="cropped"
                                 sx={{
                                     width: '100%',
