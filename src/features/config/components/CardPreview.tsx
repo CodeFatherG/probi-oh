@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, Typography, Box } from '@mui/material';
 import { CardInformation } from '@/types/card-information';
+import InsightsButton from './InsightsButton';
 
 interface CardPreviewProps {
     cardInformation: CardInformation | null;
@@ -31,6 +32,11 @@ const SpellSummary = ({ cardInformation }: {cardInformation: CardInformation}) =
         }}
     >
         <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+            <InsightsButton 
+                cardName={cardInformation.name} 
+                size="small" 
+                color="secondary"
+            />
             <Box sx={{ position: 'absolute', top: 4, right: 4 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#000' }}>
                     [ Spell Card ]
@@ -55,6 +61,11 @@ const TrapSummary = ({ cardInformation }: {cardInformation: CardInformation}) =>
         }}
     >
         <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+            <InsightsButton 
+                cardName={cardInformation.name} 
+                size="small" 
+                color="primary"
+            />
             <Box sx={{ position: 'absolute', top: 4, right: 4 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#000' }}>
                     [ Trap Card ]
@@ -68,7 +79,7 @@ const TrapSummary = ({ cardInformation }: {cardInformation: CardInformation}) =>
 );
 
 const MonsterSummary = ({ cardInformation }: { cardInformation: CardInformation }) => {
-    const isEffect = cardInformation.type.includes('Effect');
+    const isEffect = cardInformation.typeline?.includes('Effect');
     
     return (
         <Card 
@@ -82,6 +93,11 @@ const MonsterSummary = ({ cardInformation }: { cardInformation: CardInformation 
             }}
         >
             <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+                <InsightsButton 
+                    cardName={cardInformation.name} 
+                    size="small" 
+                    color="primary"
+                />
                 <Box sx={{ position: 'absolute', top: 4, right: 4 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#000' }}>
                         [{cardInformation.attribute} / Level {cardInformation.level}]
