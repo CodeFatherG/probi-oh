@@ -6,36 +6,54 @@ import {
   Autocomplete,
   Divider,
 } from "@mui/material";
-import dayjs, { Dayjs } from "dayjs";
+import { Dayjs } from "dayjs";
 import { DatePicker } from "@mui/x-date-pickers";
-import { AnalyticsSummary, getAnalyticsSummary } from "@/api/database/analytics/GET-analytics";
-import { AnalyticsDateRange } from '../../../api/database/analytics/analytics-daterange';
 
 interface AnalyticsSidebarProps {
     cardOptions: string[];
-    onRunAnalysis: (filters: {
-        startDate: string;
-        endDate: string;
+    startDate: Dayjs | null;
+    endDate: Dayjs | null;
+    card: string | null;
+    onFilterAnalytics: (filters: {
+        startDate: Dayjs | null;
+        endDate: Dayjs | null;
         selectedCard?: string;
     }) => void;
 }
 
 
-export default function AnalyticsSidebar({ cardOptions, onRunAnalysis }: AnalyticsSidebarProps) {
-  const [startDate, setStartDate] = useState<Dayjs | null>(dayjs().subtract(7, "day"));
-  const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
-  const [selectedCard, setSelectedCard] = useState<string | null>(null);
-  
+export default function AnalyticsSidebar({ cardOptions, startDate, endDate, card, onFilterAnalytics }: AnalyticsSidebarProps) {
+    const [selectedStart, setSelectedStart] = useState<Dayjs | null>(startDate);
+    const [selectedEnd, setSelectedEnd] = useState<Dayjs | null>(endDate);
+    const [selectedCard, setSelectedCard] = useState<string | null>(card);
+    const [cardInput, setCardInput] = useState<string>(card || '');
 
     useEffect(() => {
-        if (startDate && endDate) {
-            onRunAnalysis({
-                startDate: startDate.format("YYYY-MM-DD HH:mm:ss"),
-                endDate: endDate.format("YYYY-MM-DD HH:mm:ss"),
+        if (selectedStart && selectedEnd) {
+            onFilterAnalytics({
+                startDate: selectedStart,
+                endDate: selectedEnd,
                 selectedCard: selectedCard || undefined,
             });
         }
-    }, [startDate, endDate, selectedCard]);
+    }, [selectedStart, selectedEnd, selectedCard]);
+
+    useEffect(() => {
+        if (card) {
+            setCardInput(card);
+        } else {
+            setCardInput('');
+        }
+    }, [card]);
+
+    const handleCardInput = async (event: React.ChangeEvent<object>, value: string, reason: string) => {
+        if (reason === 'input') {
+            setCardInput(value);
+        } else if (reason === 'clear') {
+            setCardInput('');
+            setSelectedCard('');
+        }
+    };
 
   return (
     <Box
@@ -57,8 +75,8 @@ export default function AnalyticsSidebar({ cardOptions, onRunAnalysis }: Analyti
         <Box sx={{ mb: 2 }}>
             <DatePicker<Dayjs>
                 label="Start Date"
-                value={startDate}
-                onChange={setStartDate}
+                value={selectedStart}
+                onChange={setSelectedStart}
                 renderInput={(params) => <TextField {...params} fullWidth />}
             />
         </Box>
@@ -66,17 +84,41 @@ export default function AnalyticsSidebar({ cardOptions, onRunAnalysis }: Analyti
         <Box sx={{ mb: 2 }}>
             <DatePicker<Dayjs>
                 label="End Date"
-                value={endDate}
-                onChange={setEndDate}
+                value={selectedEnd}
+                onChange={setSelectedEnd}
                 renderInput={(params) => <TextField {...params} fullWidth />}
             />
         </Box>
 
-        <Autocomplete
+        {/* <Autocomplete
             options={cardOptions}
-            value={selectedCard}
+            inputValue={cardInput}
+            value={card}
+            onInputChange={handleCardInput}
             onChange={(e, newValue) => setSelectedCard(newValue)}
             renderInput={(params) => <TextField {...params} label="Card Name" />}
+            sx={{ mb: 2 }}
+        /> */}
+        <Autocomplete
+            options={cardOptions}
+            inputValue={cardInput}
+            value={card}
+            onInputChange={handleCardInput}
+            onChange={(e, newValue) => {
+                setSelectedCard(newValue);
+                setCardInput(newValue || '');
+            }}
+            renderInput={(params) => (
+                <TextField
+                    {...params}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && cardOptions.includes(cardInput)) {
+                            setSelectedCard(cardInput);
+                        }
+                    }}
+                    placeholder="Card Name"
+                />
+            )}
             sx={{ mb: 2 }}
         />
 

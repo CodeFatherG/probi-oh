@@ -9,8 +9,8 @@ interface SummaryAnalyticsProps extends TypographyProps{
 }
 
 const getDateString = (dates: AnalyticsDateRange) => {
-    const startDate = dayjs(dates.startDate).format("YYYY-MM-DD HH:mm:ss");
-    const endDate = dayjs(dates.endDate).format("YYYY-MM-DD HH:mm:ss");
+    const startDate = dayjs(dates.startDate).format("YYYY-MM-DD");
+    const endDate = dayjs(dates.endDate).format("YYYY-MM-DD");
 
     // string should be the smallest format that makes sense (hours, days, months, years)
     const start = dayjs(startDate);

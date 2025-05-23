@@ -7,8 +7,27 @@ export interface AnalyticsSummary {
     avgSuccessRate: number
 }
 
+function fixDateFormat(dateString: string): string {
+    // Check if format is YYYY-MM-DD
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (dateRegex.test(dateString)) {
+        // We need to add hh:mm:ss to the date string
+        dateString += " 00:00:00";
+    }
+
+    return dateString;
+}
+
 export async function getAnalyticsSummary(dates: AnalyticsDateRange): Promise<AnalyticsSummary> {
-    if (!dates || !isDateRangeValid(dates)) {
+    if (!dates) {
+        throw new Error('Invalid date range');
+    }
+
+    // Fix date format to YYYY-MM-DD hh:mm:ss
+    dates.startDate = fixDateFormat(dates.startDate);
+    dates.endDate = fixDateFormat(dates.endDate);
+
+    if (!isDateRangeValid(dates)) {
         throw new Error('Invalid date range');
     }
     
@@ -57,7 +76,15 @@ function parseCardAnalytics(jsonData: string | object): Record<string, CardAnaly
 }
 
 export async function getAnalyticsAllCards(dates: AnalyticsDateRange): Promise<Record<string, CardAnalytics>> {
-    if (!dates || !isDateRangeValid(dates)) {
+    if (!dates) {
+        throw new Error('Invalid date range');
+    }
+
+    // Fix date format to YYYY-MM-DD hh:mm:ss
+    dates.startDate = fixDateFormat(dates.startDate);
+    dates.endDate = fixDateFormat(dates.endDate);
+
+    if (!isDateRangeValid(dates)) {
         throw new Error('Invalid date range');
     }
 
@@ -76,7 +103,7 @@ export async function getAnalyticsAllCards(dates: AnalyticsDateRange): Promise<R
 }
 
 export async function getAnalyticsCard(cardName: string, dates: AnalyticsDateRange): Promise<CardAnalytics | undefined> {
-    if (!dates || !isDateRangeValid(dates)) {
+    if (!dates) {
         throw new Error('Invalid date range');
     }
 
@@ -84,6 +111,13 @@ export async function getAnalyticsCard(cardName: string, dates: AnalyticsDateRan
         throw new Error('Card name is required');
     }
 
+    // Fix date format to YYYY-MM-DD hh:mm:ss
+    dates.startDate = fixDateFormat(dates.startDate);
+    dates.endDate = fixDateFormat(dates.endDate);
+
+    if (!isDateRangeValid(dates)) {
+        throw new Error('Invalid date range');
+    }
     
     const apiUrl = `${process.env.API_URL}/api/analytics/card/` +
                     `?name=${encodeURIComponent(cardName)}` +

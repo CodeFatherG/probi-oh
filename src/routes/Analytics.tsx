@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import '@/styles/app.css';
 import ErrorBoundary from '@shared/components/ErrorBoundary';
 import { Box, Stack } from '@mui/material';
@@ -8,28 +8,78 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import AnalyticsSidebar from '@/features/analytics/components/AnalyticsSidebar';
 import { CardAnalytics } from '@probi-oh/types';
 import { getAnalyticsAllCards, getAnalyticsCard } from '@api/database/analytics/GET-analytics';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import AnalyticCard from '@/features/analytics/components/AnalyticCard';
 import SummaryAnalytics from '@/features/analytics/components/SummaryAnalytics';
+import { useSearchParams } from 'react-router-dom';
+
+function getDateString(date: Dayjs): string {
+    return date.format("YYYY-MM-DD");
+}
+
+function getDayjs(date: string): Dayjs | null {
+    try {
+        return dayjs(date);
+    } catch (error) {
+        console.error(`Error parsing date: ${date}`, error);
+        return null;
+    }
+}
 
 export default function Analytics() {
-    const [startDate, setStartDate] = React.useState<string | null>(null);
-    const [endDate, setEndDate] = React.useState<string | null>(null);
-    const [selectedCard, setSelectedCard] = React.useState<string | null>(null);
-    const [allCardAnalytics, setAllCardAnalytics] = React.useState<Record<string, CardAnalytics>>({});
-    const [cardOptions, setCardOptions] = React.useState<string[]>([]);
-    const [cardAnalytics, setCardAnalytics] = React.useState<CardAnalytics | undefined>(undefined);
+    const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
+    const [endDate, setEndDate] = useState<Dayjs | null>(dayjs().subtract(7, "day"));
+    const [selectedCard, setSelectedCard] = useState<string | null>(null);
+    const [allCardAnalytics, setAllCardAnalytics] = useState<Record<string, CardAnalytics>>({});
+    const [cardOptions, setCardOptions] = useState<string[]>([]);
+    const [cardAnalytics, setCardAnalytics] = useState<CardAnalytics | undefined>(undefined);
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const getAnalyticsDateRange = () => {
+        const end = (!endDate) ? dayjs().format("YYYY-MM-DD") : endDate.format("YYYY-MM-DD");
+        const start = (!startDate) ? dayjs(end).subtract(7, "day").format("YYYY-MM-DD") : startDate.format("YYYY-MM-DD");
+            
+        return{
+            startDate: end, 
+            endDate: start
+        };
+    };
 
     useEffect(() => {
-        const start = (!startDate) ? dayjs().subtract(7, "day").format("YYYY-MM-DD HH:mm:ss") : startDate;
-        const end = (!endDate) ? dayjs().format("YYYY-MM-DD HH:mm:ss") : endDate;
+        const start = searchParams.get('start');
+        const end = searchParams.get('end');
+        const card = searchParams.get('card');
+        if (start) {
+            setStartDate(getDayjs(start));
+        }
+        if (end) {
+            setEndDate(getDayjs(end));
+        }
+        if (card) {
+            setSelectedCard(card);
+        }
+    }, []);
+
+    useEffect(() => {
+        const params = new URLSearchParams();
         
+        if (startDate) {
+            params.set('start', getDateString(startDate));
+        }
+        if (endDate) {
+            params.set('end', getDateString(endDate));
+        }
+        if (selectedCard) {
+            params.set('card', selectedCard);
+        }
+        
+        setSearchParams(params);
+    }, [startDate, endDate, selectedCard, setSearchParams]);
+
+    useEffect(() => {
         // Create an async function inside the effect
         const fetchCardAnalytics = async () => {
-            const analytics = await getAnalyticsAllCards({
-                startDate: start, 
-                endDate: end
-            });
+            const analytics = await getAnalyticsAllCards(getAnalyticsDateRange());
             setAllCardAnalytics(analytics);
         };
         
@@ -53,17 +103,10 @@ export default function Analytics() {
             return;
         }
 
-        const start = (!startDate) ? dayjs().subtract(7, "day").format("YYYY-MM-DD HH:mm:ss") : startDate;
-        const end = (!endDate) ? dayjs().format("YYYY-MM-DD HH:mm:ss") : endDate;
-    
-
         const fetchCardAnalytics = async () => {
             const analytics = await getAnalyticsCard(
                 selectedCard || "",
-                {
-                    startDate: start, 
-                    endDate: end
-                }
+                getAnalyticsDateRange()
             );
             console.log(analytics);
             setCardAnalytics(analytics);
@@ -93,10 +136,7 @@ export default function Analytics() {
                     />
                     {startDate && endDate && (
                         <SummaryAnalytics 
-                            dateRange={{
-                                startDate: startDate,
-                                endDate: endDate,
-                            }}
+                            dateRange={getAnalyticsDateRange()}
                             variant='h6'                   
                         />
                     )}
@@ -105,11 +145,14 @@ export default function Analytics() {
                 <Box display='flex' width='100%' height='100%' flexGrow='1'>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <AnalyticsSidebar 
-                            cardOptions={cardOptions} 
-                            onRunAnalysis={
+                            cardOptions={cardOptions}
+                            startDate={startDate}
+                            endDate={endDate}
+                            card={selectedCard}
+                            onFilterAnalytics={
                                 (filters: {
-                                    startDate: string;
-                                    endDate: string;
+                                    startDate: Dayjs | null;
+                                    endDate: Dayjs | null;
                                     selectedCard?: string;
                                 }) => {
                                     setStartDate(filters.startDate);
