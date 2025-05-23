@@ -79,17 +79,6 @@ function SpellHeader({cardInformation}: CardHeaderProps) {
     const [spellImg, setSpellImage] = useState<string>('');
     const spellType = cardInformation.race.split(' ')[0];
 
-    // Invalid spell?
-    if (!Object.values(SpellType).includes(spellType.toLowerCase())) {
-        console.error(`Invalid spell type: ${spellType}`);
-        return <></>;
-    }
-
-    // No image for normal spell
-    if (spellType.toLowerCase() === 'normal') {
-        return <></>;
-    }
-
     useEffect(() => {
         const retrieveSpellImage = async () => {
             const spellImage = await getSpellImage(spellType.toLowerCase() as unknown as SpellType);
@@ -101,6 +90,17 @@ function SpellHeader({cardInformation}: CardHeaderProps) {
         
         retrieveSpellImage();
     }, [cardInformation]);
+
+    // Invalid spell?
+    if (!Object.values(SpellType).includes(spellType.toLowerCase())) {
+        console.error(`Invalid spell type: ${spellType}`);
+        return <></>;
+    }
+
+    // No image for normal spell
+    if (spellType.toLowerCase() === 'normal') {
+        return <></>;
+    }
 
     return (
         <Box
