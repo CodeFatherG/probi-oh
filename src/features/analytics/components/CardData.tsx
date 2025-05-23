@@ -8,9 +8,9 @@ import {
     ListItemText, 
     Typography, 
     Paper,
-    Divider,
     Chip
 } from '@mui/material';
+import UsageTable from './UsageTable';
 
 interface CardDataProps extends BoxProps {
     cardData: CardAnalytics | null;
@@ -60,32 +60,14 @@ export default function CardData({ cardData, ...props }: CardDataProps) {
                     </Typography>
                     
                     {hasQtyStats && (
-                        <>
-                            <Divider sx={{ my: 1 }} />
-                            <Typography variant="subtitle2" gutterBottom>
-                                Usage:
-                            </Typography>
-                                <List 
-                                    sx={{ 
-                                        flex: 1,
-                                        overflow: 'auto',
-                                        px: 1
-                                    }}
-                                    dense
-                                >                    
-                                {Object.entries(cardData.qtyStats).map(([qty, count], index) => (
-                                    <ListItem key={`${qty}-${count}`} divider={index < Object.keys(cardData.qtyStats).length - 1}>
-                                        <ListItemText
-                                            primary={`${qty}: ${count}`}
-                                            primaryTypographyProps={{
-                                                variant: 'body2',
-                                                noWrap: true,
-                                                title: `${qty}: ${count}`
-                                            }}
-                                        />
-                                    </ListItem>
-                                ))}
-                            </List>
+                        <>  
+                            <UsageTable 
+                                usage={cardData.qtyStats} 
+                                sx={{ 
+                                    maxHeight: 200, 
+                                    overflow: 'auto'  
+                                }}
+                            />
                         </>
                     )}
                 </Box>

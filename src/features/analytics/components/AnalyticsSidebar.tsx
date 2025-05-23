@@ -64,7 +64,6 @@ export default function AnalyticsSidebar({ cardOptions, startDate, endDate, card
             display: "flex",
             flexDirection: "column",
             borderRight: { xs: "none", sm: "1px solid #ccc" },
-            height: "100vh",
             boxSizing: "border-box",
         }}
     >
