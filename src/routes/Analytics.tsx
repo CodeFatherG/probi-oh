@@ -61,22 +61,6 @@ export default function Analytics() {
     }, []);
 
     useEffect(() => {
-        const params = new URLSearchParams();
-        
-        if (startDate) {
-            params.set('start', getDateString(startDate));
-        }
-        if (endDate) {
-            params.set('end', getDateString(endDate));
-        }
-        if (selectedCard) {
-            params.set('card', selectedCard);
-        }
-        
-        setSearchParams(params);
-    }, [startDate, endDate, selectedCard, setSearchParams]);
-
-    useEffect(() => {
         // Create an async function inside the effect
         const fetchCardAnalytics = async () => {
             const analytics = await getAnalyticsAllCards(getAnalyticsDateRange());
@@ -115,6 +99,42 @@ export default function Analytics() {
         fetchCardAnalytics();
     }, [startDate, endDate, selectedCard]);
 
+    const handleFilterAnalytics = (filters: {
+        startDate: Dayjs | null;
+        endDate: Dayjs | null;
+        selectedCard?: string;
+    }) => {
+        setStartDate(filters.startDate);
+        setEndDate(filters.endDate);
+        setSelectedCard(filters.selectedCard || null);
+        
+        // Check if the filter is changed and if it is update the url
+        const params = searchParams;
+        if (filters.startDate) {
+            // has it changed?
+            if (filters.startDate.format("YYYY-MM-DD") !== getDateString(startDate || dayjs())) {
+                params.set('start', filters.startDate.format("YYYY-MM-DD"));
+            }
+        }
+        if (filters.endDate) {
+            // has it changed?
+            if (filters.endDate.format("YYYY-MM-DD") !== getDateString(endDate || dayjs())) {
+                params.set('end', filters.endDate.format("YYYY-MM-DD"));
+            }
+        }
+        if (filters.selectedCard) {
+            // has it changed?
+            if (!filters.selectedCard) {
+                params.delete('card');
+            }
+            else if (filters.selectedCard !== selectedCard) {
+                params.set('card', filters.selectedCard);
+            }
+        }
+        
+        setSearchParams(params);
+    }
+
     return (
         <ErrorBoundary>
             <Box className="app">
@@ -149,16 +169,7 @@ export default function Analytics() {
                             startDate={startDate}
                             endDate={endDate}
                             card={selectedCard}
-                            onFilterAnalytics={
-                                (filters: {
-                                    startDate: Dayjs | null;
-                                    endDate: Dayjs | null;
-                                    selectedCard?: string;
-                                }) => {
-                                    setStartDate(filters.startDate);
-                                    setEndDate(filters.endDate);
-                                    setSelectedCard(filters.selectedCard || null);
-                            }} 
+                            onFilterAnalytics={handleFilterAnalytics} 
                         />
                     </LocalizationProvider>
                     {cardAnalytics && (
