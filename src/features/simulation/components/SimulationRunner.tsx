@@ -4,7 +4,7 @@ import { CardDetails, Condition } from '@probi-oh/types';
 import ResultDisplay from './ResultDisplay';
 import { SimulationOutput } from '@probi-oh/types';
 import { Box, LinearProgress, Stack } from '@mui/material';
-import { recordSimulation } from '@api/database/simulations/post';
+import { recordSimulation } from '@/api/database/simulations/POST-simulations';
 import { getSettings } from '@services/settings';
 
 interface SimulationRunnerProps {

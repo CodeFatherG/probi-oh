@@ -256,13 +256,6 @@ export default function CardTable({
                             title={
                                 <PriceSummary prices={costBySource}/>
                             }
-                            // PopperProps={{
-                            //     sx: {
-                            //         '& .MuiTooltip-tooltip': {
-                            //             maxWidth: '150px'
-                            //         },
-                            //     },
-                            // }}
                         >
                             <Box display='flex'>
                                 <Typography m='2px' color='#73a657' variant='caption'>{`${getCurrencySymbol(getSettings().selectedCurrency)}${minCost.toFixed(2)}`}</Typography>

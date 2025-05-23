@@ -1,6 +1,6 @@
 import { CardDetails, Condition } from "@probi-oh/types";
 import { SimulationInput } from "@probi-oh/types";
-import { getSimulationData, SimulationData } from "./get";
+import { getSimulationData, SimulationData } from "./GET-simulations";
 import { parseCondition } from "core/src/parser";
 
 interface CacheEntry {

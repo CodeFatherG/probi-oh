@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Box, Card, Stack, Typography, CircularProgress, IconButton, Snackbar } from "@mui/material";
-import CardImage from '@features/config/components/CardImage';
+import CardImage from '@/shared/components/CardImage';
 import { ForwardOutlined, Share } from "@mui/icons-material";
 import { simulationCache } from "@api/database/simulations/simulation-cache";
 import { getDeckArchetypes, getDeckName } from "@services/yugioh/archetype";
