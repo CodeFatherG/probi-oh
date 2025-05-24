@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { persistUserId } from '../../services/analytics/user-id';
 import { getCurrencies } from '@api/currency/currency';
 import { acceptAllCookies, acceptNecessaryCookies, isConsentGiven } from '@services/analytics/cookieConsent';
+import { clearCardDatabase } from '@/api/probi-oh/image-idb';
 
 interface SettingsDialogProps {
     open: boolean;
@@ -189,6 +190,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                                 console.log('Clearing cache...');
                                 localStorage.clear();
                                 navigate('', { replace: true });
+                                clearCardDatabase();
                                 persistUserId();
                                 window.location.reload();
                                 return;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Typography, Box, TypographyProps } from '@mui/material';
 import { CardInformation } from '@/types/card-information';
 
@@ -11,6 +11,14 @@ interface CardDescriptionProps extends TypographyProps {
 }
 
 const CardDescription = ({ description, ...props }: CardDescriptionProps) => {
+    const [descriptionLines, setDescriptionLines] = React.useState<string[]>([]);
+
+    useEffect(() => {
+        // Split the description by new lines and filter out empty lines
+        const lines = description.split('\n').filter(line => line.trim() !== '');
+        setDescriptionLines(lines);
+    }, [description]);
+
     return (
         <Typography 
             variant="body2" 
@@ -21,11 +29,11 @@ const CardDescription = ({ description, ...props }: CardDescriptionProps) => {
             }}
             {...props}
         >
-            {description.split('\n').map((line, index) => (
-                <React.Fragment key={index}>
+            {descriptionLines.map((line, index) => (
+                <span key={index}>
                     {line}
-                    {index < description.split('\n').length - 1 && <br />}
-                </React.Fragment>
+                    {index < descriptionLines.length - 1 && <br />}
+                </span>
             ))}
         </Typography>
     );
