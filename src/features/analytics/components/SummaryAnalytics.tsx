@@ -25,25 +25,25 @@ const getDateString = (dates: AnalyticsDateRange) => {
         // if there is no decimal part, round it to the nearest integer
         const roundedYears = diffInYears % 1 === 0 ? Math.round(diffInYears) : diffInYears.toFixed(1);
 
-        return `${roundedYears} year${diffInYears >= 2 ? "s" : ""}`;
+        return `${roundedYears} year${diffInYears > 1 ? "s" : ""}`;
     } else if (diffInMonths >= 1) {
         // if there is a decimal part, round it to 1 decimal place
         // if there is no decimal part, round it to the nearest integer
         const roundedMonths = diffInMonths % 1 === 0 ? Math.round(diffInMonths) : diffInMonths.toFixed(1);
 
-        return `${roundedMonths} month${diffInMonths >= 2 ? "s" : ""}`;
+        return `${roundedMonths} month${diffInMonths > 1 ? "s" : ""}`;
     } else if (diffInWeeks >= 1) {
         // if there is a decimal part, round it to 1 decimal place
         // if there is no decimal part, round it to the nearest integer
         const roundedWeeks = diffInWeeks % 1 === 0 ? Math.round(diffInWeeks) : diffInWeeks.toFixed(1);
 
-        return `${roundedWeeks} week${diffInWeeks >= 2 ? "s" : ""}`;
+        return `${roundedWeeks} week${diffInWeeks > 1 ? "s" : ""}`;
     } else {
         // if there is a decimal part, round it to 1 decimal place
         // if there is no decimal part, round it to the nearest integer
         const roundedDays = diffInDays % 1 === 0 ? Math.round(diffInDays) : diffInDays.toFixed(1);
 
-        return `${roundedDays} day${diffInDays >= 2 ? "s" : ""}`;
+        return `${roundedDays} day${diffInDays > 1 ? "s" : ""}`;
     }
 };
 
@@ -53,13 +53,17 @@ export default function SummaryAnalytics({ dateRange, ...props }: SummaryAnalyti
 
     useEffect(() => {
         const fetchSummary = async () => {
-            const start = dateRange.startDate;
-            const end = dateRange.endDate;
-            const summaryData = await getAnalyticsSummary({
-                startDate: start,
-                endDate: end,
-            });
-            setSummary(summaryData);
+            try {
+                const start = dateRange.startDate;
+                const end = dateRange.endDate;
+                const summaryData = await getAnalyticsSummary({
+                    startDate: start,
+                    endDate: end,
+                });
+                setSummary(summaryData);
+            } catch (error) {
+                setSummary(null);
+            }
         };
         
         fetchSummary();

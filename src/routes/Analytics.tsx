@@ -63,8 +63,13 @@ export default function Analytics() {
     useEffect(() => {
         // Create an async function inside the effect
         const fetchCardAnalytics = async () => {
-            const analytics = await getAnalyticsAllCards(getAnalyticsDateRange());
-            setAllCardAnalytics(analytics);
+            try {
+                const analytics = await getAnalyticsAllCards(getAnalyticsDateRange());
+                setAllCardAnalytics(analytics);
+            }
+            catch (error) {
+                setAllCardAnalytics({});
+            }
         };
         
         // Call the async function
@@ -88,12 +93,15 @@ export default function Analytics() {
         }
 
         const fetchCardAnalytics = async () => {
-            const analytics = await getAnalyticsCard(
-                selectedCard || "",
-                getAnalyticsDateRange()
-            );
-            console.log(analytics);
-            setCardAnalytics(analytics);
+            try {
+                const analytics = await getAnalyticsCard(
+                    selectedCard || "",
+                    getAnalyticsDateRange()
+                );
+                setCardAnalytics(analytics);
+            } catch (error) {
+                setCardAnalytics(undefined);
+            }
         };
 
         fetchCardAnalytics();
@@ -113,6 +121,7 @@ export default function Analytics() {
         if (filters.startDate) {
             // has it changed?
             if (filters.startDate.format("YYYY-MM-DD") !== getDateString(startDate || dayjs())) {
+                
                 params.set('start', filters.startDate.format("YYYY-MM-DD"));
             }
         }
@@ -131,7 +140,8 @@ export default function Analytics() {
                 params.set('card', filters.selectedCard);
             }
         }
-        
+
+        console.log(params.toString());
         setSearchParams(params);
     }
 
