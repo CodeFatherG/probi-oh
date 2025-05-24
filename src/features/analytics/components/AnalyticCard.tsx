@@ -32,21 +32,21 @@ export default function AnalyticCard({analytics, ...props}: CardAnalyticsProps) 
     return (
         <Box display={"flex"} {...props}>
             <Paper elevation={3} sx={{ p: 2, flexGrow: 1 }}>
-                {cardInformation === null ? (
-                    <CircularProgress/>
-                ) : (
-                    <Box 
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            width: '100%',
-                            height: '100%',
-                            flexGrow: 1,
-                            minWidth: '100%',
-                            minHeight: '100%',
-                        }}
-                    >
+                <Box 
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        width: '100%',
+                        height: '100%',
+                        flexGrow: 1,
+                        minWidth: '100%',
+                        minHeight: '100%',
+                    }}
+                >
+                    {cardInformation === null ? (
+                        <CircularProgress />
+                    ) : (
                         <Box 
                             display="flex"
                             flexDirection="row"
@@ -97,8 +97,8 @@ export default function AnalyticCard({analytics, ...props}: CardAnalyticsProps) 
                                 />
                             </Box>
                         </Box>
-                    </Box>
-                )}
+                    )}
+                </Box>
             </Paper>
         </Box>
     );
