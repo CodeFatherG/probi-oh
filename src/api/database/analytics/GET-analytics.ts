@@ -24,14 +24,14 @@ export async function getAnalyticsSummary(dates: AnalyticsDateRange): Promise<An
     }
 
     // Fix date format to YYYY-MM-DD hh:mm:ss
-    dates.startDate = fixDateFormat(dates.startDate);
-    dates.endDate = fixDateFormat(dates.endDate);
+    const formattedStartDate = fixDateFormat(dates.startDate);
+    const formattedEndDate = fixDateFormat(dates.endDate);
 
-    if (!isDateRangeValid(dates)) {
+    if (!isDateRangeValid({ startDate: formattedStartDate, endDate: formattedEndDate })) {
         throw new Error('Invalid date range');
     }
     
-    const apiUrl = encodeURI(`${process.env.API_URL}/api/analytics/summary?startDate=${dates.startDate}&endDate=${dates.endDate}`);
+    const apiUrl = encodeURI(`${process.env.API_URL}/api/analytics/summary?startDate=${formattedStartDate}&endDate=${formattedEndDate}`);
     const response = await fetch(apiUrl);
     if (!response.ok) {
         throw new Error(`Failed to get analytics summary data: ${response.statusText}`);
