@@ -102,7 +102,7 @@ class SimulationCache {
 
     private load(): void {
         const cache = window.localStorage.getItem('simulationCache');
-        console.log('Loading cache:', cache);
+        
         if (cache) {
             this.cache = new Map(JSON.parse(cache));
         } 

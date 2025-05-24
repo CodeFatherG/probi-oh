@@ -62,10 +62,11 @@ export default function SummaryAnalytics({ dateRange, ...props }: SummaryAnalyti
                 });
                 setSummary(summaryData);
             } catch (error) {
+                console.error("Error fetching summary:", error);
                 setSummary(null);
             }
         };
-        
+        console.log("Fetching summary for date range:", dateRange);
         fetchSummary();
     }, [dateRange]);
 

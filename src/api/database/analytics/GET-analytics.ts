@@ -38,18 +38,7 @@ export async function getAnalyticsSummary(dates: AnalyticsDateRange): Promise<An
     }
 
     try {
-        const data: AnalyticsSummary[] = await response.json();
-
-        if (data.length === 0) {
-            console.warn('No summary data found');
-            return {
-                totalSimulations: 0,
-                uniqueUsers: 0,
-                avgSuccessRate: 0
-            };
-        }
-
-        return data[0];
+        return await response.json();
     } catch (error) {
         console.error('Error validating summary data:', error);
         return {

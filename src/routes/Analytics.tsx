@@ -141,7 +141,6 @@ export default function Analytics() {
             }
         }
 
-        console.log(params.toString());
         setSearchParams(params);
     }
 
