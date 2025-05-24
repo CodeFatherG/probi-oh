@@ -89,15 +89,6 @@ export default function AnalyticsSidebar({ cardOptions, startDate, endDate, card
             />
         </Box>
 
-        {/* <Autocomplete
-            options={cardOptions}
-            inputValue={cardInput}
-            value={card}
-            onInputChange={handleCardInput}
-            onChange={(e, newValue) => setSelectedCard(newValue)}
-            renderInput={(params) => <TextField {...params} label="Card Name" />}
-            sx={{ mb: 2 }}
-        /> */}
         <Autocomplete
             options={cardOptions}
             inputValue={cardInput}
@@ -120,8 +111,6 @@ export default function AnalyticsSidebar({ cardOptions, startDate, endDate, card
             )}
             sx={{ mb: 2 }}
         />
-
-        <Divider sx={{ my: 2 }} />
     </Box>
   );
 }

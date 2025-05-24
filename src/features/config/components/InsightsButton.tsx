@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart, Insights } from '@mui/icons-material';
+import { BarChart } from '@mui/icons-material';
 import { Chip, ChipProps } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,7 +14,7 @@ export default function InsightsButton({ cardName, ...props }: InsightsButtonPro
         <Chip
             onClick={() => {
                 const params = new URLSearchParams({ card: cardName });
-                navigate(`/analytics?${params.toString()}`, { replace: true });
+                navigate(`/analytics?${params.toString()}`);
             }}
             icon={<BarChart />}
             sx={{ '& .MuiChip-label:empty': { paddingLeft: 0 } }}
