@@ -29,14 +29,19 @@ function MonsterHeader({cardInformation}: CardHeaderProps) {
     useEffect(() => {
         if (cardInformation) {
             const retrieveAttributeImage = async (attribute: string) => {
-                // check that attribute is a valid CardAttribute
-                if (!Object.values(CardAttribute).includes(attribute.toLowerCase())) {
+                // Map attribute string to a valid CardAttribute enum value
+                const validAttributeKey = Object.keys(CardAttribute).find(
+                    (key) => key.toLowerCase() === attribute.toLowerCase()
+                );
+
+                if (!validAttributeKey) {
                     console.error(`Invalid attribute: ${attribute}`);
                     setAttributeImage('');
                     return;
                 }
 
-                const attributeImage = await getAttributeImage(attribute.toLowerCase() as unknown as CardAttribute);
+                const attributeEnumValue = CardAttribute[validAttributeKey as keyof typeof CardAttribute];
+                const attributeImage = await getAttributeImage(attributeEnumValue);
                 if (attributeImage) {
                     const url = URL.createObjectURL(attributeImage);
                     setAttributeImage(url);
