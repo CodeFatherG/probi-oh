@@ -45,7 +45,7 @@ const getDateString = (dates: AnalyticsDateRange) => {
 
         return `${roundedDays} day${diffInDays > 1 ? "s" : ""}`;
     }
-};
+}
 
 
 export default function SummaryAnalytics({ dateRange, ...props }: SummaryAnalyticsProps) {
@@ -79,4 +79,4 @@ export default function SummaryAnalytics({ dateRange, ...props }: SummaryAnalyti
             )}
         </>
     );
-};
+}
