@@ -6,7 +6,6 @@ export function isConsentGiven(): boolean {
     if (typeof window !== 'undefined') {
         try {
             const item = window.localStorage.getItem(keyConsent);
-            console.log("item", item);
             if (item) {
                 const parsedItem = JSON.parse(item);
                 if (typeof parsedItem === 'boolean') {
