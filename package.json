@@ -12,7 +12,10 @@
     }
   ],
   "private": true,
-  "workspaces": ["core", "types"],
+  "workspaces": [
+    "core",
+    "types"
+  ],
   "directories": {
     "test": "test"
   },
@@ -35,9 +38,11 @@
     "@everapi/freecurrencyapi-js": "^1.0.1",
     "@hello-pangea/dnd": "^16.6.0",
     "@mui/icons-material": "^5.16.7",
-    "@probi-oh/types": "^1.0.0",
+    "@mui/x-date-pickers": "^5.0.17",
     "@probi-oh/core": "^1.0.0",
+    "@probi-oh/types": "^1.0.0",
     "@types/uuid": "^10.0.0",
+    "dayjs": "^1.11.13",
     "firebase": "^11.7.1",
     "idb": "^8.0.0",
     "mui": "^0.0.1",
@@ -56,10 +61,10 @@
     "@babel/preset-env": "^7.25.7",
     "@babel/preset-react": "^7.25.7",
     "@babel/preset-typescript": "^7.25.7",
-    "@emotion/react": "^11.13.3",
-    "@emotion/styled": "^11.13.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@eslint/js": "^8.56.0",
-    "@mui/material": "^5.16.7",
+    "@mui/material": "^5.17.1",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
     "@types/file-saver": "^2.0.7",

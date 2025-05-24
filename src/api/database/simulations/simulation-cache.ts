@@ -1,6 +1,6 @@
 import { CardDetails, Condition } from "@probi-oh/types";
 import { SimulationInput } from "@probi-oh/types";
-import { getSimulationData, SimulationData } from "./get";
+import { getSimulationData, SimulationData } from "./GET-simulations";
 import { parseCondition } from "core/src/parser";
 
 interface CacheEntry {
@@ -102,7 +102,7 @@ class SimulationCache {
 
     private load(): void {
         const cache = window.localStorage.getItem('simulationCache');
-        console.log('Loading cache:', cache);
+        
         if (cache) {
             this.cache = new Map(JSON.parse(cache));
         } 

@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Box, BoxProps, CircularProgress } from '@mui/material';
-import { getCardImage } from '@api/ygopro/card-api';
+import { getCardImage } from '@api/probi-oh/card-image';
 
 interface CardImageProps extends Omit<BoxProps, 'component'> {
-    name: string;
+    cardName?: string;
+    cardId?: number;
     type?: 'small' | 'full' | 'cropped';
 }
 
-const FALLBACK_IMAGE_URL = '../../res/blank.png';
-
-export default function CardImage({ name, type: type = 'full', ...props}: CardImageProps) {
+export default function CardImage({ cardName, cardId,  type: type = 'full', ...props}: CardImageProps) {
     const [imageSrc, setImageSrc] = useState<string>('');
     const [loadingImage, setLoadingImage] = useState<boolean>(true);
 
@@ -17,7 +16,13 @@ export default function CardImage({ name, type: type = 'full', ...props}: CardIm
         const loadImage = async () => {
             setLoadingImage(true);
             try {
-                const imageBlob = await getCardImage(name, type);
+                const imageSearchName = cardName || cardId;
+                
+                if (!imageSearchName) {
+                    throw new Error('No name or ID provided');
+                }
+
+                const imageBlob = await getCardImage(imageSearchName, type);
                 if (imageBlob) {
                     const url = URL.createObjectURL(imageBlob);
                     setImageSrc(url);
@@ -43,11 +48,11 @@ export default function CardImage({ name, type: type = 'full', ...props}: CardIm
     
         // Cleanup function to revoke the object URL
         return () => {
-          if (imageSrc && imageSrc !== FALLBACK_IMAGE_URL) {
+          if (imageSrc) {
             URL.revokeObjectURL(imageSrc);
           }
         };
-      }, [name, type]);
+      }, [cardName, cardId, type]);
 
     return (
         <>

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import '@/styles/HomePage.css';
+import '@/styles/app.css';
 import SimulationRunner from '@features/simulation/components/SimulationRunner';
 import { CardDetails, Condition } from '@probi-oh/types';
 import useLocalStorage from '@shared/hooks/useLocalStorage';
@@ -17,8 +17,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { simulationEventManager } from '@api/database/simulations/simulation-event-manager';
 import { acceptAllCookies, acceptNecessaryCookies, isConsentGiven } from '@services/analytics/cookieConsent';
 import DataConsentDialog from '@services/analytics/CookieConsentDialog';
-import logo from '@/assets/dtlogo.png';
 import { parseCondition } from 'core/src/parser';
+import Logo from '@/shared/components/Logo';
 
 export default function HomePage() {
     const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
@@ -90,10 +90,7 @@ export default function HomePage() {
     return (
         <ErrorBoundary>
             <Box className="app">
-                <Box
-                    component="img"
-                    src={logo}
-                    alt="Logo"
+                <Logo 
                     sx={{
                         width: {
                             xs: 100,

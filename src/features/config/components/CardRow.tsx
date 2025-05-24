@@ -1,7 +1,7 @@
 import React, { MouseEvent, useEffect, useState } from "react";
 import { Box, IconButton, Stack, TableCell, TableRow, TableRowProps, TextField, Tooltip, Typography } from "@mui/material";
 import TagBox from "./TagBox";
-import CardImage from "./CardImage";
+import CardImage from "@shared/components/CardImage";
 import { Delete, DragIndicator } from "@mui/icons-material";
 import { DraggableProvided } from "@hello-pangea/dnd";
 import CardPreview from "./CardPreview";
@@ -116,7 +116,7 @@ export default function CardRow({ cardName, cardDetails, tagOptions, draggablePr
                     >
                         <Box>
                             <CardImage 
-                                name={cardName} 
+                                cardName={cardName} 
                                 type="cropped" 
                                 sx={{ 
                                     maxWidth: '60px', 

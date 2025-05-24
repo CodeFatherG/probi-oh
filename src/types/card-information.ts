@@ -2,6 +2,7 @@ export interface CardInformation {
     id: number;
     name: string;
     type: string;
+    typeline?: string[];
     desc: string;
     atk?: number;
     def?: number;
