@@ -30,7 +30,6 @@ export default function Analytics() {
     const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
     const [endDate, setEndDate] = useState<Dayjs | null>(dayjs().subtract(7, "day"));
     const [selectedCard, setSelectedCard] = useState<string | null>(null);
-    const [allCardAnalytics, setAllCardAnalytics] = useState<Record<string, CardAnalytics>>({});
     const [cardOptions, setCardOptions] = useState<string[]>([]);
     const [cardAnalytics, setCardAnalytics] = useState<CardAnalytics | undefined>(undefined);
     const [searchParams, setSearchParams] = useSearchParams();
@@ -64,27 +63,18 @@ export default function Analytics() {
         // Create an async function inside the effect
         const fetchCardAnalytics = async () => {
             try {
-                const analytics = await getAnalyticsAllCards(getAnalyticsDateRange());
-                setAllCardAnalytics(analytics);
+                const allCards = await getAnalyticsAllCards(getAnalyticsDateRange());
+                console.log("Fetched all card analytics:", allCards);
+                setCardOptions(allCards);
             }
             catch (error) {
-                setAllCardAnalytics({});
+                setCardOptions([]);
             }
         };
         
         // Call the async function
         fetchCardAnalytics();
     }, [startDate, endDate]);
-
-    useEffect(() => {
-        // sort card analytics by simulationIds length
-        // and create a list of unique card names
-        const options = Object.entries(allCardAnalytics)
-            .sort(([, a], [, b]) => b.simulationIds.length - a.simulationIds.length)
-            .map(([cardName]) => cardName)
-            .filter((cardName) => allCardAnalytics[cardName].simulationIds.length > 0);
-        setCardOptions(options);
-    }, [allCardAnalytics]);
 
     useEffect(() => {
         if (!selectedCard) {

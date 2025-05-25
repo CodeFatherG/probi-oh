@@ -49,22 +49,43 @@ export async function getAnalyticsSummary(dates: AnalyticsDateRange): Promise<An
     }
 }
 
-function parseCardAnalytics(jsonData: string | object): Record<string, CardAnalytics> {
+interface AllCardAnalyticsResponse {
+    analytics: string[];
+    pagination: {
+        page: number,
+        pageSize: number,
+        total: number,
+        hasMore: boolean,
+        totalPages: number
+    },
+}
+
+async function getAllCardAnalyticsPaged(page: number, pageSize: number, dates: AnalyticsDateRange): Promise<AllCardAnalyticsResponse> {
+    const apiUrl = encodeURI(`${process.env.API_URL}/api/analytics/card/all?page=${page}&pageSize=${pageSize}&startDate=${dates.startDate}&endDate=${dates.endDate}`);
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+        throw new Error(`Failed to get analytics cards data: ${response.statusText}`);
+    }
+
     try {
-        // If jsonData is already an object, use it directly
-        if (typeof jsonData === 'object' && jsonData !== null) {
-            return jsonData as Record<string, CardAnalytics>;
-        } else {
-            throw new Error('Invalid JSON data');
-        }
+        const data = await response.json();
+        return data as AllCardAnalyticsResponse;
     } catch (error) {
-        console.error('Error parsing card analytics data:', error);
-        // Return empty map on error to prevent application crash
-        return {};
+        console.error('Error validating card analytics data:', error);
+        return {
+            analytics: [],
+            pagination: {
+                page: 0,
+                pageSize: 0,
+                total: 0,
+                hasMore: false,
+                totalPages: 0
+            }
+        };
     }
 }
 
-export async function getAnalyticsAllCards(dates: AnalyticsDateRange): Promise<Record<string, CardAnalytics>> {
+export async function getAnalyticsAllCards(dates: AnalyticsDateRange): Promise<string[]> {
     if (!dates) {
         throw new Error('Invalid date range');
     }
@@ -77,18 +98,27 @@ export async function getAnalyticsAllCards(dates: AnalyticsDateRange): Promise<R
         throw new Error('Invalid date range');
     }
 
-    const apiUrl = encodeURI(`${process.env.API_URL}/api/analytics/card/all?startDate=${dates.startDate}&endDate=${dates.endDate}`);
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-        throw new Error(`Failed to get analytics cards data: ${response.statusText}`);
+    const cards = new Set<string>();
+
+    // Get all pages
+    let page = 0;
+    const pageSize = 20;
+    let hasMore = true;
+    while (hasMore) {
+        const response = await getAllCardAnalyticsPaged(page, pageSize, dates);
+        if (!response || !response.analytics) {
+            throw new Error('Failed to get analytics cards data');
+        }
+
+        response.analytics.forEach((card: string) => {
+            cards.add(card);
+        });
+
+        hasMore = response.pagination.hasMore;
+        page++;
     }
 
-    try {
-        return parseCardAnalytics(await response.json());
-    } catch (error) {
-        console.error('Error validating card analytics data:', error);
-        return {};
-    }
+    return Array.from(cards);
 }
 
 export async function getAnalyticsCard(cardName: string, dates: AnalyticsDateRange): Promise<CardAnalytics | undefined> {
