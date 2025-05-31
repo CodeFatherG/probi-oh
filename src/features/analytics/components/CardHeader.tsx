@@ -27,32 +27,31 @@ function MonsterHeader({cardInformation}: CardHeaderProps) {
     }, []);
 
     useEffect(() => {
-        if (cardInformation) {
-            const retrieveAttributeImage = async (attribute: string) => {
-                // Map attribute string to a valid CardAttribute enum value
-                const validAttributeKey = Object.keys(CardAttribute).find(
-                    (key) => key.toLowerCase() === attribute.toLowerCase()
-                );
-
-                if (!validAttributeKey) {
-                    console.error(`Invalid attribute: ${attribute}`);
-                    setAttributeImage('');
-                    return;
-                }
-
-                const attributeEnumValue = CardAttribute[validAttributeKey as keyof typeof CardAttribute];
-                const attributeImage = await getAttributeImage(attributeEnumValue);
-                if (attributeImage) {
-                    const url = URL.createObjectURL(attributeImage);
-                    setAttributeImage(url);
-                }
+    if (cardInformation) {
+        const retrieveAttributeImage = async (attribute: string) => {
+            // Convert attribute string to uppercase to match enum keys
+            const attributeKey = attribute.toUpperCase();
+            
+            // Check if the attribute exists in the enum
+            if (!(attributeKey in CardAttribute)) {
+                console.error(`Invalid attribute: ${attribute}`);
+                setAttributeImage('');
+                return;
             }
-
-            if (cardInformation.attribute) {
-                retrieveAttributeImage(cardInformation.attribute.toLowerCase());
+            
+            const attributeEnumValue = CardAttribute[attributeKey as keyof typeof CardAttribute];
+            const attributeImage = await getAttributeImage(attributeEnumValue);
+            if (attributeImage) {
+                const url = URL.createObjectURL(attributeImage);
+                setAttributeImage(url);
             }
         }
-    }, [cardInformation]);
+        
+        if (cardInformation.attribute) {
+            retrieveAttributeImage(cardInformation.attribute);
+        }
+    }
+}, [cardInformation]);
 
     return (
         <Box display='flex' flexDirection='row' alignContent='center' alignItems='center'>
