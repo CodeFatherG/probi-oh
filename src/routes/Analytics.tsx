@@ -12,6 +12,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import AnalyticCard from '@/features/analytics/components/AnalyticCard';
 import SummaryAnalytics from '@/features/analytics/components/SummaryAnalytics';
 import { useSearchParams } from 'react-router-dom';
+import 'dayjs/locale/en-au';
 
 function getDateString(date: Dayjs): string {
     return date.format("YYYY-MM-DD");
@@ -28,7 +29,7 @@ function getDayjs(date: string): Dayjs | null {
 
 export default function Analytics() {
     const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
-    const [endDate, setEndDate] = useState<Dayjs | null>(dayjs().subtract(7, "day"));
+    const [endDate, setEndDate] = useState<Dayjs | null>(dayjs().subtract(1, "month"));
     const [selectedCard, setSelectedCard] = useState<string | null>(null);
     const [cardOptions, setCardOptions] = useState<string[]>([]);
     const [cardAnalytics, setCardAnalytics] = useState<CardAnalytics | undefined>(undefined);
@@ -162,7 +163,7 @@ export default function Analytics() {
                     
                 </Stack>
                 <Box display='flex' width='100%' height='100%' flexGrow='1'>
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'en-au'}>
                         <AnalyticsSidebar 
                             cardOptions={cardOptions}
                             startDate={startDate}
