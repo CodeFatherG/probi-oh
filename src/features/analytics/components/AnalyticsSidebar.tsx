@@ -72,18 +72,18 @@ export default function AnalyticsSidebar({ cardOptions, startDate, endDate, card
 
         <Box sx={{ mb: 2 }}>
             <DatePicker<Dayjs>
-                label="Start Date"
-                value={selectedStart}
-                onChange={setSelectedStart}
+                label="From"
+                value={selectedEnd}
+                onChange={setSelectedEnd}
                 renderInput={(params) => <TextField {...params} fullWidth />}
             />
         </Box>
 
         <Box sx={{ mb: 2 }}>
             <DatePicker<Dayjs>
-                label="End Date"
-                value={selectedEnd}
-                onChange={setSelectedEnd}
+                label="To"
+                value={selectedStart}
+                onChange={setSelectedStart}
                 renderInput={(params) => <TextField {...params} fullWidth />}
             />
         </Box>
