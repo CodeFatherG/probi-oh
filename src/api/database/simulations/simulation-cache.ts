@@ -77,8 +77,6 @@ class SimulationCache {
             conditions: []
         };
 
-        console.log('Loaded simulation data:', data.data);
-
         // Check if the data is a string or an object
         let json;
         if (typeof data.data !== 'string') {

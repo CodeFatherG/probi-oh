@@ -77,16 +77,11 @@ class YdkeManager implements DataFileManager {
 
     public async exportDeckToString(deck: Record<string, CardDetails>): Promise<string> {
         const encodeIds = (ids: number[]): string => {
-            console.log(ids);
-            console.log(new Uint32Array(ids).buffer);
             const buffer = new Uint8Array(new Uint32Array(ids).buffer);
-            console.log(buffer);
             return btoa(String.fromCharCode(...buffer));
         }
 
         const cardIds: number[] = [];
-        console.log(deck);
-        console.log(Object.entries(deck));
         for (const [name, details] of Object.entries(deck)) {
             try {
                 const info = await getCard(name);

@@ -72,12 +72,12 @@ export default function HomePage() {
     const handleCardsUpdate = useCallback((cards: Record<string, CardDetails>): void => {
         updateCards(cards);
         navigate('', { replace: true });
-    }, [setCardData]);
+    }, [updateCards, navigate]);
 
     const handleConditionsUpdate = useCallback((conditions: Condition[]): void => {
         setConditionData(conditions);
         navigate('', { replace: true });
-    }, [setConditionData]);
+    }, [setConditionData, navigate]);
 
     const handleApplySimulation = async (simulationId: string) => {
         console.log('Applying simulation:', simulationId);

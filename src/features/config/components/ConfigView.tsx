@@ -113,7 +113,7 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
 
     // CardTable callback hooks
     const handleUpdateCard = (name: string, details: CardDetails) => {
-        const newData = cardData;
+        const newData = { ...cardData };
         newData[name] = details;
         onCardsUpdate(newData);
     };
