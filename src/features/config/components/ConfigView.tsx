@@ -18,9 +18,9 @@ import { saveAs } from "file-saver";
 import { getCard } from "@api/ygopro/card-api";
 
 interface ConfigBuilderProps {
-    cardData: Map<string, CardDetails>;
+    cardData: Record<string, CardDetails>;
     conditionData: Condition[];
-    onCardsUpdate: (cards: Map<string, CardDetails>) => void;
+    onCardsUpdate: (cards: Record<string, CardDetails>) => void;
     onConditionsUpdate: (conditions: Condition[]) => void;
 }
 
@@ -43,7 +43,7 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
     
     const autocompleteOptions = useMemo(() => {
         const options = new Set<string>();
-        cardData.forEach((details, name) => {
+        Object.entries(cardData).forEach(([name, details]) => {
             options.add(name);
             details.tags?.forEach(tag => options.add(tag));
         });
@@ -113,13 +113,13 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
 
     // CardTable callback hooks
     const handleUpdateCard = (name: string, details: CardDetails) => {
-        const newData = new Map(cardData);
-        newData.set(name, details);
+        const newData = { ...cardData };
+        newData[name] = details;
         onCardsUpdate(newData);
     };
 
     const handleCreateCard = async (name: string) => {
-        if (cardData.has(name)) {
+        if (cardData[name]) {
             console.warn(`Card "${name}" already exists`);
             return;
         }
@@ -137,12 +137,12 @@ export default function ConfigBuilder({ cardData, conditionData, onCardsUpdate, 
     };
 
     const handleDeleteCards = (names: string[]) => {
-        const cards = new Map(cardData);
-        names.forEach(name => cards.delete(name));
+        const cards = cardData;
+        names.forEach(name => delete cards[name]);
         onCardsUpdate(cards);
     };
 
-    const handleReorderCards = (reorderedCards: Map<string, CardDetails>) => {
+    const handleReorderCards = (reorderedCards: Record<string, CardDetails>) => {
         onCardsUpdate(reorderedCards);
     };
 

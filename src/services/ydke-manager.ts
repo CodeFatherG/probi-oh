@@ -43,7 +43,7 @@ class YdkeManager implements DataFileManager {
 
         const mainDeckIds = extractIds(components[0]);
 
-        const cards: Map<string, CardDetails> = new Map<string, CardDetails>();
+        const cards: Record<string, CardDetails> = {};
 
         // Fetch card details and build the deck object
         for (const id of mainDeckIds) {
@@ -55,14 +55,14 @@ class YdkeManager implements DataFileManager {
                     continue;
                 }
 
-                if (!cards.has(cardInfo.name)) {
-                    cards.set(cardInfo.name, await getCardDetails(cardInfo));
+                if (!cards[cardInfo.name]) {
+                    cards[cardInfo.name] = await getCardDetails(cardInfo);
                 }
 
-                const details = cards.get(cardInfo.name);
+                const details = cards[cardInfo.name];
                 if (details) {
                     details.qty = (details.qty || 0) + 1;
-                    cards.set(cardInfo.name, details);
+                    cards[cardInfo.name] = details;
                 }
             } catch (error) {
                 console.error(`Error fetching card with ID ${id}:`, error);
@@ -75,17 +75,14 @@ class YdkeManager implements DataFileManager {
         };
     }
 
-    public async exportDeckToString(deck: Map<string, CardDetails>): Promise<string> {
+    public async exportDeckToString(deck: Record<string, CardDetails>): Promise<string> {
         const encodeIds = (ids: number[]): string => {
-            console.log(ids);
-            console.log(new Uint32Array(ids).buffer);
             const buffer = new Uint8Array(new Uint32Array(ids).buffer);
-            console.log(buffer);
             return btoa(String.fromCharCode(...buffer));
         }
 
         const cardIds: number[] = [];
-        for (const [name, details] of deck) {
+        for (const [name, details] of Object.entries(deck)) {
             try {
                 const info = await getCard(name);
 

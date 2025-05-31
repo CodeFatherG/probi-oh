@@ -1,10 +1,9 @@
-
 export interface SimulationData {
     sim_id: string;
     user_id: string;
     env_id: string;
     data_hash: string;
-    data: string;
+    data: unknown;
     result: number;
     summary: string;
     created_at: string;

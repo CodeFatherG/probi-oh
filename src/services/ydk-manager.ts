@@ -32,7 +32,7 @@ class YdkManager implements DataFileManager {
             .filter(line => line.trim() !== '' && !isNaN(parseInt(line.trim())))
             .map(line => parseInt(line.trim()));
 
-        const cards: Map<string, CardDetails> = new Map<string, CardDetails>();
+        const cards: Record<string, CardDetails> = {};
 
         // Fetch card details and build the deck object
         for (const id of mainDeckIds) {
@@ -44,14 +44,14 @@ class YdkManager implements DataFileManager {
                     continue;
                 }
 
-                if (!cards.has(cardInfo.name)) {
-                    cards.set(cardInfo.name, await getCardDetails(cardInfo));
+                if (!cards[cardInfo.name]) {
+                    cards[cardInfo.name] = await getCardDetails(cardInfo);
                 }
 
-                const details = cards.get(cardInfo.name);
+                const details = cards[cardInfo.name];
                 if (details) {
                     details.qty = (details.qty || 0) + 1;
-                    cards.set(cardInfo.name, details);
+                    cards[cardInfo.name] = details;
                 }
             } catch (error) {
                 console.error(`Error fetching card with ID ${id}:`, error);
@@ -64,10 +64,10 @@ class YdkManager implements DataFileManager {
         };
     }
 
-    public async exportDeckToString(cards: Map<string, CardDetails>): Promise<string> {
+    public async exportDeckToString(cards: Record<string, CardDetails>): Promise<string> {
         let ydkString = "#Created by Probi-Oh\n#tags=\n#main\n";
 
-        for (const [cardName] of cards) {
+        for (const cardName of Object.keys(cards)) {
             const info = await getCard(cardName);
 
             if (!info) {
@@ -75,7 +75,7 @@ class YdkManager implements DataFileManager {
                 continue;
             }
 
-            const details = cards.get(cardName);
+            const details = cards[cardName];
             if (details) {
                 for (let i = 0; i < (details.qty || 0); i++) {
                     ydkString += `${info.id}\n`;

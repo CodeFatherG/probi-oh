@@ -73,15 +73,19 @@ class SimulationCache {
         }
 
         const simulationInput: SimulationInput = {
-            deck: new Map<string, CardDetails>(),
+            deck: {},
             conditions: []
         };
 
-        const json = JSON.parse(data.data);
-        for (const [cardName, details] of Object.entries(json.deck)) {
-            simulationInput.deck.set(cardName, details as CardDetails);
+        // Check if the data is a string or an object
+        let json;
+        if (typeof data.data !== 'string') {
+            // If it's an object, we assume it's already in the correct format
+            json = data.data;
+        }else {
+            json = JSON.parse(data.data as string);
         }
-
+        
         // detect if the conditions are an array of strings or objects
         if (Array.isArray(json.conditions)) {
             for (const condition of json.conditions) {
@@ -96,6 +100,8 @@ class SimulationCache {
                 }
             }
         }
+
+        simulationInput.deck = json.deck as Record<string, CardDetails>;
 
         return simulationInput;
     }

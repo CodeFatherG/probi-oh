@@ -38,8 +38,8 @@ describe('YDKE Manager', () => {
 
             const result = await ydkeManager.importFromString(validYdkeString);
 
-            expect(result.deck.size).toBe(1);
-            expect(result.deck.get('Blue-Eyes White Dragon')).toEqual({ qty: 1, tags: ['Monster', 'Normal'] });
+            expect(Object.keys(result.deck).length).toBe(1);
+            expect(result.deck['Blue-Eyes White Dragon']).toEqual({ qty: 1, tags: ['Monster', 'Normal'] });
             expect(mockGetCard).toHaveBeenCalledTimes(1);
             expect(mockGetCardDetails).toHaveBeenCalledTimes(1);
         });
@@ -78,9 +78,9 @@ describe('YDKE Manager', () => {
 
             const result = await ydkeManager.importFromString(validYdkeString);
 
-            expect(result.deck.size).toBe(2);
-            expect(result.deck.get('Blue-Eyes White Dragon')?.qty).toEqual(2);
-            expect(result.deck.get('Dark Magician')?.qty).toEqual(1);
+            expect(Object.keys(result.deck).length).toBe(2);
+            expect(result.deck['Blue-Eyes White Dragon']?.qty).toEqual(2);
+            expect(result.deck['Dark Magician']?.qty).toEqual(1);
             expect(mockGetCard).toHaveBeenCalledTimes(3);
             expect(mockGetCardDetails).toHaveBeenCalledTimes(2);
         });
@@ -104,8 +104,8 @@ describe('YDKE Manager', () => {
 
             const result = await ydkeManager.importFromString(validYdkeString);
 
-            expect(result.deck.size).toBe(1);
-            expect(result.deck.get('Blue-Eyes White Dragon')).toEqual({ qty: 1, tags: ['Monster', 'Normal'] });
+            expect(Object.keys(result.deck).length).toBe(1);
+            expect(result.deck['Blue-Eyes White Dragon']).toEqual({ qty: 1, tags: ['Monster', 'Normal'] });
             expect(mockGetCard).toHaveBeenCalledTimes(1);
             expect(mockGetCardDetails).toHaveBeenCalledTimes(1);
         });
@@ -131,12 +131,11 @@ describe('YDKE Manager', () => {
 
     describe('exportDeckToString', () => {
         it('should export a card to a valid YDKE string', async () => {
-            const mockDeck = new Map<string, CardDetails>([
-                ['Blue-Eyes White Dragon', { qty: 1, tags: ['Monster', 'Normal'] }],
-            ]);
+            const mockDeck = {
+                'Blue-Eyes White Dragon': { qty: 1, tags: ['Monster', 'Normal'] },
+            };
 
-            mockGetCard
-                .mockResolvedValueOnce({ id: 89631139, name: 'Blue-Eyes White Dragon' } as CardInformation)
+            mockGetCard.mockResolvedValueOnce({ id: 89631139, name: 'Blue-Eyes White Dragon' } as CardInformation)
 
             const result = await ydkeManager.exportDeckToString(mockDeck);
 
@@ -145,10 +144,10 @@ describe('YDKE Manager', () => {
         });
 
         it('should export a deck to a valid YDKE string', async () => {
-            const mockDeck = new Map<string, CardDetails>([
-                ['Blue-Eyes White Dragon', { qty: 2, tags: ['Monster', 'Normal'] }],
-                ['Dark Magician', { qty: 1, tags: ['Monster', 'Normal'] }]
-            ]);
+            const mockDeck = {
+                'Blue-Eyes White Dragon': { qty: 2, tags: ['Monster', 'Normal'] },
+                'Dark Magician': { qty: 1, tags: ['Monster', 'Normal'] }
+            };
 
             mockGetCard
                 .mockResolvedValueOnce({ id: 89631139, name: 'Blue-Eyes White Dragon' } as CardInformation)
@@ -161,10 +160,10 @@ describe('YDKE Manager', () => {
         });
 
         it('should handle errors when fetching card information', async () => {
-            const mockDeck = new Map<string, CardDetails>([
-                ['Blue-Eyes White Dragon', { qty: 1, tags: ['Monster', 'Normal'] }],
-                ['Nonexistent Card', { qty: 1, tags: ['Monster'] }]
-            ]);
+            const mockDeck = {
+                'Blue-Eyes White Dragon': { qty: 1, tags: ['Monster', 'Normal'] },
+                'Nonexistent Card': { qty: 1, tags: ['Monster'] }
+            };
 
             mockGetCard
                 .mockResolvedValueOnce({ id: 89631139, name: 'Blue-Eyes White Dragon' } as CardInformation)
@@ -203,9 +202,9 @@ describe('YDKE Manager', () => {
     describe('exportSimulationToString', () => {
         it('should export a simulation to a valid YDKE string', async () => {
             const mockSimulation: SimulationInput = {
-                deck: new Map<string, CardDetails>([
-                    ['Blue-Eyes White Dragon', { qty: 1, tags: ['Monster', 'Normal'] }]
-                ]),
+                deck: {
+                    'Blue-Eyes White Dragon': { qty: 1, tags: ['Monster', 'Normal'] }
+                },
                 conditions: []
             };
 
@@ -220,7 +219,7 @@ describe('YDKE Manager', () => {
 
         it('should handle empty deck', async () => {
             const mockSimulation: SimulationInput = {
-                deck: new Map<string, CardDetails>(),
+                deck: {},
                 conditions: []
             };
 
