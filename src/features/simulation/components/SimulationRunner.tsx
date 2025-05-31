@@ -9,7 +9,7 @@ import { getSettings } from '@services/settings';
 
 interface SimulationRunnerProps {
     disabled: boolean;
-    cards: Map<string, CardDetails>;
+    cards: Record<string, CardDetails>;
     conditions: Condition[];
 }
 
@@ -84,7 +84,7 @@ export default function SimulationRunner({ disabled,
         setReportData(null);
 
         try {
-            console.log(`Cards: ${Array.from(cards, ([card, details]) => `${card}: ${details.qty || 1}`).join(', ')}`);
+            console.log(`Cards: ${Array.from(Object.entries(cards), ([card, details]) => `${card}: ${details.qty || 1}`).join(', ')}`);
 
             const worker = workerRef.current;
             if (!worker) return;

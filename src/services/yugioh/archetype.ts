@@ -1,12 +1,12 @@
 import { CardDetails } from "@probi-oh/types";
-import { getArchetypes } from "../../api/ygopro/card-api";
+import { getArchetypes } from "@api/ygopro/card-api";
 
-export async function getDeckArchetypes(cards: Map<string, CardDetails>): Promise<Record<string, [string, CardDetails][]>> {
+export async function getDeckArchetypes(cards: Record<string, CardDetails>): Promise<Record<string, [string, CardDetails][]>> {
     const archetypeMap = new Map<string, [string, CardDetails][]>();
     const archetypes = await getArchetypes();
 
     // Count how many cards of each archetype are in the deck
-    for (const [cardName, cardDetails] of cards) {
+    for (const [cardName, cardDetails] of Object.entries(cards)) {
         if (cardDetails.tags) {
             for (const tag of cardDetails.tags) {
                 if (archetypes.includes(tag)) {
@@ -22,7 +22,7 @@ export async function getDeckArchetypes(cards: Map<string, CardDetails>): Promis
     return Object.fromEntries(archetypeMap);
 }
 
-export async function getDeckName(deck: Map<string, CardDetails>): Promise<string> {
+export async function getDeckName(deck: Record<string, CardDetails>): Promise<string> {
     const archetypeList = await getDeckArchetypes(deck);
     console.log(`Deck archetypes: ${JSON.stringify(archetypeList)}`);
 

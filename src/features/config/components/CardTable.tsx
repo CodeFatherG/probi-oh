@@ -22,11 +22,11 @@ import PriceSummary from './PriceSummary';
 
 
 interface CardTableProps {
-    cards: Map<string, CardDetails>;
+    cards: Record<string, CardDetails>;
     onUpdateCard: (name: string, details: CardDetails) => void;
     onCreateCard: (name: string) => void;
     onDeleteCards: (names: string[]) => void;
-    onReorderCards: (reorderedCards: Map<string, CardDetails>) => void;
+    onReorderCards: (reorderedCards: Record<string, CardDetails>) => void;
 }
 
 export default function CardTable({
@@ -42,7 +42,7 @@ export default function CardTable({
     const [newCardName, setNewCardName] = useState<string>('');
     const [selectedCardName, setSelectedCardName] = useState<string>('');
     const [autocompleteOptions, setAutocompleteOptions] = useState<string[]>([]);
-    const [tagOptions, setTagOptions] = useState<string[]>([...new Set(Array.from(cards.values()).flatMap(card => card.tags || []))]);
+    const [tagOptions, setTagOptions] = useState<string[]>([...new Set(Array.from(Object.values(cards)).flatMap(card => card.tags || []))]);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deleteDialogPrompt, setDeleteDialogPrompt] = useState('');
     const [nameSearch, setNameSearch] = useState('');
@@ -63,7 +63,7 @@ export default function CardTable({
         const spellRegex = /spell/i;
         const trapRegex = /trap/i;
 
-        cards.forEach((card) => {
+        Object.values(cards).forEach((card) => {
             totalCount += card.qty || 0;
             if (card.tags) {
                 if (card.tags.some(tag => monsterRegex.test(tag))) monsterCount += card.qty || 0;
@@ -82,7 +82,7 @@ export default function CardTable({
             let averageCost = 0;
             const sourceCost: Record<string, number> = {};
 
-            for (const [name, details] of cards) {
+            for (const [name, details] of Object.entries(cards)) {
                 minCost += await getLowestCardPrice(name) * (details.qty || 0);
                 maxCost += await getHighestCardPrice(name) * (details.qty || 0);
                 averageCost += await getAverageCardPrice(name) * (details.qty || 0);
@@ -104,7 +104,7 @@ export default function CardTable({
 
     useEffect(() => {
         const allTags = new Set<string>();
-        cards.forEach(card => {
+        Object.values(cards).forEach(card => {
             card.tags?.forEach(tag => allTags.add(tag));
         });
         setTagOptions(Array.from(allTags));
@@ -168,9 +168,9 @@ export default function CardTable({
             setAutocompleteOptions([]);
             return;
         }
-        if (cards.has(cardName)) {
+        if (cards[cardName]) {
             // Highlight existing card
-            const index = Array.from(cards.keys()).indexOf(cardName);
+            const index = Array.from(Object.keys(cards)).indexOf(cardName);
             setPage(Math.floor(index / rowsPerPage));
         } else {
             onCreateCard(cardName);
@@ -192,22 +192,21 @@ export default function CardTable({
 
         console.log('handleDragEnd', result);
 
-        const items = Array.from(cards);
+        const items = Array.from(Object.entries(cards));
         const [reorderedItem] = items.splice(result.source.index, 1);
         items.splice(result.destination.index, 0, reorderedItem);
 
-        const reorderedCards = new Map(items);
-        onReorderCards(reorderedCards);
+        onReorderCards(Object.fromEntries(items));
     };
 
     const filteredAndSortedCards = useMemo(() => {
         console.log('filteredAndSortedCards', nameSearch, tagSearch);
 
         if (nameSearch === '' && tagSearch === '') {
-            return Array.from(cards.entries());
+            return Array.from(Object.entries(cards));
         }
 
-        return Array.from(cards.entries())
+        return Array.from(Object.entries(cards))
             .filter(([name, details]) => {
                 const nameMatch = name.toLowerCase().includes(nameSearch.toLowerCase());
                 const tagMatch = details.tags?.some(tag => tag.toLowerCase().includes(tagSearch.toLowerCase()));
@@ -265,7 +264,7 @@ export default function CardTable({
                         </Tooltip>
                     </Stack>
                 </Box>
-                <IconButton onClick={handleDelete} disabled={cards.size === 0}>
+                <IconButton onClick={handleDelete} disabled={Object.keys(cards).length === 0}>
                     <Delete />
                 </IconButton>
             </Toolbar>
@@ -431,7 +430,7 @@ export default function CardTable({
                 onClose={(result) => {
                     if (result) {
                         // delete all
-                        onDeleteCards(Array.from(cards.keys()));
+                        onDeleteCards(Array.from(Object.keys(cards)));
                         setDeleteDialogOpen(false);
                     } else {
                         setDeleteDialogOpen(false);

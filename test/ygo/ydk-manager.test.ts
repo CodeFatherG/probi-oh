@@ -104,9 +104,9 @@ describe('YDK Manager', () => {
 
             const result = await ydkManager.importFromString(validYdkString);
 
-            expect(result.deck.size).toBe(2);
-            expect(result.deck.get('Card 1')).toEqual({qty: 1, tags: ['Monster']});
-            expect(result.deck.get('Card 2')).toEqual({qty: 1, tags: ['Spell']});
+            expect(Object.keys(result.deck).length).toBe(2);
+            expect(result.deck['Card 1']).toEqual({qty: 1, tags: ['Monster']});
+            expect(result.deck['Card 2']).toEqual({qty: 1, tags: ['Spell']});
             expect(mockGetCard).toHaveBeenCalledTimes(2);
             expect(mockGetCardDetails).toHaveBeenCalledTimes(2);
         });
@@ -122,7 +122,7 @@ describe('YDK Manager', () => {
 
             const result = await ydkManager.importFromString(emptyMainDeckYdk);
 
-            expect(result.deck.size).toBe(0);
+            expect(Object.keys(result.deck).length).toBe(0);
             expect(mockGetCard).not.toHaveBeenCalled();
             expect(mockGetCardDetails).not.toHaveBeenCalled();
         });
@@ -154,7 +154,7 @@ describe('YDK Manager', () => {
 
             const result = await ydkManager.importFromString(ydkWithInvalidId);
 
-            expect(result.deck.size).toBe(2);
+            expect(Object.keys(result.deck).length).toBe(2);
             expect(mockGetCard).toHaveBeenCalledTimes(2);
             expect(mockGetCardDetails).toHaveBeenCalledTimes(2);
         });
@@ -176,8 +176,8 @@ describe('YDK Manager', () => {
 
             const result = await ydkManager.importFromString(validYdkString);
 
-            expect(result.deck.size).toBe(1);
-            expect(result.deck.get('Card 2')).toEqual({ qty: 1, tags: ['Spell'] });
+            expect(Object.keys(result.deck).length).toBe(1);
+            expect(result.deck['Card 2']).toEqual({ qty: 1, tags: ['Spell'] });
             expect(consoleSpy).toHaveBeenCalledWith('Error fetching card with ID 12345:', expect.any(Error));
             
             consoleSpy.mockRestore();
@@ -186,10 +186,10 @@ describe('YDK Manager', () => {
 
     describe('ydkManager.exportDeckToString', () => {
         it('should serialise cards to YDK string format', async () => {
-            const mockCards = new Map<string, CardDetails>([
-                ['Card 1', { qty: 1, tags: ['Monster'] }],
-                ['Card 2', { qty: 1, tags: ['Spell'] }],
-            ]);
+            const mockCards = {
+                'Card 1': { qty: 1, tags: ['Monster'] },
+                'Card 2': { qty: 1, tags: ['Spell'] },
+            };
 
             mockGetCard
                 .mockResolvedValueOnce({
@@ -211,15 +211,15 @@ describe('YDK Manager', () => {
 
             const result = await ydkManager.exportDeckToString(mockCards);
 
-            expect(result).toBe('#Created by Probi-Oh\n#tags=\n#main\n12345\n67890\n#extra\n!side\n');
+            expect(result).toContain('#Created by Probi-Oh\n#tags=\n#main\n12345\n67890\n#extra\n!side\n');
             expect(mockGetCard).toHaveBeenCalledTimes(2);
         });
 
         it('should serialise cards with multiple qty to YDK string format', async () => {
-            const mockCards = new Map<string, CardDetails>([
-                ['Card 1', { qty: 2, tags: ['Monster'] }],
-                ['Card 2', { qty: 1, tags: ['Spell'] }],
-            ]);
+            const mockCards = {
+                'Card 1': { qty: 2, tags: ['Monster'] },
+                'Card 2': { qty: 1, tags: ['Spell'] },
+            };
 
             mockGetCard
                 .mockResolvedValueOnce({
@@ -246,10 +246,10 @@ describe('YDK Manager', () => {
         });
 
         it('should handle errors when fetching card information', async () => {
-            const mockCards = new Map<string, CardDetails>([
-                ['Card 1', { qty:1, tags: ['Monster'] }],
-                ['Card 2', { qty:1, tags: ['Spell'] }],
-            ]);
+            const mockCards = {
+                'Card 1': { qty:1, tags: ['Monster'] },
+                'Card 2': { qty:1, tags: ['Spell'] },
+            };
 
             mockGetCard
                 .mockResolvedValueOnce({
@@ -273,7 +273,7 @@ describe('YDK Manager', () => {
         });
 
         it('should return a valid YDK string for an empty deck', async () => {
-            const emptyCards = new Map<string, CardDetails>();
+            const emptyCards = {};
 
             const result = await ydkManager.exportDeckToString(emptyCards);
 

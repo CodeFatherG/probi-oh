@@ -3,7 +3,6 @@ import '@/styles/app.css';
 import SimulationRunner from '@features/simulation/components/SimulationRunner';
 import { CardDetails, Condition } from '@probi-oh/types';
 import useLocalStorage from '@shared/hooks/useLocalStorage';
-import useLocalStorageMap from '@shared/hooks/useLocalStorageMap';
 import ErrorBoundary from '@shared/components/ErrorBoundary';
 import { Box, IconButton, Stack } from '@mui/material';
 import SettingsDialog from '@shared/components/SettingsDialog';
@@ -21,7 +20,7 @@ import { parseCondition } from 'core/src/parser';
 import Logo from '@/shared/components/Logo';
 
 export default function HomePage() {
-    const [cardData, setCardData] = useLocalStorageMap<string, CardDetails>("cardDataStore", new Map<string, CardDetails>());
+    const [cardData, setCardData] = useLocalStorage<Record<string, CardDetails>>("cardDataStore", {});
     const [stringConditions, setStringConditions] = useLocalStorage<string[]>("conditionDataStore", []);
     const [conditionData, setConditionData] = useLocalStorage<Condition[]>("conditionDataStoreObj", []);
     const [settingsOpen, setSettingsOpen] = useState(false);
@@ -65,8 +64,13 @@ export default function HomePage() {
         console.log('Starting App...');
     }, []);
 
-    const handleCardsUpdate = useCallback((cards: Map<string, CardDetails>): void => {
-        setCardData(cards);
+    const updateCards = (cards: Record<string, CardDetails>) => {
+        const newCards = {...cards };
+        setCardData(newCards);
+    };
+
+    const handleCardsUpdate = useCallback((cards: Record<string, CardDetails>): void => {
+        updateCards(cards);
         navigate('', { replace: true });
     }, [setCardData]);
 
@@ -80,7 +84,7 @@ export default function HomePage() {
         const input = await simulationCache.getSimulationInputById(simulationId);
         if (input) {
             navigate(`?id=${simulationId}`, { replace: true });
-            setCardData(input.deck);
+            updateCards(input.deck);
             setConditionData(input.conditions);
         } else {
             throw new Error(`Simulation not found ${simulationId}`);
@@ -110,7 +114,7 @@ export default function HomePage() {
                         onConditionsUpdate={handleConditionsUpdate}
                     />
                     <SimulationRunner
-                        disabled={(cardData.size ?? 0) === 0 || conditionData.length === 0}
+                        disabled={(Object.keys(cardData).length ?? 0) === 0 || conditionData.length === 0}
                         cards={cardData}
                         conditions={conditionData}
                     />
