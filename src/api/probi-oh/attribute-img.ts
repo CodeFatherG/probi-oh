@@ -1,25 +1,23 @@
 import { getImageIDB } from './image-idb';
 
 export enum CardAttribute {
-    'dark',
-    'divine',
-    'earth',
-    'fire',
-    'light',
-    'water',
-    'wind'
+    DARK = 'dark',
+    DIVINE = 'divine',
+    EARTH = 'earth',
+    FIRE = 'fire',
+    LIGHT = 'light',
+    WATER = 'water',
+    WIND = 'wind'
 }
 
-export async function getAttributeImage(attribute: CardAttribute, 
-                                        fetcher = fetch, 
+export async function getAttributeImage(attribute: CardAttribute,
+                                        fetcher = fetch,
                                         dbFactory = getImageIDB): Promise<Blob | null> {
     const db = await dbFactory();
-    
+   
     const gitLink = `https://raw.githubusercontent.com/CodeFatherG/yugioh-db/master/assets/${attribute}.svg`;
-
     const cachedImage = await db.get('images', gitLink);
     if (cachedImage) return cachedImage;
-
     try {
         const response = await fetcher(gitLink);
         if (!response.ok) {
