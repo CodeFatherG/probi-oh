@@ -21,7 +21,7 @@ async function postSimulationData(input: SimulationInput, report: SimulationOutp
             user_id: getUserId(),
             env_id: process.env.DEVELOPMENT ? 'development' : process.env.PREVIEW ? 'preview' : process.env.PRODUCTION ? 'production' : 'unknown',
             data: JSON.stringify({
-                deck: Object.fromEntries(input.deck), 
+                deck: input.deck, 
                 conditions: input.conditions
             }),
             result: report.successfulSimulations / report.iterations,
