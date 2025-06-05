@@ -23,6 +23,17 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.BOT_DEPLOY_KEY }}
 
+    - name: Set up Node.js
+      uses: actions/setup-node@v4.4.0
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build
+      run: npm run build:all
+
     - name: Configure git
       run: |
         git config user.name 'GitHub Actions'

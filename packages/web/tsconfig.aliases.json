@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@features/*": ["src/features/*"],
+      "@api/*": ["src/services/api/*"],
+      "@database/*": ["src/services/database/*"],
+      "@external/*": ["src/services/external/*"],
+      "@shared/*": ["src/shared/*"],
+      "@styles/*": ["src/styles/*"],
+      "@pages/*": ["src/pages/*"],
+      "@types/*": ["src/types/*"],
+      "@services/*": ["src/services/*"]
+    }
+  }
+}

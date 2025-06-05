@@ -1,6 +1,6 @@
-[submodule "types"]
-	path = types
-	url = git@github.com:CodeFatherG/probi-oh-types.git
-[submodule "core"]
-	path = core
+[submodule "packages/core"]
+	path = packages/core
 	url = git@github.com:CodeFatherG/probi-oh-core.git
+[submodule "packages/types"]
+	path = packages/types
+	url = git@github.com:CodeFatherG/probi-oh-types.git
